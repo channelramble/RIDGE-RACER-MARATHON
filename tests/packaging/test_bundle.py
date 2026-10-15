@@ -21,22 +21,41 @@ spec.loader.exec_module(bundle)
 
 
 class BundleTest(unittest.TestCase):
+    def test_network_retry_preserves_command_and_stops_after_three_failures(self):
+        command = ('git', 'fetch', '--depth=1', 'origin', 'a' * 40)
+        failure = subprocess.CalledProcessError(128, command)
+        with patch.object(bundle, 'run', side_effect=[failure, None]) as run, \
+                patch.object(bundle.time, 'sleep') as sleep:
+            bundle.retry_network(*command)
+            self.assertEqual(run.call_count, 2)
+            self.assertTrue(all(call.args == command for call in run.call_args_list))
+            sleep.assert_called_once_with(3)
+        with patch.object(bundle, 'run', side_effect=failure) as run, \
+                patch.object(bundle.time, 'sleep') as sleep:
+            with self.assertRaises(subprocess.CalledProcessError):
+                bundle.retry_network(*command)
+            self.assertEqual(run.call_count, 3)
+            self.assertEqual([call.args[0] for call in sleep.call_args_list], [3, 6])
+
     @unittest.skipIf(os.name == 'nt' or sys.version_info < (3, 12),
                      'POSIX source mirrors use the Linux release runner')
-    def test_source_colon_filename_preserved_without_weakening_runtime_paths(self):
+    def test_source_posix_filenames_preserved_without_weakening_runtime_paths(self):
         with tempfile.TemporaryDirectory() as temp:
             base = Path(temp)
             notice = base / 'fixture'
             notice.write_bytes(b'upstream source fixture\n')
-            member = 'pipewire/samples/USB Device 0x46d:0x9a4--USB Mixer'
             archive = base / 'source.tar'
-            with tarfile.open(archive, 'w') as t:
-                t.add(notice, arcname=member)
-            with self.assertRaises(ValueError):
-                bundle.extract(archive, 'tar', base / 'runtime')
-            bundle.extract(archive, 'tar', base / 'source', source=True)
-            self.assertEqual((base / 'source' / member).read_bytes(), notice.read_bytes())
-            for unsafe in ('../outside', '/absolute', 'C:/absolute'):
+            members = ('pipewire/samples/USB Device 0x46d:0x9a4--USB Mixer',
+                       r'systemd/fuzz/dev-mapper-fedora_krowka\x2dswap.swap')
+            for member in members:
+                with self.subTest(member=member):
+                    with tarfile.open(archive, 'w') as t:
+                        t.add(notice, arcname=member)
+                    with self.assertRaises(ValueError):
+                        bundle.extract(archive, 'tar', base / 'runtime')
+                    bundle.extract(archive, 'tar', base / 'source', source=True)
+                    self.assertEqual((base / 'source' / member).read_bytes(), notice.read_bytes())
+            for unsafe in ('../outside', '/absolute', 'C:/absolute', r'C:\absolute'):
                 with tarfile.open(archive, 'w') as t:
                     t.add(notice, arcname=unsafe)
                 # tarfile strips the initial slash from arcname; force the

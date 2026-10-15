@@ -5009,11 +5009,13 @@
       ],
       "evidence": [
         "https://gitlab.archlinux.org/archlinux/packaging/packages/libasyncns/-/raw/1828be55b074bfc12be8038184aa9d1a3a217342/.SRCINFO",
-        "https://archive.archlinux.org/repos/2026/05/16/extra/os/x86_64/libasyncns-1%3A0.8%2Br3%2Bg68cd5af-3-x86_64.pkg.tar.zst"
+        "https://archive.archlinux.org/repos/2026/05/16/extra/os/x86_64/libasyncns-1%3A0.8%2Br3%2Bg68cd5af-3-x86_64.pkg.tar.zst",
+        "https://github.com/Cor0n4V1rus/libasyncns/commit/68cd5aff1467638c086f1bedcc750e34917168e4",
+        "The original git.0pointer.net host has a TLS hostname mismatch. This HTTPS mirror serves the unchanged upstream commit; shallow fetch and git fsck --full verified the pinned object."
       ],
       "id": "arch-libasyncns-source-0",
       "repo": "arch-upstream/libasyncns",
-      "git_url": "https://git.0pointer.net/clone/libasyncns.git",
+      "git_url": "https://github.com/Cor0n4V1rus/libasyncns.git",
       "commit": "68cd5aff1467638c086f1bedcc750e34917168e4"
     },
     {
@@ -14711,11 +14713,13 @@
           ],
           "evidence": [
             "https://gitlab.archlinux.org/archlinux/packaging/packages/libasyncns/-/raw/1828be55b074bfc12be8038184aa9d1a3a217342/.SRCINFO",
-            "https://archive.archlinux.org/repos/2026/05/16/extra/os/x86_64/libasyncns-1%3A0.8%2Br3%2Bg68cd5af-3-x86_64.pkg.tar.zst"
+            "https://archive.archlinux.org/repos/2026/05/16/extra/os/x86_64/libasyncns-1%3A0.8%2Br3%2Bg68cd5af-3-x86_64.pkg.tar.zst",
+            "https://github.com/Cor0n4V1rus/libasyncns/commit/68cd5aff1467638c086f1bedcc750e34917168e4",
+            "The original git.0pointer.net host has a TLS hostname mismatch. This HTTPS mirror serves the unchanged upstream commit; shallow fetch and git fsck --full verified the pinned object."
           ],
           "id": "arch-libasyncns-source-0",
           "repo": "arch-upstream/libasyncns",
-          "git_url": "https://git.0pointer.net/clone/libasyncns.git",
+          "git_url": "https://github.com/Cor0n4V1rus/libasyncns.git",
           "commit": "68cd5aff1467638c086f1bedcc750e34917168e4"
         }
       ],

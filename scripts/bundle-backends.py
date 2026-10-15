@@ -20,6 +20,7 @@ import subprocess
 import sys
 import tarfile
 import tempfile
+import time
 import urllib.request
 import zipfile
 
@@ -30,6 +31,20 @@ STAMP = (2026, 1, 1, 0, 0, 0)
 
 def run(*args, cwd=None):
     subprocess.run([str(a) for a in args], cwd=cwd, check=True)
+
+
+def retry_network(*args, cwd=None):
+    """Retry idempotent Git downloads without changing their pinned revision."""
+    for attempt in range(3):
+        try:
+            run(*args, cwd=cwd)
+            return
+        except subprocess.CalledProcessError:
+            if attempt == 2:
+                raise
+            delay = 3 * (attempt + 1)
+            print(f'Network command failed; retrying in {delay} seconds', flush=True)
+            time.sleep(delay)
 
 
 def sha256(path):
@@ -47,8 +62,8 @@ def write_json(path, obj):
 
 def relative(value, *, posix_names=False):
     p = PurePosixPath(value)
-    if (not value or '\\' in value or p.is_absolute() or '..' in p.parts or
-            (':' in value and not posix_names) or re.match(r'^[A-Za-z]:', value)):
+    if (not value or p.is_absolute() or '..' in p.parts or
+            (('\\' in value or ':' in value) and not posix_names) or re.match(r'^[A-Za-z]:', value)):
         raise ValueError(f'Unsafe relative path: {value!r}')
     return p
 
@@ -166,6 +181,8 @@ def flatten_appimage_tree(dest):
 
 
 def extract(archive, fmt, dest, *, source=False):
+    if source and os.name == 'nt':
+        raise RuntimeError('Mirror POSIX source archives on the Linux source runner')
     dest.mkdir(parents=True, exist_ok=True)
     if fmt == 'zip':
         extract_zip(archive, dest, source=source)
@@ -257,10 +274,10 @@ def checkout(source, dest):
         dest.mkdir(parents=True)
         run('git', 'init', '--quiet', dest)
         run('git', '-C', dest, 'remote', 'add', 'origin', url)
-        run('git', '-C', dest, 'fetch', '--depth=1', 'origin', source['commit'])
+        retry_network('git', '-C', dest, 'fetch', '--depth=1', 'origin', source['commit'])
     run('git', '-C', dest, 'checkout', '--detach', source['commit'])
     if (dest / '.gitmodules').is_file():
-        run('git', '-c', 'url.https://github.com/.insteadOf=git@github.com:', '-C', dest, 'submodule', 'update', '--init', '--recursive', '--depth=1', '--jobs=4')
+        retry_network('git', '-c', 'url.https://github.com/.insteadOf=git@github.com:', '-C', dest, 'submodule', 'update', '--init', '--recursive', '--depth=1', '--jobs=4')
     actual = subprocess.check_output(['git', '-C', str(dest), 'rev-parse', 'HEAD'], text=True).strip()
     if actual != source['commit']:
         raise ValueError('Source checkout does not match pin')
