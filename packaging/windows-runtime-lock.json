@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "prerequisites": [
+    {
+      "id": "vc-redist-x64",
+      "platform": "windows-x86_64",
+      "name": "Microsoft Visual C++ 2015-2022 Redistributable (x64)",
+      "version": "14.44.35211.0",
+      "mode": "download",
+      "url": "https://download.visualstudio.microsoft.com/download/pr/990c720a-46ce-4dc7-87b9-c2eb615d34b9/CC0FF0EB1DC3F5188AE6300FAEF32BF5BEEBA4BDD6E8E445A9184072096B713B/VC_redist.x64.exe",
+      "sha256": "cc0ff0eb1dc3f5188ae6300faef32bf5beeba4bdd6e8e445a9184072096b713b",
+      "size": 25635768,
+      "license_url": "https://visualstudio.microsoft.com/license-terms/vs2022-cruntime/",
+      "download_page": "https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist/",
+      "redistribution_note": "The runtime license grants installation and use; redistribution requires separate Visual Studio license rights. This release provides a direct Microsoft download helper instead of redistributing the installer.",
+      "license_evidence": "https://learn.microsoft.com/en-us/cpp/windows/redistributing-visual-cpp-files",
+      "resolved_from": "https://aka.ms/vs/17/release/vc_redist.x64.exe",
+      "verified_at": "2026-10-15"
+    }
+  ]
+}

@@ -320,7 +320,11 @@
       "archive": "7z",
       "executable": "pcsx2-qt.exe",
       "source": "pcsx2",
-      "license": "GPL-3.0-or-later"
+      "license": "GPL-3.0-or-later",
+      "extra_notices": [
+        "packaging/notices/agility-LICENSE.txt",
+        "packaging/notices/agility-distributable-files.txt"
+      ]
     },
     {
       "id": "pcsx2",

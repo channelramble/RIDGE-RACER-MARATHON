@@ -1650,7 +1650,7 @@
         "macos-arm64"
       ],
       "backends": [
-        "ppsspp-standalone"
+        "ppsspp"
       ],
       "evidence": [
         "https://github.com/hrydgard/ppsspp-mac-sdl/blob/c387d93ab5910b5a6be78b4840a5bbbc452f3ac8/SDL2.framework/Versions/A/Resources/Info.plist"
@@ -1664,7 +1664,7 @@
         "macos-arm64"
       ],
       "backends": [
-        "ppsspp-standalone"
+        "ppsspp"
       ],
       "evidence": [
         "PPSSPP1.20.4 macOS libMoltenVK.dylib vkGetVersionStringsMVK:1.4.0 / Vulkan1.4.323"
@@ -1678,7 +1678,7 @@
         "macos-arm64"
       ],
       "backends": [
-        "ppsspp-standalone"
+        "ppsspp"
       ],
       "evidence": [
         "https://raw.githubusercontent.com/KhronosGroup/MoltenVK/v1.4.0/ExternalRevisions/SPIRV-Cross_repo_revision"
@@ -1692,7 +1692,7 @@
         "macos-arm64"
       ],
       "backends": [
-        "ppsspp-standalone"
+        "ppsspp"
       ],
       "evidence": [
         "https://raw.githubusercontent.com/KhronosGroup/MoltenVK/v1.4.0/ExternalRevisions/SPIRV-Headers_repo_revision"
@@ -1706,7 +1706,7 @@
         "macos-arm64"
       ],
       "backends": [
-        "ppsspp-standalone"
+        "ppsspp"
       ],
       "evidence": [
         "https://raw.githubusercontent.com/KhronosGroup/MoltenVK/v1.4.0/ExternalRevisions/SPIRV-Tools_repo_revision"
@@ -1720,7 +1720,7 @@
         "macos-arm64"
       ],
       "backends": [
-        "ppsspp-standalone"
+        "ppsspp"
       ],
       "evidence": [
         "https://raw.githubusercontent.com/KhronosGroup/MoltenVK/v1.4.0/ExternalRevisions/Volk_repo_revision"
@@ -1734,7 +1734,7 @@
         "macos-arm64"
       ],
       "backends": [
-        "ppsspp-standalone"
+        "ppsspp"
       ],
       "evidence": [
         "https://raw.githubusercontent.com/KhronosGroup/MoltenVK/v1.4.0/ExternalRevisions/Vulkan-Headers_repo_revision"
@@ -1748,7 +1748,7 @@
         "macos-arm64"
       ],
       "backends": [
-        "ppsspp-standalone"
+        "ppsspp"
       ],
       "evidence": [
         "https://raw.githubusercontent.com/KhronosGroup/MoltenVK/v1.4.0/ExternalRevisions/Vulkan-Tools_repo_revision"
@@ -1762,7 +1762,7 @@
         "macos-arm64"
       ],
       "backends": [
-        "ppsspp-standalone"
+        "ppsspp"
       ],
       "evidence": [
         "https://raw.githubusercontent.com/KhronosGroup/MoltenVK/v1.4.0/ExternalRevisions/cereal_repo_revision"
@@ -1782,6 +1782,57 @@
       ],
       "evidence": [
         "rpcs3/rpcs3-ci-jammy:2.1 OCI image build history"
+      ]
+    },
+    {
+      "id": "rpcs3-ubuntu-gcc16-dsc",
+      "url": "https://launchpad.net/~ubuntu-toolchain-r/+archive/ubuntu/test/+sourcefiles/gcc-16/16-20260315-1ubuntu1~22~ppa1/gcc-16_16-20260315-1ubuntu1~22~ppa1.dsc",
+      "sha256": "526de1b63b1a5c7d97fa382a30c554467377c25205143033ed8e503d149b2944",
+      "archive": "none",
+      "filename": "gcc-16_16-20260315-1ubuntu1~22~ppa1.dsc",
+      "platforms": [
+        "linux-x86_64"
+      ],
+      "backends": [
+        "rpcs3"
+      ],
+      "evidence": [
+        "https://api.launchpad.net/1.0/~ubuntu-toolchain-r/+archive/ubuntu/test/+sourcepub/18171261",
+        "RPCS3 AppImage checkrt libstdc++.so.6 and libgcc_s.so.1 match the OCI image dpkg package MD5 records for 16-20260315-1ubuntu1~22~ppa1."
+      ]
+    },
+    {
+      "id": "rpcs3-ubuntu-gcc16-debian",
+      "url": "https://launchpad.net/~ubuntu-toolchain-r/+archive/ubuntu/test/+sourcefiles/gcc-16/16-20260315-1ubuntu1~22~ppa1/gcc-16_16-20260315-1ubuntu1~22~ppa1.debian.tar.xz",
+      "sha256": "b4f2cb2fe5108ed78100d56bfbc3e2455ccd1079888d67ac0a70601285223207",
+      "archive": "tar.xz",
+      "filename": "gcc-16_16-20260315-1ubuntu1~22~ppa1.debian.tar.xz",
+      "platforms": [
+        "linux-x86_64"
+      ],
+      "backends": [
+        "rpcs3"
+      ],
+      "evidence": [
+        "https://api.launchpad.net/1.0/~ubuntu-toolchain-r/+archive/ubuntu/test/+sourcepub/18171261",
+        "RPCS3 AppImage checkrt libstdc++.so.6 and libgcc_s.so.1 match the OCI image dpkg package MD5 records for 16-20260315-1ubuntu1~22~ppa1."
+      ]
+    },
+    {
+      "id": "rpcs3-ubuntu-gcc16-upstream",
+      "url": "https://launchpad.net/~ubuntu-toolchain-r/+archive/ubuntu/test/+sourcefiles/gcc-16/16-20260315-1ubuntu1~22~ppa1/gcc-16_16-20260315.orig.tar.gz",
+      "sha256": "698867ae6b08e96120866bfa22208527c34f4246bd24a90d65d2d9c8b3e0bb6e",
+      "archive": "tar.gz",
+      "filename": "gcc-16_16-20260315.orig.tar.gz",
+      "platforms": [
+        "linux-x86_64"
+      ],
+      "backends": [
+        "rpcs3"
+      ],
+      "evidence": [
+        "https://api.launchpad.net/1.0/~ubuntu-toolchain-r/+archive/ubuntu/test/+sourcepub/18171261",
+        "RPCS3 AppImage checkrt libstdc++.so.6 and libgcc_s.so.1 match the OCI image dpkg package MD5 records for 16-20260315-1ubuntu1~22~ppa1."
       ]
     }
   ]

@@ -194,6 +194,11 @@ jobs:
         run: .github/scripts/smoke-app.sh 'pkg/${{ matrix.app }}' smoke
       - name: Check imported backends and load every core
         run: python3 .github/scripts/verify-bundle-install.py 'pkg/${{ matrix.bundle }}' smoke/appdata
+      - name: Check Windows runtime helper (no install)
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: >-
+          & 'pkg/RidgeRacerMarathon/bundle/prerequisites/Install-Windows-Runtime.ps1' -CheckOnly
       - uses: actions/upload-artifact@v4
         if: always()
         with:

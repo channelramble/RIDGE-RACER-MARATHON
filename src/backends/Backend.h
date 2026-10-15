@@ -95,6 +95,9 @@ public:
     // record the result with lib.setInstall() but never call lib.save() here —
     // the app merges the record on the main thread. Returns false with progress.error set.
     virtual bool install(Library& lib, TaskProgress& progress);
+    // Local setup also needed when an official payload came from the offline
+    // release (no downloads). Only receives Marathon's writable, owned copy.
+    virtual bool prepareImported(const BackendInstall&, TaskProgress&) { return true; }
     virtual bool uninstall(Library& lib);
     // Uses an installation the user already has (a folder or an executable).
     virtual bool linkExisting(Library& lib, const std::string& path, std::string& error);

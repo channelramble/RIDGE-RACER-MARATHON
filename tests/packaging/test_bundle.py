@@ -27,6 +27,7 @@ class BundleTest(unittest.TestCase):
             self.assertTrue(binary['url'].startswith('https://'))
             self.assertGreater(binary['size'], 0)
 
+    @unittest.skipIf(os.name == 'nt', 'POSIX framework bundles are assembled on macOS/Linux')
     def test_runtime_zip_preserves_executable_and_framework_link(self):
         with tempfile.TemporaryDirectory() as temp:
             base = Path(temp)
@@ -66,6 +67,22 @@ class BundleTest(unittest.TestCase):
                 out.mkdir()
                 with self.assertRaises(ValueError):
                     bundle.extract_zip(zpath, out)
+
+    def test_prerequisite_download_metadata_is_separate_and_verified(self):
+        lock = bundle.load_lock()
+        with tempfile.TemporaryDirectory() as temp:
+            base = Path(temp)
+            self.assertEqual(bundle.build_prerequisites(base, lock, 'macos-arm64'), [])
+            prerequisites = bundle.build_prerequisites(base, lock, 'windows-x86_64')
+            self.assertEqual(len(prerequisites), 1)
+            self.assertEqual(prerequisites[0]['mode'], 'download')
+            self.assertEqual(list(base.rglob('*.exe')), [])
+            bundle.write_json(base / 'manifest.json', {'schema': 1, 'platform': 'windows-x86_64', 'entries': [], 'prerequisites': prerequisites})
+            bundle.verify_bundle(base)
+            descriptor = base / prerequisites[0]['descriptor']
+            descriptor.write_text(descriptor.read_text() + ' ')
+            with self.assertRaises(ValueError):
+                bundle.verify_bundle(base)
 
     def test_verify_rejects_modified_archive(self):
         with tempfile.TemporaryDirectory() as temp:

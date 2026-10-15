@@ -42,6 +42,9 @@ STRIP="$(command -v "$TRIPLE-strip" || true)"
 cp -R "$RRM_ROOT/catalog" "$RRM_ROOT/assets" "$APPDIR/"
 rrm_copy_legal "$APPDIR"
 rrm_copy_bundle "$APPDIR"
+if [[ -f "$APPDIR/bundle/prerequisites/Install-Windows-Runtime.ps1" ]]; then
+    cp "$RRM_ROOT/packaging/Install Windows Runtime.cmd" "$APPDIR/Install Windows Runtime.cmd"
+fi
 rrm_check_sdl_licenses "$BUILD_DIR"
 find "$APPDIR" -name .DS_Store -delete
 

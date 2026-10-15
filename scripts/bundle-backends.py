@@ -54,9 +54,14 @@ def relative(value):
 
 def load_lock():
     lock = json.loads((ROOT / 'packaging/backend-lock.json').read_text())
-    deps = ROOT / 'packaging/dependency-sources.json'
-    if deps.exists():
-        lock['sources'] += json.loads(deps.read_text())['sources']
+    for name in ('dependency-sources.json', 'linux-dependency-sources.json'):
+        deps = ROOT / 'packaging' / name
+        if deps.exists():
+            lock['sources'] += json.loads(deps.read_text())['sources']
+    prereq = ROOT / 'packaging/windows-runtime-lock.json'
+    lock['prerequisites'] = json.loads(prereq.read_text())['prerequisites'] if prereq.exists() else []
+    for item in lock['prerequisites']:
+        validate_prerequisite(item)
     if lock['schema'] != 1:
         raise ValueError('Unsupported lock schema')
     ids = set()
@@ -223,11 +228,12 @@ def checkout(source, dest):
         run('git', '-C', dest, 'remote', 'add', 'origin', url)
         run('git', '-C', dest, 'fetch', '--depth=1', 'origin', source['commit'])
     run('git', '-C', dest, 'checkout', '--detach', source['commit'])
-    run('git', '-c', 'url.https://github.com/.insteadOf=git@github.com:', '-C', dest, 'submodule', 'update', '--init', '--recursive', '--depth=1', '--jobs=4')
+    if (dest / '.gitmodules').is_file():
+        run('git', '-c', 'url.https://github.com/.insteadOf=git@github.com:', '-C', dest, 'submodule', 'update', '--init', '--recursive', '--depth=1', '--jobs=4')
     actual = subprocess.check_output(['git', '-C', str(dest), 'rev-parse', 'HEAD'], text=True).strip()
     if actual != source['commit']:
         raise ValueError('Source checkout does not match pin')
-    submodules = subprocess.check_output(['git', '-C', str(dest), 'submodule', 'status', '--recursive'], text=True)
+    submodules = subprocess.check_output(['git', '-C', str(dest), 'submodule', 'status', '--recursive'], text=True) if (dest / '.gitmodules').is_file() else ''
     if any(line.startswith(('-', '+', 'U')) for line in submodules.splitlines()):
         raise ValueError('Incomplete source submodule checkout')
     (dest / 'MARATHON-SOURCE.json').write_text(json.dumps(dict(source=source, submodules=submodules), indent=2) + '\n')
@@ -335,6 +341,30 @@ def find_executable(tree, pattern):
     return matches[0]
 
 
+
+def validate_prerequisite(item):
+    if item['id'] != 'vc-redist-x64' or item['platform'] != 'windows-x86_64' or item['mode'] != 'download':
+        raise ValueError('Unsupported prerequisite')
+    if not item['url'].startswith('https://download.visualstudio.microsoft.com/download/pr/'):
+        raise ValueError('Prerequisite must use an immutable official Microsoft URL')
+    if not re.fullmatch('[0-9a-f]{64}', item['sha256']) or item['size'] <= 0:
+        raise ValueError('Prerequisite is not pinned')
+
+
+def build_prerequisites(output, lock, platform):
+    entries = []
+    for item in lock.get('prerequisites', []):
+        if item['platform'] != platform:
+            continue
+        validate_prerequisite(item)
+        descriptor = Path('prerequisites') / (item['id'] + '.json')
+        write_json(output / descriptor, item)
+        script = Path('prerequisites/Install-Windows-Runtime.ps1')
+        shutil.copyfile(ROOT / 'scripts/install-windows-runtime.ps1', output / script)
+        entries.append({**item, 'descriptor': descriptor.as_posix(), 'descriptor_sha256': sha256(output / descriptor), 'helper': script.as_posix(), 'helper_sha256': sha256(output / script)})
+    return entries
+
+
 def build_bundle(args, lock):
     index = json.loads(args.source_index.read_text())
     source_map = {s['id']: s for s in index['sources']}
@@ -375,13 +405,19 @@ def build_bundle(args, lock):
                 src = args.licenses / source['id']
                 if src.exists():
                     shutil.copytree(src, notices / source['id'], dirs_exist_ok=True)
+            for notice in binary.get('extra_notices', []):
+                relative(notice)
+                extra = notices / 'distribution'
+                extra.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(ROOT / notice, extra / Path(notice).name)
             provenance = {'binary': binary, 'sources': [source_map[s['id']] for s in sources]}
             write_json(tree / 'MARATHON-PROVENANCE.json', provenance)
             (tree / 'MARATHON-SOURCE-NOTICE.txt').write_text('This emulator is redistributed by Ridge Racer Marathon under the upstream licence(s).\nLicence and copyright notices: MARATHON-LICENSES.\nExact source archives, including submodules and build recipes, are attached to the SAME GitHub release as this application:\nhttps://github.com/channelramble/RIDGE-RACER-MARATHON/releases\nSee MARATHON-PROVENANCE.json for the filenames and hashes.\nNo game disc, game ROM or console firmware is included.\n')
             target = output / (binary['id'] + '.zip')
             pack_zip(tree, target)
             entries.append({'id': binary['id'], 'version': binary['version'], 'archive': target.name, 'sha256': sha256(target), 'executable': executable.relative_to(tree).as_posix(), 'license': binary['license'], 'source_archive': [f['name'] for s in sources for f in source_map[s['id']]['files']], 'upstream_url': binary['url'], 'upstream_sha256': binary['sha256'], **({'system_files': binary['system_files']} if binary.get('system_files') else {})})
-    write_json(output / 'manifest.json', {'schema': 1, 'platform': args.platform, 'entries': entries})
+    prerequisites = build_prerequisites(output, lock, args.platform)
+    write_json(output / 'manifest.json', {'schema': 1, 'platform': args.platform, 'entries': entries, 'prerequisites': prerequisites})
     write_json(output / 'source-manifest.json', index)
     shutil.copyfile(ROOT / 'packaging/backend-lock.json', output / 'backend-lock.json')
     verify_bundle(output)
@@ -389,6 +425,17 @@ def build_bundle(args, lock):
 
 def verify_bundle(folder):
     manifest = json.loads((folder / 'manifest.json').read_text())
+    for item in manifest.get('prerequisites', []):
+        validate_prerequisite(item)
+        if item['platform'] != manifest['platform']:
+            raise ValueError('Prerequisite platform mismatch')
+        for key in ('descriptor', 'helper'):
+            relative(item[key])
+            if sha256(folder / item[key]) != item[key + '_sha256']:
+                raise ValueError('Prerequisite metadata or helper checksum mismatch')
+        descriptor = json.loads((folder / item['descriptor']).read_text())
+        if any(item.get(key) != value for key, value in descriptor.items()):
+            raise ValueError('Prerequisite descriptor mismatch')
     for entry in manifest['entries']:
         relative(entry['archive'])
         relative(entry['executable'])

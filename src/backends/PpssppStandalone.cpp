@@ -125,12 +125,21 @@ public:
 
     bool install(Library& lib, TaskProgress& progress) override {
         if (!Backend::install(lib, progress)) return false;
+        if (const BackendInstall* bi = lib.install(def_.id)) return prepareImported(*bi, progress);
+        return true;
+    }
+
+    bool prepareImported(const BackendInstall& installed, TaskProgress& progress) override {
+#if !defined(__APPLE__)
+        (void)installed;
+        (void)progress;
+#endif
 #if defined(__APPLE__)
         // NSUserDefaults is keyed by bundle id: give Marathon's copy its own, so a custom memory
         // stick folder chosen in the user's PPSSPP never applies here (and the other way round).
-        if (const BackendInstall* bi = lib.install(def_.id); bi && !bi->executable.empty()) {
+        if (!installed.executable.empty()) {
             fs::path app;
-            for (fs::path q = utf8ToPath(bi->executable).parent_path(); !q.empty() && q != q.root_path(); q = q.parent_path())
+            for (fs::path q = utf8ToPath(installed.executable).parent_path(); !q.empty() && q != q.root_path(); q = q.parent_path())
                 if (endsWithI(pathToUtf8(q.filename()), ".app")) {
                     app = q;
                     break;

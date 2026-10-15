@@ -78,8 +78,9 @@ follow the order they were connected in. Player 2 can also be *Nobody*.
 A player keeps their controller while others come and go: if Player 1's controller is
 unplugged, Player 2 stays Player 2, and the next controller that connects becomes Player 1.
 Marathon shows "Controller connected: ... (Player 1)" and "Controller disconnected: ..."
-when that happens (a Bluetooth controller that drops out and is back within two seconds
-does not trigger a message). In a game running inside Marathon, losing Player 1's
+when that happens. Repeated connection messages for the same model are limited to one
+every two seconds, and brief repeated disconnect/reconnect cycles are suppressed.
+In a game running inside Marathon, losing Player 1's
 controller pauses the game until you choose Resume.
 
 Programs that number controllers themselves (PCSX2, Xenia, Fukami) ignore this choice;
@@ -125,7 +126,7 @@ Which of the settings each backend applies:
 
 | Backend | Steering | Accelerate and brake | Vibration | Dead zone | Players / choice |
 |---|---|---|---|---|---|
-| In-app SwanStation / PCSX-ReARMed (Ridge Racer, Rage Racer, R4) | yes | yes | R4 with a DualShock only | yes | 2 / yes |
+| In-app SwanStation / PCSX-ReARMed (Ridge Racer, Rage Racer, R4) | yes | yes | R4 with a DualShock only | yes | 1 (R4: 2) / yes |
 | In-app PPSSPP (PSP games) | yes | yes (digital) | none (the PSP has none) | yes | 1 / yes |
 | In-app MAME (Rave Racer) | analog only | analog always | none | yes | 1 / yes |
 | RPCS3 (Ridge Racer 7) | yes | yes | none in Ridge Racer 7 | yes | 2 / yes |
@@ -149,7 +150,9 @@ controller these games were made for):
 - Left stick: steer (analog neGcon twist); the d-pad steers at full lock
 - RT / LT: accelerate / brake (analog); A / X (Cross / Square): full throttle / brake
 - LB / RB: neGcon L / R
-- Menus: B (Circle) confirms, Y (Triangle) goes back
+- Menus in Ridge Racer: B (Circle) confirms, Y (Triangle) goes back; in Rage Racer:
+  A or B (Cross or Circle) confirms, X or Y (Square or Triangle) goes back; in R4:
+  A (Cross) confirms
 - Start: pause
 
 With *D-pad (digital)* steering they get the original digital pad: the d-pad or the stick

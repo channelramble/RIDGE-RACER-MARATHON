@@ -20,7 +20,11 @@ official PS3 system software. Add those through Marathon's system-file settings.
 macOS: this app is ad-hoc signed, not notarized. If macOS blocks it, open
 System Settings > Privacy & Security > Open Anyway after the first attempt.
 Windows: if SmartScreen warns, choose More info > Run anyway.
-Some external backends need a newer OS or the Microsoft Visual C++ x64 runtime.
+If a Windows emulator reports missing VCRUNTIME or MSVCP files, double-click
+Install Windows Runtime.cmd beside Marathon. It downloads the official x64
+runtime from Microsoft, verifies it, then opens the installer for you to review.
+Internet is required for this optional step. Nothing installs automatically.
+Some external backends also need a newer operating system.
 
 Controllers: hold Guide + Start to return to Marathon (Back + Start on systems
 that reserve Guide). See docs/CONTROLLERS.md for layouts and per-game limits.

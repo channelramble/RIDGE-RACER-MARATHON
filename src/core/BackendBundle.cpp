@@ -412,6 +412,9 @@ BackendBundleReport importBackendBundle(const Catalog& catalog, Library& library
             BackendInstall install;
             install.backendId = id; install.version = version;
             install.root = pathToUtf8(dest); install.executable = pathToUtf8(dest / exeRelative);
+            if (auto backend = createBackend(*def); backend && !backend->prepareImported(install, progress)) {
+                fail(def->name + ": could not finish local backend setup."); continue;
+            }
             library.setInstall(install);
             report.imported.push_back(id);
             progress.addLog(def->name + " " + version + " ready");

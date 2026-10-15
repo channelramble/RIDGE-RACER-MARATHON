@@ -12,6 +12,9 @@
 /out/
 /dist/
 /downloads/
+/.bundle-cache/
+__pycache__/
+*.pyc
 .DS_Store
 *.xcuserstate
 xcuserdata/

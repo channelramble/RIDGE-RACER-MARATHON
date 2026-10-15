@@ -21,14 +21,23 @@ Game discs, ROMs, Sony BIOS/firmware, and game-derived native executables are no
 included. Supply the relevant games and firmware through the launcher's normal
 setup. Native ports and recompilation projects remain available through the
 catalog's Install or Link actions. Their upstream distributions and requirements
-still apply. Some Windows emulators require Microsoft's Visual C++ x64 runtime;
-macOS PCSX2 needs Rosetta 2. A graphics driver remains an operating-system
+still apply. Some Windows emulators require Microsoft's Visual C++ x64 runtime.
+Run `Install Windows Runtime.cmd` beside the Windows launcher if it is missing.
+The helper downloads a pinned installer directly from Microsoft, checks SHA256
+and Microsoft's signature, and opens the normal interactive installer. This
+optional step requires internet access; the installer is not redistributed.
+Microsoft's [redistribution terms](https://learn.microsoft.com/en-us/cpp/windows/redistributing-visual-cpp-files)
+reserve redistribution rights to licensed Visual Studio users. macOS PCSX2 needs
+Rosetta 2. A graphics driver remains an operating-system
 requirement.
 
 The package preserves upstream applications, their support files and their
 licenses. Linux AppImages are extracted during release packaging and launched
 through their `AppRun` entry point, so the packaged copies do not need FUSE.
-Upstream macOS application signatures are kept intact. Third-party licenses and
+Upstream macOS application signatures are kept intact in the packaged payloads.
+On first import, Marathon gives its writable PPSSPP copy a separate bundle ID and
+signs that copy ad hoc, just as its online installer does. This isolates PPSSPP's
+preferences from any copy the user already has. Third-party licenses and
 provenance are placed beside the applications, outside signed bundles.
 
 ## Reproducible release inputs
