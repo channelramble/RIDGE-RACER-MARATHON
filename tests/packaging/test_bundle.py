@@ -21,6 +21,35 @@ spec.loader.exec_module(bundle)
 
 
 class BundleTest(unittest.TestCase):
+    def test_checkout_annotated_tag_keeps_pinned_object_and_records_commit(self):
+        with tempfile.TemporaryDirectory() as temp:
+            base = Path(temp)
+            origin = base / 'origin'
+            subprocess.run(['git', 'init', '--quiet', str(origin)], check=True)
+            def git(*args):
+                return subprocess.check_output(['git', '-C', str(origin), *args], text=True).strip()
+            git('config', 'user.name', 'Source test')
+            git('config', 'user.email', 'source-test@example.invalid')
+            (origin / 'LICENSE').write_text('source license\n')
+            git('add', 'LICENSE')
+            git('commit', '--quiet', '-m', 'Pinned release source')
+            commit = git('rev-parse', 'HEAD')
+            git('tag', '-a', 'v1', '-m', 'Annotated release')
+            tag_object = git('rev-parse', 'v1')
+            self.assertNotEqual(tag_object, commit)
+            source = {'id': 'fixture', 'repo': 'fixture/source', 'git_url': str(origin),
+                      'commit': tag_object}
+            dest = base / 'checkout'
+            bundle.checkout(source, dest)
+            metadata = json.loads((dest / 'MARATHON-SOURCE.json').read_text())
+            self.assertEqual(metadata['source']['commit'], tag_object)
+            self.assertEqual(metadata['resolved_commit'], commit)
+            self.assertEqual((dest / 'LICENSE').read_text(), 'source license\n')
+            blob_source = {**source, 'commit': git('rev-parse', 'HEAD:LICENSE')}
+            with self.assertRaises(subprocess.CalledProcessError):
+                bundle.checkout(blob_source, base / 'invalid-blob')
+            self.assertFalse((base / 'invalid-blob/MARATHON-SOURCE.json').exists())
+
     def test_network_retry_preserves_command_and_stops_after_three_failures(self):
         command = ('git', 'fetch', '--depth=1', 'origin', 'a' * 40)
         failure = subprocess.CalledProcessError(128, command)

@@ -278,13 +278,16 @@ def checkout(source, dest):
     run('git', '-C', dest, 'checkout', '--detach', source['commit'])
     if (dest / '.gitmodules').is_file():
         retry_network('git', '-c', 'url.https://github.com/.insteadOf=git@github.com:', '-C', dest, 'submodule', 'update', '--init', '--recursive', '--depth=1', '--jobs=4')
+    # A reviewed immutable object may be an annotated release tag. Peel that
+    # exact object to a commit rather than comparing HEAD with the tag's hash.
+    expected = subprocess.check_output(['git', '-C', str(dest), 'rev-parse', source['commit'] + '^{commit}'], text=True).strip()
     actual = subprocess.check_output(['git', '-C', str(dest), 'rev-parse', 'HEAD'], text=True).strip()
-    if actual != source['commit']:
+    if actual != expected:
         raise ValueError('Source checkout does not match pin')
     submodules = subprocess.check_output(['git', '-C', str(dest), 'submodule', 'status', '--recursive'], text=True) if (dest / '.gitmodules').is_file() else ''
     if any(line.startswith(('-', '+', 'U')) for line in submodules.splitlines()):
         raise ValueError('Incomplete source submodule checkout')
-    (dest / 'MARATHON-SOURCE.json').write_text(json.dumps(dict(source=source, submodules=submodules), indent=2) + '\n')
+    (dest / 'MARATHON-SOURCE.json').write_text(json.dumps(dict(source=source, resolved_commit=actual, submodules=submodules), indent=2) + '\n')
 
 
 def source_tar(tree, target, keep_history=False):
