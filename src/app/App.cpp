@@ -529,7 +529,8 @@ void App::scanFolder(const std::string& folder) {
         for (auto& w : patterns) {
             if (p.cancel) break;
             // A source with a marker (a local build) is only offered for a build carrying it.
-            std::string exe = findInTree(folder, w.pattern, 5, [&w](const std::string& e) { return w.src.accepts(e); });
+            const BackendSource* src = &w.src;  // (MSVC cannot capture the local struct itself here)
+            std::string exe = findInTree(folder, w.pattern, 5, [src](const std::string& e) { return src->accepts(e); });
             if (!exe.empty()) installs.push_back({w.id, exe});
         }
         p.setStage("Found " + std::to_string(hits.size()) + " game file(s)" +
