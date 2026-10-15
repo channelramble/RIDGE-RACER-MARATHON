@@ -5,7 +5,8 @@ Never publish outputs from this script. It uses the production normalizer and
 importer, but intentionally substitutes empty source archives/licenses so that
 runtime extraction issues can be found independently of the source mirror job.
 All downloads, test bundles and application-data directories are temporary.
-No game, firmware, emulator GUI or runtime installer is executed.
+No game, firmware, setup dialog or runtime installer is executed. Standalone
+AppRun launchers are tested only with source-confirmed version-exit switches.
 """
 from __future__ import annotations
 
@@ -42,6 +43,32 @@ def load_core(path, expected):
     if expected not in version:
         raise RuntimeError(f'Core version differs from pin: {version!r}, expected {expected!r}')
     print(f'CORE PASS: {info.name.decode()} / {version}', flush=True)
+
+
+
+def smoke_apprun(backend, executable, work):
+    """Run only source-confirmed version switches, never emulator setup/gameplay."""
+    switches = {'ppsspp': (['--version'], '1.20.4', {0}),
+                # QtHost returns EXIT_FAILURE after both -help and -version.
+                'pcsx2': (['-version'], '2.8.2', {1}),
+                'rpcs3': (['--headless', '--version'], '4d5def58', {0})}
+    arguments, expected, allowed = switches[backend]
+    environment = os.environ.copy()
+    for key in ('APPIMAGE', 'APPDIR', 'ARGV0', 'LD_PRELOAD'):
+        environment.pop(key, None)
+    for kind in ('CONFIG', 'DATA', 'CACHE', 'STATE', 'RUNTIME'):
+        directory = work / ('xdg-' + kind.lower())
+        directory.mkdir(mode=0o700)
+        environment['XDG_' + kind + ('_DIR' if kind == 'RUNTIME' else '_HOME')] = str(directory)
+    environment['DISABLE_AUTO_UPDATES'] = '1'
+    environment['QT_QPA_PLATFORM'] = 'xcb'
+    command = ['xvfb-run', '-a', str(executable), *arguments]
+    result = subprocess.run(command, cwd=work, env=environment,
+                            stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                            text=True, errors='replace', timeout=45)
+    print(f'APPRUN {backend} exit={result.returncode}:\n{result.stdout}', flush=True)
+    if result.returncode not in allowed or expected not in result.stdout:
+        raise RuntimeError(f'{backend} extracted AppRun failed its version smoke check')
 
 
 def support_assets(lock, runtime_data):
@@ -115,7 +142,8 @@ def probe(args):
                                         '--expected', binary['revision_marker']], check=True, timeout=60)
                     if backend == 'lr-ppsspp' and not (data / 'system/libretro/PPSSPP/ppge_atlas.zim').is_file():
                         raise RuntimeError('PPSSPP support assets did not import')
-                    # Standalone AppRun binaries are intentionally not launched.
+                    if backend in ('ppsspp', 'pcsx2', 'rpcs3'):
+                        smoke_apprun(backend, executable, case)
                     print(f'PASS: {backend}: pinned archive, normalization, ZIP, offline import and executable', flush=True)
                     results.append({'id': backend, 'ok': True})
             except Exception as error:

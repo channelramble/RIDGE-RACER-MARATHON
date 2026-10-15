@@ -35,7 +35,7 @@ jobs:
       - name: Install build and extraction tools
         run: |
           bash .github/scripts/install-linux-deps.sh
-          sudo apt-get install -y -q p7zip-full
+          sudo apt-get install -y -q p7zip-full xvfb xauth
       - name: Build the production offline importer
         run: |
           cmake -S . -B build-probe -G Ninja -DCMAKE_BUILD_TYPE=Release -DRRM_BUILD_TESTS=ON -DRRM_VENDORED_SDL=ON
