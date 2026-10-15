@@ -59,7 +59,8 @@ std::string toStr(const T& v) {
 
 fs::path g_tmp;
 
-fs::path tmpPath(const std::string& rel) { return g_tmp / utf8ToPath(rel); }
+// Native separators, as the code under test returns them ("a/b" is "a\\b" on Windows).
+fs::path tmpPath(const std::string& rel) { return (g_tmp / utf8ToPath(rel)).make_preferred(); }
 std::string tmpStr(const std::string& rel) { return pathToUtf8(tmpPath(rel)); }
 
 void writePath(const fs::path& p, const std::string& data) {
