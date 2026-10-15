@@ -62,10 +62,13 @@ the exe also contains:
 
 ## libretro cores
 
-On desktop and Android, Marathon downloads unmodified libretro cores from the
-libretro buildbot when the user installs them; it does not redistribute them.
-iOS builds (not buildable yet) will have to include them, because iOS apps
-cannot download executable code. Each core keeps its own licence:
+Complete desktop packages redistribute pinned, unmodified libretro cores from
+the libretro buildbot. Each payload carries its license texts in
+`MARATHON-LICENSES/` and a `MARATHON-PROVENANCE.json` mapping the binary to the
+matching source archives attached to the same release. The PPSSPP core also
+includes its upstream support assets. The app can download updated cores when
+the user asks. Android and iOS packages are not buildable yet.
+Each core keeps its own licence:
 
 | Core | Licence | Source |
 |---|---|---|
@@ -76,6 +79,30 @@ cannot download executable code. Each core keeps its own licence:
 
 Marathon's MIT-licensed code is GPL-compatible; a package that includes GPL
 cores is distributed under the GPL terms of those cores.
+
+## Bundled standalone emulators (Complete desktop packages)
+
+- PCSX2: GPL-3.0-or-later.
+- RPCS3: GPL-2.0.
+- Xenia Canary: BSD-3-Clause (Windows and Linux).
+- PPSSPP: GPL-2.0-or-later.
+- MAME: GPL-2.0-or-later (Windows standalone; all platforms include the core).
+
+The upstream programs keep their own licenses and bundled library notices.
+`MARATHON-LICENSES/` contains full collected license texts, including third-party
+dependencies. PCSX2's Windows DirectX Agility SDK also carries Microsoft's
+original license and distributable-files list. Source snapshots, recursive
+submodules and dependency build recipes are provided on the same release; see
+`source-manifest.json` and `SOURCE-README.txt`. Exact contents and platform
+requirements are in [docs/BUNDLED_BACKENDS.md](docs/BUNDLED_BACKENDS.md).
+
+Linux AppImages are unpacked without changing their program code. Marathon's
+macOS copy of PPSSPP receives a separate application identifier and an ad-hoc
+signature when imported, to isolate its preferences from a standalone copy.
+
+The optional Windows runtime helper downloads Microsoft's official Visual C++
+x64 installer directly to the user's computer after an explicit click. The
+Microsoft installer is not redistributed and is subject to its own license.
 
 ## Downloaded on demand (desktop)
 
@@ -90,10 +117,6 @@ They are governed by their own licences:
 - Fukami / Ridge Racer V (danisandoval): GPL-3.0
 - Ridge Racer 6 Recompilation (Sirhalo23): BSD-3-Clause (its ReXGlue SDK
   runtime has its own licence)
-- PCSX2: GPL-3.0-or-later. RPCS3: GPL-2.0. Xenia Canary: BSD-3-Clause.
-- PPSSPP: GPL-2.0-or-later. MAME: GPL-2.0-or-later.
-- libretro cores: SwanStation, PCSX-ReARMed, PPSSPP and MAME (licences in the
-  table above).
 - 7-Zip's standalone extractor 7zr.exe (Igor Pavlov): LGPL-2.1-or-later. Windows
   only, fetched from 7-zip.org to unpack .7z release archives.
 

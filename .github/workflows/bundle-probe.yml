@@ -1,0 +1,39 @@
+# Development probe only: synthetic source metadata must NEVER be published.
+name: Probe Linux emulator bundle
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bundle-probe-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  probe-linux:
+    name: Check eight Linux payloads and offline import
+    runs-on: ubuntu-22.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install build and extraction tools
+        run: |
+          bash .github/scripts/install-linux-deps.sh
+          sudo apt-get install -y -q p7zip-full
+      - name: Build the production offline importer
+        run: |
+          cmake -S . -B build-probe -G Ninja -DCMAKE_BUILD_TYPE=Release -DRRM_BUILD_TESTS=ON -DRRM_VENDORED_SDL=ON
+          cmake --build build-probe --target bundle_tool --parallel 2
+      - name: Probe pinned Linux payloads without games or firmware
+        run: python3 .github/scripts/probe-linux-bundle.py --bundle-tool build-probe/bundle_tool
+      # Intentionally no artifact uploads or release steps. The probe removes all
+      # synthetic bundles and downloaded payloads before returning, even on error.
