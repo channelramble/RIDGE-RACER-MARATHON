@@ -1,0 +1,13 @@
+# Text files are normalised to LF in the repository; Git picks the line endings of a checkout.
+* text=auto
+
+# Shell scripts keep LF everywhere, also in Windows checkouts (Git Bash, WSL, CI).
+*.sh text eol=lf
+
+# Binary assets: no line-ending conversion, no text diffs.
+*.ttf  binary
+*.otf  binary
+*.png  binary
+*.jpg  binary
+*.icns binary
+*.ico  binary

@@ -1,0 +1,91 @@
+# Builds every target on macOS, Linux and Windows, runs the scanner unit tests and
+# checks that the catalog loads and lists every game (launch_tool matrix, dry run).
+name: Build
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: macOS (arm64)
+            os: macos-latest
+            cmake_args: -G Ninja -DCMAKE_BUILD_TYPE=Release
+            bin: build
+            app: build/Ridge Racer Marathon.app/Contents/MacOS/Ridge Racer Marathon
+          - name: Linux (x64)
+            os: ubuntu-22.04  # the release's Linux package is built here too (GCC 11, glibc 2.35)
+            cmake_args: -G Ninja -DCMAKE_BUILD_TYPE=Release
+            bin: build
+            app: build/RidgeRacerMarathon
+          - name: Windows (x64, MSVC)
+            os: windows-latest
+            cmake_args: -A x64          # newest Visual Studio on the runner
+            bin: build/Release
+            app: build/Release/RidgeRacerMarathon.exe
+    env:
+      HOMEBREW_NO_AUTO_UPDATE: 1
+      HOMEBREW_NO_INSTALL_CLEANUP: 1
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install tools (macOS)
+        if: runner.os == 'macOS'
+        run: brew install ninja
+
+      - name: Install packages (Linux)
+        if: runner.os == 'Linux'
+        run: bash .github/scripts/install-linux-deps.sh
+
+      # SDL is built from source at the pinned tag (RRM_SDL_TAG) on every OS.
+      - name: Configure
+        run: cmake -S . -B build ${{ matrix.cmake_args }} -DRRM_BUILD_TESTS=ON -DRRM_VENDORED_SDL=ON
+
+      - name: Build
+        run: cmake --build build --config Release --parallel
+
+      # tests/scanner is a separate project; it uses the SDL build from the main build tree.
+      - name: Scanner unit tests
+        env:
+          SDL3_DIR: ${{ github.workspace }}/build/_deps/sdl3-build
+        run: |
+          cmake -S tests/scanner -B build-scanner ${{ matrix.cmake_args }}
+          cmake --build build-scanner --config Release --parallel
+          ctest --test-dir build-scanner -C Release --output-on-failure
+
+      - name: Catalog smoke test
+        run: >-
+          cmake -DLAUNCH_TOOL=${{ matrix.bin }}/launch_tool -DCATALOG=catalog
+          -DWORK=build/catalog-smoke -P .github/scripts/catalog-smoke.cmake
+
+      # The app itself starts, draws its library screen and exits (software OpenGL on Linux and Windows).
+      - name: App smoke test
+        run: .github/scripts/smoke-app.sh "${{ matrix.app }}" build/smoke
+
+      - name: Upload the screenshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshot-${{ runner.os }}
+          path: build/smoke/library.png
+          if-no-files-found: ignore

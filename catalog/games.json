@@ -1,0 +1,1156 @@
+{
+  "schema": 1,
+  "games": [
+    {
+      "id": "ridge-racer",
+      "title": "Ridge Racer",
+      "system": "ps1",
+      "systemLabel": "PlayStation",
+      "year": 1994,
+      "region": "USA",
+      "serial": "SCUS-94300",
+      "accent": "#F5C400",
+      "blurb": "The 1994 launch title. One course, four routes, and Ridge-Revolution-era drifting at its purest.",
+      "mediaKind": "cue",
+      "acceptedFormats": [
+        "cue",
+        "chd"
+      ],
+      "fileHelp": "Ridge Racer (USA) as a Redump CUE with all 14 BIN tracks (track 1 data + 13 CD audio tracks).",
+      "identify": {
+        "bootSerials": [
+          "SCUS-943.00",
+          "SCUS_943.00"
+        ],
+        "nameHints": [
+          "ridge racer (usa)"
+        ],
+        "dumps": [
+          {
+            "label": "Redump USA track 1",
+            "file": "Ridge Racer (USA) (Track 01).bin",
+            "size": 3683232,
+            "crc32": "0de7775b",
+            "md5": "ec755afa6ca49432445384b870412dfb",
+            "sha1": "5968ee90644e6536ddf544a45fc510a7cc64bb12"
+          }
+        ]
+      },
+      "backends": [
+        {
+          "backend": "rr1-recomp",
+          "os": [
+            "macos",
+            "windows"
+          ],
+          "priority": 100,
+          "status": "experimental",
+          "note": "Native static recompilation (psxrecomp) with the experimental native-scene redraw. Link an existing local build (it is generated from your own disc).",
+          "params": {
+            "exe": "SCUS-943.00",
+            "nativeHeight": 240
+          }
+        },
+        {
+          "backend": "lr-swanstation",
+          "os": [
+            "macos",
+            "windows",
+            "linux",
+            "android",
+            "ios"
+          ],
+          "priority": 50,
+          "status": "supported",
+          "note": "Emulated PS1 with upscaling, PGXP and widescreen hack.",
+          "params": {
+            "nativeHeight": 240
+          }
+        },
+        {
+          "backend": "lr-pcsx-rearmed",
+          "os": [
+            "macos",
+            "windows",
+            "linux",
+            "android",
+            "ios"
+          ],
+          "priority": 40,
+          "status": "supported",
+          "note": "Lightweight PS1 core with a built-in HLE BIOS. Best for older phones.",
+          "params": {
+            "nativeHeight": 240
+          }
+        }
+      ]
+    },
+    {
+      "id": "rave-racer",
+      "title": "Rave Racer",
+      "system": "arcade",
+      "systemLabel": "Arcade · Namco System 22",
+      "year": 1995,
+      "region": "World",
+      "serial": "RV2 Ver.B",
+      "accent": "#00C2FF",
+      "blurb": "The arcade sequel: four courses, night driving and System 22 texture-mapped 3D at 60 fps.",
+      "mediaKind": "romset",
+      "acceptedFormats": [
+        "zip",
+        "folder"
+      ],
+      "fileHelp": "The MAME 'raverace' romset as a folder or .zip (older 'raveracw' sets also work - files are matched by CRC).",
+      "identify": {
+        "mameSet": "raverace",
+        "mameParents": [
+          "raveracw",
+          "raveracer",
+          "raveracej",
+          "raveraceja"
+        ],
+        "nameHints": [
+          "raverace",
+          "rave racer"
+        ],
+        "dumps": [
+          {
+            "label": "MAME raverace",
+            "file": "rv2_prgllb.4d",
+            "size": 524288,
+            "crc32": "3017cd1e",
+            "sha1": "ccd648b4a5dfc74fd141815af2969f423311042f"
+          },
+          {
+            "label": "MAME raverace",
+            "file": "rv2_prglmb.2d",
+            "size": 524288,
+            "crc32": "894be0c3",
+            "sha1": "4dba93dc3ca1cf502c5f54018b64ad79bb2a632b"
+          },
+          {
+            "label": "MAME raverace",
+            "file": "rv2_prgumb.8d",
+            "size": 524288,
+            "crc32": "6414a800",
+            "sha1": "c278ff644909d12a43ba6fc2bf8d2092e469c3e6"
+          },
+          {
+            "label": "MAME raverace",
+            "file": "rv2_prguub.6d",
+            "size": 524288,
+            "crc32": "a9f18714",
+            "sha1": "8e7b17749d151f92020f68d1ac06003cf1f5c573"
+          },
+          {
+            "label": "MAME raverace",
+            "file": "rv1data.6r",
+            "size": 524288,
+            "crc32": "d358ec20",
+            "sha1": "140c513349240417bb546dd2d151f3666b818e91"
+          },
+          {
+            "label": "MAME raverace",
+            "file": "rv1cg0.1a",
+            "size": 2097152,
+            "crc32": "c518f06b",
+            "sha1": "4c01d453244192dd13087bdc72a7f7be80b47cbc"
+          },
+          {
+            "label": "MAME raverace",
+            "file": "rv1cg1.1c",
+            "size": 2097152,
+            "crc32": "6628f792",
+            "sha1": "7a5405c5fcb2f3f001ae17df393c31e61a834f2b"
+          },
+          {
+            "label": "MAME raverace",
+            "file": "rv1cg2.1d",
+            "size": 2097152,
+            "crc32": "0b707cc5",
+            "sha1": "38e1a554b278062edc369565353497ac4b016f78"
+          },
+          {
+            "label": "MAME raverace",
+            "file": "rv1cg3.1e",
+            "size": 2097152,
+            "crc32": "39b62921",
+            "sha1": "873287d81338baf10dd85214d82f6c38bfdf199e"
+          },
+          {
+            "label": "MAME raverace",
+            "file": "rv1cg4.1f",
+            "size": 2097152,
+            "crc32": "a9791ea2",
+            "sha1": "245b2ebbadd1fbca90dc241f88e9f6f341b2a01a"
+          },
+          {
+            "label": "MAME raverace",
+            "file": "rv1cg5.1j",
+            "size": 2097152,
+            "crc32": "b2c79ec1",
+            "sha1": "6f669996863bdf1fe09b0c1a2a876625029d3d43"
+          },
+          {
+            "label": "MAME raverace",
+            "file": "rv1cg6.1k",
+            "size": 2097152,
+            "crc32": "8cddedc2",
+            "sha1": "e3993f5505bc7e61bec7be5b48c873572e1220f7"
+          },
+          {
+            "label": "MAME raverace",
+            "file": "rv1cg7.1n",
+            "size": 2097152,
+            "crc32": "b39147ca",
+            "sha1": "50ca6691fc809c95e6999dd52e39f2b8c2d22f3b"
+          },
+          {
+            "label": "MAME raverace",
+            "file": "rv1cg0.2a",
+            "size": 2097152,
+            "crc32": "c518f06b",
+            "sha1": "4c01d453244192dd13087bdc72a7f7be80b47cbc"
+          },
+          {
+            "label": "MAME raverace",
+            "file": "rv1cg1.2c",
+            "size": 2097152,
+            "crc32": "6628f792",
+            "sha1": "7a5405c5fcb2f3f001ae17df393c31e61a834f2b"
+          },
+          {
+            "label": "MAME raverace",
+            "file": "rv1cg2.2d",
+            "size": 2097152,
+            "crc32": "0b707cc5",
+            "sha1": "38e1a554b278062edc369565353497ac4b016f78"
+          },
+          {
+            "label": "MAME raverace",
+            "file": "rv1cg3.2e",
+            "size": 2097152,
+            "crc32": "39b62921",
+            "sha1": "873287d81338baf10dd85214d82f6c38bfdf199e"
+          },
+          {
+            "label": "MAME raverace",
+            "file": "rv1cg4.2f",
+            "size": 2097152,
+            "crc32": "a9791ea2",
+            "sha1": "245b2ebbadd1fbca90dc241f88e9f6f341b2a01a"
+          },
+          {
+            "label": "MAME raverace",
+            "file": "rv1cg5.2j",
+            "size": 2097152,
+            "crc32": "b2c79ec1",
+            "sha1": "6f669996863bdf1fe09b0c1a2a876625029d3d43"
+          },
+          {
+            "label": "MAME raverace",
+            "file": "rv1cg6.2k",
+            "size": 2097152,
+            "crc32": "8cddedc2",
+            "sha1": "e3993f5505bc7e61bec7be5b48c873572e1220f7"
+          },
+          {
+            "label": "MAME raverace",
+            "file": "rv1cg7.2n",
+            "size": 2097152,
+            "crc32": "b39147ca",
+            "sha1": "50ca6691fc809c95e6999dd52e39f2b8c2d22f3b"
+          },
+          {
+            "label": "MAME raverace",
+            "file": "rv1ccrl.5a",
+            "size": 2097152,
+            "crc32": "bc634f72",
+            "sha1": "b5c504ed92bca7682614fc4c51f38cff607e6f2a"
+          },
+          {
+            "label": "MAME raverace",
+            "file": "rv1ccrh.5c",
+            "size": 524288,
+            "crc32": "a741b262",
+            "sha1": "363076220a0eacc67befda05f8253963e8ffbcaa"
+          },
+          {
+            "label": "MAME raverace",
+            "file": "rv1ccrl.5l",
+            "size": 2097152,
+            "crc32": "bc634f72",
+            "sha1": "b5c504ed92bca7682614fc4c51f38cff607e6f2a"
+          },
+          {
+            "label": "MAME raverace",
+            "file": "rv1ccrh.5j",
+            "size": 524288,
+            "crc32": "a741b262",
+            "sha1": "363076220a0eacc67befda05f8253963e8ffbcaa"
+          },
+          {
+            "label": "MAME raverace",
+            "file": "rv1potl0.5b",
+            "size": 524288,
+            "crc32": "de2ce519",
+            "sha1": "2fe0dd000571f76d1a4df6a439d40119125170ef"
+          },
+          {
+            "label": "MAME raverace",
+            "file": "rv1potl1.4b",
+            "size": 524288,
+            "crc32": "2215cb5a",
+            "sha1": "d48ee692ab3dbcffdc49d22f6f232ca9390da766"
+          },
+          {
+            "label": "MAME raverace",
+            "file": "rv1potl2.3b",
+            "size": 524288,
+            "crc32": "ddb15bf7",
+            "sha1": "4c54ec98e0cba10841d43a4ce593cdacfd7f90f8"
+          },
+          {
+            "label": "MAME raverace",
+            "file": "rv1potl3.2b",
+            "size": 524288,
+            "crc32": "fa9361ca",
+            "sha1": "35a5c2712bca9c62400b724754de3a931ad21561"
+          },
+          {
+            "label": "MAME raverace",
+            "file": "rv1potm0.5c",
+            "size": 524288,
+            "crc32": "3c024f3a",
+            "sha1": "711f0442823797b2d410352796a5cca66af98dce"
+          },
+          {
+            "label": "MAME raverace",
+            "file": "rv1potm1.4c",
+            "size": 524288,
+            "crc32": "b1a32a68",
+            "sha1": "e24abb3a7e35d098abae5420bf8ef5c975718987"
+          },
+          {
+            "label": "MAME raverace",
+            "file": "rv1potm2.3c",
+            "size": 524288,
+            "crc32": "a414fe15",
+            "sha1": "eb27cdca045ab2ab27dec179043328847fb65e11"
+          },
+          {
+            "label": "MAME raverace",
+            "file": "rv1potm3.2c",
+            "size": 524288,
+            "crc32": "2953bbb4",
+            "sha1": "aca1acd87f7130d2522d0c6f8e60beeb7ab7495a"
+          },
+          {
+            "label": "MAME raverace",
+            "file": "rv1potu0.5d",
+            "size": 524288,
+            "crc32": "b9eaf3cc",
+            "sha1": "3b2a9041f1fa90706ecf7d4fbff918516f891a07"
+          },
+          {
+            "label": "MAME raverace",
+            "file": "rv1potu1.4d",
+            "size": 524288,
+            "crc32": "a5c55258",
+            "sha1": "826d4dde761aec7d848456f7bc4ba6268fe99605"
+          },
+          {
+            "label": "MAME raverace",
+            "file": "rv1potu2.3d",
+            "size": 524288,
+            "crc32": "c18fcb74",
+            "sha1": "a4009ae2b014dc89aed4741fd97f84350117c2f4"
+          },
+          {
+            "label": "MAME raverace",
+            "file": "rv1potu3.2d",
+            "size": 524288,
+            "crc32": "79735aaa",
+            "sha1": "1cf14274669b916a7641f7a16785da1b72347485"
+          },
+          {
+            "label": "MAME raverace",
+            "file": "rv1wav0.10r",
+            "size": 1048576,
+            "crc32": "5aef8143",
+            "sha1": "a75d31298e3ff9b290f238976a11e8b85cfb72d3"
+          },
+          {
+            "label": "MAME raverace",
+            "file": "rv1wav1.10p",
+            "size": 1048576,
+            "crc32": "9ed9e6b3",
+            "sha1": "dd1da2b08d1b6aa0912daacc77744c9799aabb78"
+          },
+          {
+            "label": "MAME raverace",
+            "file": "rv1wav2.10n",
+            "size": 1048576,
+            "crc32": "5af9dc83",
+            "sha1": "9aeb7f8217b806a6f3ed93056513af9fbcb6b372"
+          },
+          {
+            "label": "MAME raverace",
+            "file": "rv1wav3.10l",
+            "size": 1048576,
+            "crc32": "ffb9ad75",
+            "sha1": "a9a61a597bd3bbe9732f92747d82264fe4d9af48"
+          },
+          {
+            "label": "MAME raverace",
+            "file": "rr1gam.2d",
+            "size": 256,
+            "crc32": "b2161bce",
+            "sha1": "d2681cc0cf8e68df0d942d392b4eb4458c4bb356"
+          },
+          {
+            "label": "MAME raverace",
+            "file": "rr1gam.3d",
+            "size": 256,
+            "crc32": "b2161bce",
+            "sha1": "d2681cc0cf8e68df0d942d392b4eb4458c4bb356"
+          },
+          {
+            "label": "MAME raverace",
+            "file": "rr1gam.4d",
+            "size": 256,
+            "crc32": "b2161bce",
+            "sha1": "d2681cc0cf8e68df0d942d392b4eb4458c4bb356"
+          },
+          {
+            "label": "MAME raverace",
+            "file": "rv1eeprm.9e",
+            "size": 8192,
+            "crc32": "e00dd412",
+            "sha1": "f594b31ace5e5e980e904faa8b83a450cc95db17"
+          }
+        ]
+      },
+      "backends": [
+        {
+          "backend": "rave-racer-native",
+          "os": [
+            "windows",
+            "linux",
+            "macos"
+          ],
+          "priority": 100,
+          "status": "recommended",
+          "note": "Native decompiled port (namco22-decompile): renders up to 8K, widescreen in the screen's own shape (fullscreen), 24-240 pictures a second (frames repeated above 60). Uses the MAME 0.271+ raverace + namcoc74 sets, rebuilt from your ROMs. macOS: local build only.",
+          "params": {
+            "nativeHeight": 480,
+            "devices": [
+              {
+                "set": "namcoc74",
+                "file": "c74.bin",
+                "crc32": "a3dce360"
+              }
+            ]
+          }
+        },
+        {
+          "backend": "lr-mame",
+          "os": [
+            "macos",
+            "windows",
+            "linux",
+            "android",
+            "ios"
+          ],
+          "priority": 50,
+          "status": "supported",
+          "note": "MAME core inside Marathon. Native 640x480; speed-up via fast-forward.",
+          "params": {
+            "set": "raverace",
+            "nativeHeight": 480,
+            "devices": [
+              {
+                "set": "namcoc71",
+                "file": "c71.bin",
+                "crc32": "47c623ab"
+              },
+              {
+                "set": "namcoc74",
+                "file": "c74.bin",
+                "crc32": "a3dce360"
+              }
+            ]
+          }
+        },
+        {
+          "backend": "mame",
+          "os": [
+            "macos",
+            "windows",
+            "linux"
+          ],
+          "priority": 40,
+          "status": "supported",
+          "note": "Official MAME on Windows, your own MAME on macOS/Linux: native 640x480, 4:3, 60 Hz.",
+          "params": {
+            "set": "raverace",
+            "nativeHeight": 480,
+            "devices": [
+              {
+                "set": "namcoc71",
+                "file": "c71.bin",
+                "crc32": "47c623ab"
+              },
+              {
+                "set": "namcoc74",
+                "file": "c74.bin",
+                "crc32": "a3dce360"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "rage-racer",
+      "title": "Rage Racer",
+      "system": "ps1",
+      "systemLabel": "PlayStation",
+      "year": 1996,
+      "region": "USA",
+      "serial": "SLUS-00403",
+      "accent": "#FF3B30",
+      "blurb": "Gritty 1996 sequel with car upgrades, a Grand Prix career and the Lizard/Assoluto rivalry.",
+      "mediaKind": "cue",
+      "acceptedFormats": [
+        "cue",
+        "chd"
+      ],
+      "fileHelp": "Rage Racer as a CUE with all 17 BIN tracks (USA, Europe or Japan).",
+      "identify": {
+        "bootSerials": [
+          "SLUS_004.03",
+          "SCES_006.50",
+          "SLPS_005.65"
+        ],
+        "nameHints": [
+          "rage racer"
+        ],
+        "dumps": [
+          {
+            "label": "Redump USA track 1",
+            "file": "Rage Racer (USA) (Track 01).bin",
+            "size": 139929888,
+            "crc32": "cbcda192",
+            "md5": "47bad99eae73ef8a01614c0dc3268ae9",
+            "sha1": "fb15b5c05b94be85175e6c8d04c272d832f1f223"
+          }
+        ]
+      },
+      "backends": [
+        {
+          "backend": "rage-racer-pc",
+          "os": [
+            "macos",
+            "windows",
+            "linux"
+          ],
+          "priority": 100,
+          "status": "recommended",
+          "note": "Native source port with a modern renderer: real high resolution, 16:9, up to 1000 FPS presentation.",
+          "params": {
+            "nativeHeight": 240
+          }
+        },
+        {
+          "backend": "lr-swanstation",
+          "os": [
+            "macos",
+            "windows",
+            "linux",
+            "android",
+            "ios"
+          ],
+          "priority": 50,
+          "status": "supported",
+          "params": {
+            "nativeHeight": 240
+          }
+        },
+        {
+          "backend": "lr-pcsx-rearmed",
+          "os": [
+            "macos",
+            "windows",
+            "linux",
+            "android",
+            "ios"
+          ],
+          "priority": 40,
+          "status": "supported",
+          "params": {
+            "nativeHeight": 240
+          }
+        }
+      ]
+    },
+    {
+      "id": "r4",
+      "title": "R4: Ridge Racer Type 4",
+      "system": "ps1",
+      "systemLabel": "PlayStation",
+      "year": 1998,
+      "region": "USA",
+      "serial": "SLUS-00797",
+      "accent": "#7D5CFF",
+      "blurb": "The stylish 1998 finale of the PS1 era: four teams, 300+ cars and the Real Racing Roots '99 Grand Prix.",
+      "mediaKind": "cue",
+      "acceptedFormats": [
+        "cue"
+      ],
+      "fileHelp": "R4 - Ridge Racer Type 4 (USA) Redump BIN/CUE, single track. Do not convert to ISO (music and movies are XA-streamed).",
+      "identify": {
+        "bootSerials": [
+          "SLUS_007.97"
+        ],
+        "nameHints": [
+          "ridge racer type 4",
+          "r4 -"
+        ],
+        "dumps": [
+          {
+            "label": "Redump USA",
+            "file": "R4 - Ridge Racer Type 4 (USA).bin",
+            "size": 621421920,
+            "crc32": "1ffb6c27",
+            "md5": "bf1d92037b1b2be83b459c11f0b89eb6",
+            "sha1": "75f0dab5c1f71ba80f3d1e2fefd043f3f2b9ee2e"
+          }
+        ]
+      },
+      "backends": [
+        {
+          "backend": "r4-recomp",
+          "os": [
+            "macos",
+            "windows",
+            "linux"
+          ],
+          "priority": 100,
+          "status": "experimental",
+          "note": "Static recompilation (psxrecomp): internal resolution up to 8K and interpolated 60-1000 FPS races.",
+          "params": {
+            "nativeHeight": 240
+          }
+        },
+        {
+          "backend": "lr-swanstation",
+          "os": [
+            "macos",
+            "windows",
+            "linux",
+            "android",
+            "ios"
+          ],
+          "priority": 50,
+          "status": "supported",
+          "params": {
+            "nativeHeight": 240
+          }
+        },
+        {
+          "backend": "lr-pcsx-rearmed",
+          "os": [
+            "macos",
+            "windows",
+            "linux",
+            "android",
+            "ios"
+          ],
+          "priority": 40,
+          "status": "supported",
+          "params": {
+            "nativeHeight": 240
+          }
+        }
+      ]
+    },
+    {
+      "id": "ridge-racer-v",
+      "title": "Ridge Racer V",
+      "system": "ps2",
+      "systemLabel": "PlayStation 2",
+      "year": 2000,
+      "region": "USA",
+      "serial": "SLUS-20002",
+      "accent": "#FF8A00",
+      "blurb": "PS2 launch title starring Ai Fukami: Ridge City at 60 fps.",
+      "mediaKind": "cue",
+      "acceptedFormats": [
+        "cue",
+        "iso",
+        "chd"
+      ],
+      "fileHelp": "Ridge Racer V (USA) as BIN/CUE or ISO, plus your own PS2 BIOS dump.",
+      "requires": [
+        "bios:ps2"
+      ],
+      "identify": {
+        "bootSerials": [
+          "SLUS_200.02",
+          "SCES_500.00",
+          "SLPS_200.01"
+        ],
+        "nameHints": [
+          "ridge racer v"
+        ],
+        "dumps": [
+          {
+            "label": "Redump USA",
+            "file": "Ridge Racer V (USA).bin",
+            "size": 750233904,
+            "crc32": "64b984cf",
+            "md5": "9438f0c09f4b242b5bc5736bc6c04bd2",
+            "sha1": "d454e8c70763bd3515a56c261cd0302eff9504ae"
+          }
+        ]
+      },
+      "backends": [
+        {
+          "backend": "fukami",
+          "os": [
+            "macos",
+            "windows",
+            "linux"
+          ],
+          "priority": 120,
+          "status": "recommended",
+          "note": "Fukami: static recompilation of Ridge Racer V (PS2Recomp + PCSX2 GS renderer). No BIOS needed. USA disc only (.cue/.bin, .chd or .iso). macOS 27 or later.",
+          "params": {
+            "nativeHeight": 448
+          }
+        },
+        {
+          "backend": "pcsx2",
+          "os": [
+            "macos",
+            "windows",
+            "linux"
+          ],
+          "priority": 100,
+          "status": "recommended",
+          "note": "PCSX2: upscaling to 8K, PCSX2's 16:9 widescreen patch and, for the USA disc, a 21:9 / 32:9 / screen-shaped version Marathon derives from it (experimental). Base speed and fast-forward. 60 fps.",
+          "params": {
+            "nativeHeight": 448
+          },
+          "capabilities": {
+            "aspect": [
+              "4:3",
+              "16:9",
+              "21:9",
+              "32:9",
+              "fit"
+            ]
+          }
+        },
+        {
+          "backend": "android-ps2",
+          "os": [
+            "android"
+          ],
+          "priority": 50,
+          "status": "external-app",
+          "note": "Opens the game in an installed PS2 emulator app (ARMSX2 / NetherSX2).",
+          "params": {}
+        }
+      ]
+    },
+    {
+      "id": "ridge-racer-psp",
+      "title": "Ridge Racer (PSP)",
+      "system": "psp",
+      "systemLabel": "PSP",
+      "year": 2004,
+      "region": "Europe",
+      "serial": "UCES-00002",
+      "accent": "#FF8A00",
+      "blurb": "The PSP launch title (Ridge Racers in Japan): courses and cars from across the series, nitrous and all.",
+      "mediaKind": "iso",
+      "acceptedFormats": [
+        "iso",
+        "cso",
+        "chd"
+      ],
+      "fileHelp": "Ridge Racer / Ridge Racers (PSP) as ISO or CSO, any region. Ultrawide needs the European disc (UCES-00002).",
+      "identify": {
+        "discIds": [
+          "UCES00002",
+          "ULUS10001",
+          "ULJS00001",
+          "ULJS19002",
+          "UCKS45002",
+          "UCKS45053",
+          "NPJH50140"
+        ],
+        "nameHints": [
+          "ridge racers",
+          "ridge racer (psp)",
+          "ridge racer psp"
+        ],
+        "dumps": []
+      },
+      "backends": [
+        {
+          "backend": "lr-ppsspp",
+          "os": [
+            "macos",
+            "windows",
+            "linux",
+            "android",
+            "ios"
+          ],
+          "priority": 100,
+          "status": "recommended",
+          "note": "PPSSPP core inside Marathon: render up to 10x (4K+), ultrawide on the European disc UCES-00002 through a widescreen code, fast-forward.",
+          "params": {
+            "nativeHeight": 272
+          }
+        },
+        {
+          "backend": "ppsspp",
+          "os": [
+            "macos",
+            "windows",
+            "linux"
+          ],
+          "priority": 40,
+          "status": "supported",
+          "note": "Standalone PPSSPP: up to 10x, ultrawide (21:9/32:9/fit) on the European disc UCES-00002 through a widescreen code.",
+          "params": {
+            "nativeHeight": 272
+          }
+        }
+      ]
+    },
+    {
+      "id": "ridge-racer-2-psp",
+      "title": "Ridge Racer 2",
+      "system": "psp",
+      "systemLabel": "PSP",
+      "year": 2006,
+      "region": "Europe",
+      "serial": "UCES-00422",
+      "accent": "#00D68F",
+      "blurb": "The PSP's portable greatest-hits: 24 courses from the whole series with nitrous-boost drifting.",
+      "mediaKind": "iso",
+      "acceptedFormats": [
+        "iso",
+        "cso",
+        "chd"
+      ],
+      "fileHelp": "Ridge Racer 2 (PSP) as ISO or CSO, any region. Ultrawide needs the European disc (UCES-00422).",
+      "identify": {
+        "discIds": [
+          "UCES00422",
+          "UCAS40119",
+          "UCAS40273",
+          "UCAS40113",
+          "ULJS00080",
+          "UCKS45032",
+          "NPJH50366"
+        ],
+        "nameHints": [
+          "ridge racer 2"
+        ],
+        "dumps": [
+          {
+            "label": "Redump Europe",
+            "file": "Ridge Racer 2 (Europe, Australia) (En,Fr,De,Es,It).iso",
+            "size": 1523023872,
+            "crc32": "510f8bfa",
+            "md5": "d7f46b419cc046e28832b0e273e27c0a",
+            "sha1": "56dd3b5b53c9f3d3e719b5c23bf0fdcb571adf1a"
+          }
+        ]
+      },
+      "backends": [
+        {
+          "backend": "lr-ppsspp",
+          "os": [
+            "macos",
+            "windows",
+            "linux",
+            "android",
+            "ios"
+          ],
+          "priority": 100,
+          "status": "recommended",
+          "note": "PPSSPP core inside Marathon: render up to 10x (4K+), ultrawide on the European disc UCES-00422 through a widescreen code, optional HD HUD texture pack (advanced: texturePack), fast-forward.",
+          "params": {
+            "nativeHeight": 272
+          }
+        },
+        {
+          "backend": "ppsspp",
+          "os": [
+            "macos",
+            "windows",
+            "linux"
+          ],
+          "priority": 40,
+          "status": "supported",
+          "note": "Standalone PPSSPP: up to 10x, ultrawide (21:9/32:9/fit) on the European disc UCES-00422 through a widescreen code, optional HD HUD texture pack (advanced: texturePack).",
+          "params": {
+            "nativeHeight": 272
+          }
+        }
+      ]
+    },
+    {
+      "id": "ridge-racer-6",
+      "title": "Ridge Racer 6",
+      "system": "x360",
+      "systemLabel": "Xbox 360",
+      "year": 2005,
+      "region": "USA",
+      "serial": "4E4D07D3",
+      "accent": "#7CFC00",
+      "blurb": "Xbox 360 launch title: 30 courses, the World Xplorer map and Nitrous drifting in HD.",
+      "mediaKind": "iso",
+      "acceptedFormats": [
+        "iso",
+        "xex-folder"
+      ],
+      "fileHelp": "Ridge Racer 6 as a full Xbox 360 disc ISO (XGD2) or extracted game folder.",
+      "identify": {
+        "xboxTitleIds": [
+          "4E4D07D3"
+        ],
+        "nameHints": [
+          "ridge racer 6"
+        ],
+        "dumps": [
+          {
+            "label": "Redump USA",
+            "file": "Ridge Racer 6 (USA) (En,Ja,Fr,De,Es,It).iso",
+            "size": 7834892288,
+            "crc32": "eb9a2f17",
+            "md5": "1023de6d500170477d76b0c4ea703365",
+            "sha1": "3a034c8aa844014ad20fcbf5d3e61c594d4816b1"
+          }
+        ]
+      },
+      "backends": [
+        {
+          "backend": "rr6-recomp",
+          "os": [
+            "macos"
+          ],
+          "priority": 120,
+          "status": "experimental",
+          "note": "Ridge Racer 6 Recompiled (ReXGlue SDK): native build, up to 4x the 720 lines, ultrawide in full screen with the HUD kept in shape, 60 fps game shown at up to 360 fps with frame generation (motion-interpolated in-between images; one frame of extra latency). The first start copies the game files (about 6 GB) out of your USA ISO. macOS: link your own build (no download).",
+          "params": {
+            "nativeHeight": 720
+          },
+          "capabilities": {
+            "fps": [
+              "original",
+              "display",
+              "120",
+              "144",
+              "165",
+              "240",
+              "300",
+              "360",
+              "custom"
+            ],
+            "fpsMethod": [
+              "interpolate"
+            ]
+          }
+        },
+        {
+          "backend": "rr6-recomp",
+          "os": [
+            "windows",
+            "linux"
+          ],
+          "priority": 120,
+          "status": "experimental",
+          "note": "Ridge Racer 6 Recompiled (ReXGlue SDK): native build, up to 4x the 720 lines, ultrawide in full screen with the HUD kept in shape, 60 fps. The first start copies the game files (about 6 GB) out of your USA ISO.",
+          "params": {
+            "nativeHeight": 720
+          }
+        },
+        {
+          "backend": "xenia-canary",
+          "os": [
+            "windows",
+            "linux"
+          ],
+          "priority": 100,
+          "status": "experimental",
+          "note": "Xenia Canary: up to 7x resolution (GPU-dependent), ultrawide through the community Aspect Ratio patch (3D view only: HUD, menus and videos are stretched), 60 fps.",
+          "params": {
+            "nativeHeight": 720
+          },
+          "capabilities": {
+            "aspect": [
+              "auto",
+              "16:9",
+              "21:9",
+              "32:9",
+              "fit"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "ridge-racer-7",
+      "title": "Ridge Racer 7",
+      "system": "ps3",
+      "systemLabel": "PlayStation 3",
+      "year": 2006,
+      "region": "USA",
+      "serial": "BLUS-30001",
+      "accent": "#E6007E",
+      "blurb": "The PS3 launch showcase: 1080p60, deep tuning and the Ridge State Grand Prix.",
+      "mediaKind": "iso",
+      "acceptedFormats": [
+        "iso",
+        "ps3-folder"
+      ],
+      "fileHelp": "Ridge Racer 7 as a decrypted PS3 ISO (.dec.iso) or a PS3_GAME folder, plus the official PS3 firmware (PS3UPDAT.PUP).",
+      "requires": [
+        "firmware:ps3"
+      ],
+      "identify": {
+        "discIds": [
+          "BLUS30001",
+          "BLES00001",
+          "BCJS30001",
+          "BLJS10001"
+        ],
+        "nameHints": [
+          "ridge racer 7"
+        ],
+        "dumps": [
+          {
+            "label": "Redump USA (decrypted)",
+            "file": "Ridge Racer 7 (USA) (En,Ja).dec.iso",
+            "size": 7471366144,
+            "crc32": "7050fbed",
+            "md5": "8671be82d3a951eb8a7f12765560af7e",
+            "sha1": "8d7ff4659f2e06619fc88e63dd9b63ac75b926e9"
+          }
+        ]
+      },
+      "backends": [
+        {
+          "backend": "rpcs3",
+          "os": [
+            "macos"
+          ],
+          "priority": 100,
+          "status": "recommended",
+          "note": "RPCS3: Resolution Scale up to 8K (4K = 300%). Ultrawide in full screen on a screen wider than 16:9, at the screen's own shape, through Marathon's own patch for the USA disc (BLUS30001): a wider race view (Hor+), with the 16:9 picture stretched to the screen and the 2D HUD stretched with it. The 60 fps game can be shown at up to 360 fps with frame generation (motion-interpolated in-between images; one frame of extra latency).",
+          "params": {
+            "nativeHeight": 720,
+            "aspectPatch": {
+              "hash": "PPU-e3bd0b1193cb660c25a7be411bffa3aae9e3955b",
+              "game": "RIDGE RACER 7",
+              "serial": "BLUS30001",
+              "values": [
+                {
+                  "address": "0x004b17a8",
+                  "scale": 1
+                },
+                {
+                  "address": "0x004b18d4",
+                  "scale": 1
+                },
+                {
+                  "address": "0x004b17b0",
+                  "scale": 2
+                }
+              ]
+            }
+          },
+          "capabilities": {
+            "fps": [
+              "original",
+              "display",
+              "120",
+              "144",
+              "165",
+              "240",
+              "300",
+              "360",
+              "custom"
+            ],
+            "fpsMethod": [
+              "interpolate"
+            ],
+            "aspect": [
+              "16:9",
+              "21:9",
+              "32:9",
+              "fit"
+            ]
+          }
+        },
+        {
+          "backend": "rpcs3",
+          "os": [
+            "windows",
+            "linux"
+          ],
+          "priority": 100,
+          "status": "recommended",
+          "note": "RPCS3: Resolution Scale up to 8K (4K = 300%). Ultrawide in full screen on a screen wider than 16:9, at the screen's own shape, through Marathon's own patch for the USA disc (BLUS30001): a wider race view (Hor+), with the 16:9 picture stretched to the screen and the 2D HUD stretched with it. 60 fps: no high frame rate patch exists for Ridge Racer 7.",
+          "params": {
+            "nativeHeight": 720,
+            "aspectPatch": {
+              "hash": "PPU-e3bd0b1193cb660c25a7be411bffa3aae9e3955b",
+              "game": "RIDGE RACER 7",
+              "serial": "BLUS30001",
+              "values": [
+                {
+                  "address": "0x004b17a8",
+                  "scale": 1
+                },
+                {
+                  "address": "0x004b18d4",
+                  "scale": 1
+                },
+                {
+                  "address": "0x004b17b0",
+                  "scale": 2
+                }
+              ]
+            }
+          },
+          "capabilities": {
+            "aspect": [
+              "16:9",
+              "21:9",
+              "32:9",
+              "fit"
+            ]
+          }
+        },
+        {
+          "backend": "android-ps3",
+          "os": [
+            "android"
+          ],
+          "priority": 50,
+          "status": "external-app",
+          "note": "Opens the game in aPS3e (needs its own PS3 firmware setup).",
+          "params": {}
+        }
+      ]
+    }
+  ]
+}

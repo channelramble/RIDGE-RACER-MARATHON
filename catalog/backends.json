@@ -1,0 +1,640 @@
+{
+  "schema": 1,
+  "backends": [
+    {
+      "id": "lr-swanstation",
+      "name": "SwanStation (PS1 core)",
+      "kind": "libretro",
+      "core": "swanstation",
+      "license": "GPL-3.0",
+      "homepage": "https://github.com/libretro/swanstation",
+      "description": "PlayStation emulation inside Marathon: up to 16x internal resolution, PGXP geometry precision and a widescreen hack that widens the 3D view to 16:9, 21:9, 32:9 or your screen's shape (2D HUD elements stretch).",
+      "capabilities": {
+        "resolution": [
+          "native",
+          "2x",
+          "3x",
+          "4x",
+          "5x",
+          "6x",
+          "8x",
+          "10x",
+          "720p",
+          "1080p",
+          "1440p",
+          "4k",
+          "5k",
+          "display"
+        ],
+        "fps": [
+          "original",
+          "display",
+          "60",
+          "90",
+          "120",
+          "144",
+          "165",
+          "240",
+          "300",
+          "360",
+          "custom"
+        ],
+        "aspect": [
+          "auto",
+          "4:3",
+          "16:9",
+          "21:9",
+          "32:9",
+          "fit"
+        ],
+        "redraw": false,
+        "precision": true,
+        "speed": "base-and-turbo",
+        "vsync": true,
+        "fullscreen": true,
+        "filter": [
+          "nearest",
+          "linear",
+          "xbr"
+        ],
+        "antiAlias": [
+          "off",
+          "msaa",
+          "ssaa"
+        ],
+        "fpsMethod": [
+          "interpolate",
+          "blend"
+        ]
+      },
+      "params": {
+        "needsBios": "ps1-optional"
+      },
+      "sources": {}
+    },
+    {
+      "id": "lr-pcsx-rearmed",
+      "name": "PCSX-ReARMed (PS1 core)",
+      "kind": "libretro",
+      "core": "pcsx_rearmed",
+      "license": "GPL-2.0",
+      "homepage": "https://github.com/libretro/pcsx_rearmed",
+      "description": "Fast PlayStation emulation with a built-in HLE BIOS; ideal for older phones. 4:3 only (no widescreen hack); 2x enhancement on ARM.",
+      "capabilities": {
+        "resolution": [
+          "native",
+          "2x"
+        ],
+        "fps": [
+          "original",
+          "display",
+          "60",
+          "90",
+          "120",
+          "144",
+          "165",
+          "240",
+          "300",
+          "360",
+          "custom"
+        ],
+        "aspect": [
+          "auto",
+          "4:3"
+        ],
+        "redraw": false,
+        "precision": false,
+        "speed": "base-and-turbo",
+        "vsync": true,
+        "fullscreen": true,
+        "filter": [
+          "nearest",
+          "linear"
+        ],
+        "fpsMethod": [
+          "interpolate",
+          "blend"
+        ]
+      },
+      "sources": {}
+    },
+    {
+      "id": "lr-ppsspp",
+      "name": "PPSSPP (PSP core)",
+      "kind": "libretro",
+      "core": "ppsspp",
+      "license": "GPL-2.0-or-later",
+      "homepage": "https://www.ppsspp.org",
+      "description": "PSP emulation inside Marathon with internal resolution up to 10x, ultrawide (21:9, 32:9, your screen's shape) on the European discs through a widescreen code (the 2D HUD stretches), and optional HD texture packs.",
+      "capabilities": {
+        "resolution": [
+          "native",
+          "2x",
+          "3x",
+          "4x",
+          "5x",
+          "6x",
+          "8x",
+          "10x",
+          "1080p",
+          "1440p",
+          "4k",
+          "display"
+        ],
+        "fps": [
+          "original",
+          "display",
+          "60",
+          "90",
+          "120",
+          "144",
+          "165",
+          "240",
+          "300",
+          "360",
+          "custom"
+        ],
+        "aspect": [
+          "auto",
+          "16:9",
+          "21:9",
+          "32:9",
+          "fit"
+        ],
+        "redraw": false,
+        "precision": false,
+        "speed": "base-and-turbo",
+        "vsync": true,
+        "fullscreen": true,
+        "filter": [
+          "nearest",
+          "linear"
+        ],
+        "fpsMethod": [
+          "interpolate",
+          "blend"
+        ]
+      },
+      "sources": {}
+    },
+    {
+      "id": "lr-mame",
+      "name": "MAME (arcade core)",
+      "kind": "libretro",
+      "core": "mame",
+      "license": "GPL-2.0-or-later",
+      "homepage": "https://www.mamedev.org",
+      "description": "Arcade emulation inside Marathon. Namco System 22 renders at its native 640x480.",
+      "capabilities": {
+        "resolution": [
+          "native"
+        ],
+        "fps": [
+          "original",
+          "display",
+          "60",
+          "90",
+          "120",
+          "144",
+          "165",
+          "240",
+          "300",
+          "360",
+          "custom"
+        ],
+        "aspect": [
+          "auto"
+        ],
+        "redraw": false,
+        "precision": false,
+        "speed": "base-and-turbo",
+        "vsync": true,
+        "fullscreen": true,
+        "filter": [
+          "nearest",
+          "linear"
+        ],
+        "fpsMethod": [
+          "interpolate",
+          "blend"
+        ]
+      },
+      "sources": {}
+    },
+    {
+      "id": "mame",
+      "name": "MAME (standalone)",
+      "kind": "external",
+      "license": "GPL-2.0-or-later",
+      "homepage": "https://www.mamedev.org",
+      "description": "MAME: the official Windows build, or your own MAME on macOS/Linux. Rave Racer runs at its native 640x480, 4:3, 60 Hz (MAME's System 22 renderer has no resolution option).",
+      "capabilities": {
+        "resolution": [
+          "native"
+        ],
+        "fps": [
+          "original"
+        ],
+        "aspect": [
+          "auto"
+        ],
+        "redraw": false,
+        "precision": false,
+        "speed": "base-and-turbo",
+        "vsync": true,
+        "fullscreen": true,
+        "filter": [
+          "nearest",
+          "linear"
+        ]
+      },
+      "sources": {
+        "windows-x86_64": {
+          "kind": "github",
+          "repo": "mamedev/mame",
+          "asset": "mame*b_x64.exe",
+          "archive": "7z",
+          "executable": "mame.exe"
+        },
+        "macos-universal": {
+          "kind": "user",
+          "executable": "mame",
+          "note": "MAME publishes no macOS build: link your own (e.g. Homebrew or SDLMAME)."
+        },
+        "linux-x86_64": {
+          "kind": "user",
+          "executable": "mame",
+          "note": "Link your distribution's MAME (e.g. /usr/games/mame) or your own build."
+        }
+      }
+    },
+    {
+      "id": "ppsspp",
+      "name": "PPSSPP (standalone)",
+      "kind": "external",
+      "license": "GPL-2.0-or-later",
+      "homepage": "https://www.ppsspp.org",
+      "description": "Official PPSSPP with its own Marathon memory stick (your PPSSPP is untouched). Up to 10x (4800x2720), ultrawide 21:9/32:9/fit on the European discs through a widescreen code, optional HD texture packs. 60 fps.",
+      "capabilities": {
+        "resolution": [
+          "native",
+          "2x",
+          "3x",
+          "4x",
+          "5x",
+          "6x",
+          "8x",
+          "10x",
+          "1080p",
+          "1440p",
+          "4k",
+          "display"
+        ],
+        "fps": [
+          "original"
+        ],
+        "aspect": [
+          "auto",
+          "16:9",
+          "21:9",
+          "32:9",
+          "fit"
+        ],
+        "redraw": false,
+        "precision": false,
+        "speed": "turbo-hotkey",
+        "vsync": true,
+        "fullscreen": true,
+        "filter": [
+          "nearest",
+          "linear"
+        ]
+      },
+      "sources": {
+        "windows-x86_64": {
+          "kind": "github",
+          "repo": "hrydgard/ppsspp",
+          "asset": "PPSSPP-v*-Windows-x64.zip",
+          "archive": "zip",
+          "executable": "PPSSPPWindows64.exe"
+        },
+        "linux-x86_64": {
+          "kind": "github",
+          "repo": "hrydgard/ppsspp",
+          "asset": "PPSSPP-v*-anylinux-x86_64.AppImage",
+          "archive": "appimage",
+          "executable": "PPSSPP-v*-anylinux-x86_64.AppImage"
+        },
+        "linux-arm64": {
+          "kind": "github",
+          "repo": "hrydgard/ppsspp",
+          "asset": "PPSSPP-v*-anylinux-aarch64.AppImage",
+          "archive": "appimage",
+          "executable": "PPSSPP-v*-anylinux-aarch64.AppImage"
+        },
+        "macos-universal": {
+          "kind": "github",
+          "repo": "hrydgard/ppsspp",
+          "asset": "PPSSPPSDL-macOS-v*.zip",
+          "archive": "zip",
+          "executable": "PPSSPPSDL.app/Contents/MacOS/PPSSPPSDL"
+        }
+      }
+    },
+    {
+      "id": "pcsx2",
+      "name": "PCSX2",
+      "kind": "external",
+      "license": "GPL-3.0-or-later",
+      "homepage": "https://pcsx2.net",
+      "description": "PlayStation 2 emulator (official builds from github.com/PCSX2/pcsx2). Requires your own PS2 BIOS. Marathon runs it with its own data folder (-datapath), so your own PCSX2 setup is untouched. The macOS build is Intel-only and runs through Rosetta 2.",
+      "capabilities": {
+        "resolution": [
+          "native",
+          "2x",
+          "3x",
+          "4x",
+          "5x",
+          "6x",
+          "8x",
+          "720p",
+          "1080p",
+          "1440p",
+          "4k",
+          "5k",
+          "8k",
+          "display"
+        ],
+        "fps": [
+          "original"
+        ],
+        "aspect": [
+          "4:3",
+          "16:9"
+        ],
+        "redraw": false,
+        "precision": false,
+        "speed": "base-and-turbo",
+        "vsync": true,
+        "fullscreen": true,
+        "filter": [
+          "nearest",
+          "linear"
+        ],
+        "antiAlias": [
+          "off",
+          "fxaa"
+        ]
+      },
+      "sources": {
+        "macos": {
+          "kind": "github",
+          "repo": "PCSX2/pcsx2",
+          "asset": "pcsx2-v*-macos-Qt.tar.xz",
+          "archive": "tar.xz",
+          "executable": "PCSX2*.app/Contents/MacOS/PCSX2",
+          "note": "Official macOS build (x86_64 only): runs through Rosetta 2 on Apple Silicon."
+        },
+        "windows-x86_64": {
+          "kind": "github",
+          "repo": "PCSX2/pcsx2",
+          "asset": "pcsx2-v*-windows-x64-Qt.7z",
+          "archive": "7z",
+          "executable": "pcsx2-qt.exe"
+        },
+        "linux-x86_64": {
+          "kind": "github",
+          "repo": "PCSX2/pcsx2",
+          "asset": "pcsx2-v*-linux-appimage-x64-Qt.AppImage",
+          "archive": "appimage",
+          "executable": "pcsx2-v*-linux-appimage-x64-Qt.AppImage"
+        }
+      }
+    },
+    {
+      "id": "android-ps2",
+      "name": "PS2 emulator app (Android)",
+      "kind": "android-app",
+      "license": "Third-party app",
+      "homepage": "",
+      "description": "Hands Ridge Racer V to an installed Android PS2 emulator (ARMSX2 or NetherSX2/AetherSX2). Its own settings apply; set resolution and widescreen inside that app.",
+      "capabilities": {
+        "resolution": [],
+        "fps": [],
+        "aspect": [],
+        "redraw": false,
+        "precision": false,
+        "speed": false
+      },
+      "sources": {},
+      "params": {
+        "apps": [
+          {
+            "name": "ARMSX2",
+            "package": "come.nanodata.armsx2",
+            "activity": "com.armsx2.MainActivity",
+            "action": "android.intent.action.VIEW",
+            "data": "{path}"
+          },
+          {
+            "name": "NetherSX2 / AetherSX2",
+            "package": "xyz.aethersx2.android",
+            "activity": "xyz.aethersx2.android.EmulationActivity",
+            "action": "android.intent.action.MAIN",
+            "data": "",
+            "extras": {
+              "bootPath": "{path}"
+            }
+          },
+          {
+            "name": "NetherSX2 (Turnip)",
+            "package": "xyz.aethersx2.tturnip",
+            "activity": "xyz.aethersx2.android.EmulationActivity",
+            "action": "android.intent.action.MAIN",
+            "data": "",
+            "extras": {
+              "bootPath": "{path}"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "android-ps3",
+      "name": "PS3 emulator app (Android)",
+      "kind": "android-app",
+      "license": "Third-party app",
+      "homepage": "https://github.com/aenu1/aps3e",
+      "description": "Hands Ridge Racer 7 to an installed aPS3e on Android (decrypted ISO). Its own settings apply.",
+      "capabilities": {
+        "resolution": [],
+        "fps": [],
+        "aspect": [],
+        "redraw": false,
+        "precision": false,
+        "speed": false
+      },
+      "params": {
+        "apps": [
+          {
+            "name": "aPS3e Premium",
+            "package": "aenu.aps3e.premium",
+            "activity": "aenu.aps3e.EmulatorActivity",
+            "action": "aenu.intent.action.APS3E",
+            "data": "",
+            "extras": {
+              "iso_uri": "{path}"
+            }
+          },
+          {
+            "name": "aPS3e",
+            "package": "aenu.aps3e",
+            "activity": "aenu.aps3e.EmulatorActivity",
+            "action": "aenu.intent.action.APS3E",
+            "data": "",
+            "extras": {
+              "iso_uri": "{path}"
+            }
+          }
+        ]
+      },
+      "sources": {}
+    },
+    {
+      "id": "rpcs3",
+      "name": "RPCS3",
+      "kind": "external",
+      "license": "GPL-2.0",
+      "homepage": "https://rpcs3.net",
+      "description": "PlayStation 3 emulator (official builds from github.com/RPCS3). Requires the official PS3 system software (PS3UPDAT.PUP), which Marathon installs into RPCS3 for you. Boots decrypted .iso images and PS3_GAME folders directly; Marathon keeps RPCS3's config, firmware and saves in its own folder.",
+      "capabilities": {
+        "resolution": [
+          "native",
+          "2x",
+          "3x",
+          "4x",
+          "5x",
+          "6x",
+          "8x",
+          "720p",
+          "1080p",
+          "1440p",
+          "4k",
+          "5k",
+          "8k",
+          "display"
+        ],
+        "fps": [
+          "original"
+        ],
+        "aspect": [
+          "16:9"
+        ],
+        "redraw": false,
+        "precision": false,
+        "speed": false,
+        "vsync": true,
+        "fullscreen": true,
+        "filter": [
+          "nearest",
+          "linear"
+        ],
+        "antiAlias": [
+          "off",
+          "msaa"
+        ]
+      },
+      "sources": {
+        "macos-arm64": {
+          "kind": "github",
+          "repo": "RPCS3/rpcs3-binaries-mac-arm64",
+          "asset": "rpcs3-v*_macos_aarch64.7z",
+          "archive": "7z",
+          "executable": "RPCS3.app/Contents/MacOS/rpcs3"
+        },
+        "macos-x86_64": {
+          "kind": "github",
+          "repo": "RPCS3/rpcs3-binaries-mac",
+          "asset": "rpcs3-v*_macos.7z",
+          "archive": "7z",
+          "executable": "RPCS3.app/Contents/MacOS/rpcs3"
+        },
+        "windows-x86_64": {
+          "kind": "github",
+          "repo": "RPCS3/rpcs3-binaries-win",
+          "asset": "rpcs3-v*_win64_msvc.7z",
+          "archive": "7z",
+          "executable": "rpcs3.exe"
+        },
+        "linux-x86_64": {
+          "kind": "github",
+          "repo": "RPCS3/rpcs3-binaries-linux",
+          "asset": "rpcs3-v*_linux64.AppImage",
+          "archive": "appimage",
+          "executable": "rpcs3-v*_linux64.AppImage"
+        }
+      }
+    },
+    {
+      "id": "xenia-canary",
+      "name": "Xenia Canary",
+      "kind": "external",
+      "license": "BSD-3-Clause",
+      "homepage": "https://xenia.jp",
+      "description": "Xbox 360 emulator (Windows: Direct3D 12 or Vulkan; Linux: Vulkan, experimental; no macOS version). Marathon runs it with its own portable setup (config, patches, shader cache) and keeps saves in Marathon's save folder.",
+      "capabilities": {
+        "resolution": [
+          "native",
+          "2x",
+          "3x",
+          "4x",
+          "5x",
+          "6x",
+          "1080p",
+          "1440p",
+          "4k",
+          "5k",
+          "8k",
+          "display"
+        ],
+        "fps": [
+          "original"
+        ],
+        "aspect": [
+          "auto",
+          "16:9"
+        ],
+        "antiAlias": [
+          "off",
+          "fxaa"
+        ],
+        "redraw": false,
+        "precision": false,
+        "speed": false,
+        "vsync": true,
+        "fullscreen": true
+      },
+      "params": {
+        "nativeHeight": 720
+      },
+      "sources": {
+        "windows-x86_64": {
+          "kind": "github",
+          "repo": "xenia-canary/xenia-canary-releases",
+          "asset": "xenia_canary_windows*.zip",
+          "archive": "zip",
+          "executable": "xenia_canary.exe",
+          "note": "Rolling Canary build (the repository's latest release). Needs a Direct3D 12 or Vulkan graphics card."
+        },
+        "linux-x86_64": {
+          "kind": "github",
+          "repo": "xenia-canary/xenia-canary-releases",
+          "asset": "xenia_canary_linux.tar*.xz",
+          "archive": "tar.xz",
+          "executable": "*xenia_canary",
+          "note": "Experimental; needs a Vulkan driver."
+        }
+      }
+    }
+  ]
+}

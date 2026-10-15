@@ -1,0 +1,165 @@
+# On a version tag (v0.1.0, v0.2.0-rc1, ...): builds the three desktop packages with
+# scripts/build-*.sh and attaches them, with SHA-256 checksums, to a draft GitHub release.
+# Nothing is published until a maintainer reviews the draft and publishes it.
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  package:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: macOS (arm64)
+            os: macos-latest
+            script: scripts/build-macos.sh
+            package: RidgeRacerMarathon-macos-arm64.zip
+          - name: Linux (x64)
+            os: ubuntu-22.04  # glibc 2.35: the package also runs on older distributions
+            script: scripts/build-linux.sh
+            package: RidgeRacerMarathon-linux-x64.tar.gz
+          - name: Windows (x64, mingw-w64)
+            os: ubuntu-latest
+            script: scripts/build-windows.sh
+            package: RidgeRacerMarathon-windows-x64.zip
+    env:
+      HOMEBREW_NO_AUTO_UPDATE: 1
+      HOMEBREW_NO_INSTALL_CLEANUP: 1
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # The packages report the version from CMakeLists.txt; the tag must match it.
+      - name: Check the tag against the project version
+        run: |
+          version="$(sed -n 's/^project([^)]*VERSION \([0-9][0-9.]*\).*/\1/p' CMakeLists.txt | head -n1)"
+          tag="${GITHUB_REF_NAME#v}"
+          case "$tag" in
+              "$version" | "$version"-*) echo "tag $GITHUB_REF_NAME matches version $version" ;;
+              *) echo "::error::tag $GITHUB_REF_NAME does not match project version $version in CMakeLists.txt"; exit 1 ;;
+          esac
+
+      - name: Install tools (macOS)
+        if: runner.os == 'macOS'
+        run: brew install ninja
+
+      - name: Install packages (Linux)
+        if: matrix.script == 'scripts/build-linux.sh'
+        run: bash .github/scripts/install-linux-deps.sh
+
+      - name: Install mingw-w64
+        if: matrix.script == 'scripts/build-windows.sh'
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q --no-install-recommends mingw-w64 ninja-build zip
+
+      # The macOS app is signed ad-hoc: a Developer ID signature and notarization
+      # (CODESIGN_IDENTITY, NOTARY_PROFILE in scripts/build-macos.sh) need a signing keychain on the runner.
+      - name: Build package
+        run: bash ${{ matrix.script }}
+
+      - name: Check the package
+        run: test -s "dist/${{ matrix.package }}" && ls -l dist/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.package }}
+          path: dist/${{ matrix.package }}
+          if-no-files-found: error
+
+  # Each finished package is unpacked and started on its own OS before the release is drafted.
+  test:
+    name: Test ${{ matrix.name }}
+    needs: package
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: macOS package
+            os: macos-latest
+            package: RidgeRacerMarathon-macos-arm64.zip
+            app: RidgeRacerMarathon/Ridge Racer Marathon.app/Contents/MacOS/Ridge Racer Marathon
+          - name: Linux package
+            os: ubuntu-22.04
+            package: RidgeRacerMarathon-linux-x64.tar.gz
+            app: RidgeRacerMarathon/bin/RidgeRacerMarathon
+          - name: Windows package
+            os: windows-latest
+            package: RidgeRacerMarathon-windows-x64.zip
+            app: RidgeRacerMarathon/RidgeRacerMarathon.exe
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github/scripts
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: ${{ matrix.package }}
+          path: pkg
+
+      - name: Unpack
+        working-directory: pkg
+        run: |
+          case "${{ matrix.package }}" in
+              *.tar.gz) tar xzf "${{ matrix.package }}" ;;
+              *.zip) if command -v ditto >/dev/null; then ditto -x -k "${{ matrix.package }}" .; else 7z x -y "${{ matrix.package }}" >/dev/null; fi ;;
+          esac
+          ls -R | head -40
+
+      - name: Start the app
+        run: .github/scripts/smoke-app.sh "pkg/${{ matrix.app }}" smoke
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: screenshot-${{ matrix.package }}
+          path: smoke/library.png
+          if-no-files-found: ignore
+
+  release:
+    name: Draft release
+    needs: [package, test]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Checksums
+        working-directory: dist
+        run: |
+          sha256sum RidgeRacerMarathon-* > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          draft: true
+          prerelease: ${{ contains(github.ref_name, '-') }}
+          name: RIDGE RACER MARATHON ${{ github.ref_name }}
+          generate_release_notes: true
+          fail_on_unmatched_files: true
+          files: |
+            dist/RidgeRacerMarathon-macos-arm64.zip
+            dist/RidgeRacerMarathon-linux-x64.tar.gz
+            dist/RidgeRacerMarathon-windows-x64.zip
+            dist/SHA256SUMS.txt

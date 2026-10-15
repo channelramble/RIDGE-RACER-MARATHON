@@ -1,0 +1,25 @@
+# Never commit game data or generated/derived game content.
+*.iso
+*.bin
+*.cue
+*.chd
+*.pbp
+*.cso
+*.mcd
+*.srm
+*.state
+/build*/
+/out/
+/dist/
+/downloads/
+.DS_Store
+*.xcuserstate
+xcuserdata/
+.gradle/
+local.properties
+platform/android/app/build/
+platform/android/build/
+platform/android/app/.cxx/
+platform/android/app/src/main/jniLibs/
+platform/ios/build/
+

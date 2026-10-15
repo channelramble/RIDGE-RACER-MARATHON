@@ -1,0 +1,278 @@
+{
+  "schema": 1,
+  "backends": [
+    {
+      "id": "rr1-recomp",
+      "name": "Ridge Racer PS1 Recomp",
+      "kind": "recomp",
+      "license": "MIT (project) + PolyForm Noncommercial 1.0.0 (PSXRecomp framework)",
+      "homepage": "https://github.com/RobGreenUK/Ridge-Racer-PS1-Recomp",
+      "description": "RobGreenUK's static recompilation of Ridge Racer (USA, SCUS-94300) on PSXRecomp, with an experimental native-scene renderer that redraws the track, skyline and cars at any resolution and frame rate. With the redraw on, Marathon also opens it at 21:9, 32:9 or your screen's shape (real extra scenery at the sides); the original renderer stops at 16:9. Upstream publishes source only: the game code is generated from your own disc, so Marathon links the build you made locally.",
+      "capabilities": {
+        "resolution": ["native", "2x", "3x", "4x", "720p", "1080p", "1440p", "4k", "display"],
+        "fps": ["original", "display", "60", "90", "120", "144", "165", "240", "custom"],
+        "fpsMethod": ["blend"],
+        "aspect": ["auto", "4:3", "16:9", "21:9", "32:9", "fit"],
+        "filter": ["nearest", "linear"],
+        "redraw": true,
+        "precision": true,
+        "speed": "turbo-hotkey",
+        "vsync": true,
+        "fullscreen": true
+      },
+      "params": {
+        "nativeHeight": 240,
+        "flavor": "rr1"
+      },
+      "sources": {
+        "macos-arm64": {
+          "kind": "user",
+          "executable": "build-macos/RidgeRacer_Recompiled",
+          "note": "Upstream ships source only. Build it from https://github.com/RobGreenUK/Ridge-Racer-PS1-Recomp with your own USA disc (docs/BUILD_MACOS.md: scripts/build-macos.sh, then scripts/prepare-native-scene.sh for the redraw mode), then choose the project or dist/macos folder with \"Link existing\"."
+        },
+        "windows-x86_64": {
+          "kind": "user",
+          "executable": "RidgeRacer_Recompiled.exe",
+          "note": "Upstream ships source only. Build it from https://github.com/RobGreenUK/Ridge-Racer-PS1-Recomp in MSYS2 UCRT64 with your own USA disc (scripts/build-windows.sh), then choose the dist/windows folder with \"Link existing\"."
+        }
+      }
+    },
+    {
+      "id": "r4-recomp",
+      "name": "R4 Recompiled (PSXRecomp)",
+      "kind": "recomp",
+      "license": "MIT (project) + PolyForm Noncommercial 1.0.0 (PSXRecomp, MegaManX6Recomp-derived files); Linux build: no licence published (download-only)",
+      "homepage": "https://github.com/tetrisgm/RidgeRacerType4Recomp",
+      "description": "Static recompilation of R4: Ridge Racer Type 4 (USA, SLUS-00797). The macOS/Windows release is a setup kit: its first start opens upstream's own wizard, which downloads build tools and compiles the game from your disc (10-20 minutes, once). Newer builds add internal resolution up to 8K, the R4 Frame Rate mod (interpolated 60-1000 FPS races) and real widescreen; on Linux Marathon uses omegakatana92's AppImage build.",
+      "capabilities": {
+        "resolution": ["native", "2x", "3x", "4x", "720p", "1080p", "1440p", "4k", "5k", "8k", "display"],
+        "fps": ["original", "display", "60", "90", "120", "144", "165", "240", "300", "custom"],
+        "fpsMethod": ["interpolate", "blend"],
+        "aspect": ["auto", "4:3", "16:9", "21:9", "32:9", "fit"],
+        "filter": ["nearest", "linear"],
+        "redraw": false,
+        "precision": true,
+        "speed": "turbo-hotkey",
+        "vsync": true,
+        "fullscreen": true
+      },
+      "params": {
+        "nativeHeight": 240,
+        "flavor": "r4"
+      },
+      "sources": {
+        "macos-arm64": {
+          "kind": "github",
+          "repo": "tetrisgm/RidgeRacerType4Recomp",
+          "asset": "r4-*-macos-arm64.zip",
+          "archive": "zip",
+          "executable": "r4-runtime",
+          "note": "Setup kit: the first start opens upstream's wizard (build tools download, then the game is compiled from your disc in 10-20 minutes)."
+        },
+        "windows-x86_64": {
+          "kind": "github",
+          "repo": "tetrisgm/RidgeRacerType4Recomp",
+          "asset": "r4-*-windows-x64.zip",
+          "archive": "zip",
+          "executable": "r4-runtime.exe",
+          "note": "Setup kit: the first start opens upstream's wizard (build tools download, then the game is compiled from your disc in 10-20 minutes)."
+        },
+        "linux-x86_64": {
+          "kind": "github",
+          "repo": "omegakatana92/RidgeRacer4Recomp",
+          "asset": "Ridge_Racer_4_Recomp-*-linux-x86_64.AppImage",
+          "archive": "appimage",
+          "executable": "Ridge_Racer_4_Recomp-*-linux-x86_64.AppImage",
+          "note": "omegakatana92's build (no licence published: downloaded from upstream, never redistributed)."
+        }
+      }
+    },
+    {
+      "id": "rage-racer-pc",
+      "name": "Rage Racer PC (native port)",
+      "kind": "port",
+      "license": "None published (all rights reserved): Marathon only downloads the official release, never redistributes it",
+      "homepage": "https://github.com/khasinski/rage-racer-pc",
+      "description": "Native source port of Rage Racer (PAL reference; USA and Japanese discs also boot). Two renderers: classic (the original PS1 polygons, enhanced) and modern (native geometry with a depth buffer, real high resolution, 16:9, interpolated presentation up to 1000 FPS, FXAA, optional ray tracing). Assets are imported from your disc at start-up.",
+      "capabilities": {
+        "resolution": ["native", "2x", "3x", "4x", "5x", "6x", "8x", "720p", "1080p", "1440p", "4k", "5k", "8k", "display"],
+        "fps": ["original", "display", "60", "90", "120", "144", "165", "240", "300", "custom"],
+        "fpsMethod": ["interpolate"],
+        "aspect": ["auto", "4:3", "16:9"],
+        "filter": ["nearest", "linear"],
+        "antiAlias": ["off", "fxaa"],
+        "redraw": true,
+        "precision": false,
+        "speed": false,
+        "vsync": false,
+        "fullscreen": false
+      },
+      "params": {
+        "nativeHeight": 240,
+        "prerelease": true,
+        "rayTracing": "off"
+      },
+      "sources": {
+        "macos-arm64": {
+          "kind": "github",
+          "repo": "khasinski/rage-racer-pc",
+          "asset": "Rage-Racer-?.*-macos-arm64.zip",
+          "archive": "zip",
+          "executable": "*Rage Racer.app/Contents/MacOS/Rage Racer"
+        },
+        "windows-x86_64": {
+          "kind": "github",
+          "repo": "khasinski/rage-racer-pc",
+          "asset": "Rage-Racer-?.*-windows-x86_64.zip",
+          "archive": "zip",
+          "executable": "*/Rage-Racer.exe"
+        },
+        "linux-x86_64": {
+          "kind": "github",
+          "repo": "khasinski/rage-racer-pc",
+          "asset": "Rage-Racer-?.*-linux-x86_64.zip",
+          "archive": "zip",
+          "executable": "*/rage-racer"
+        }
+      }
+    },
+    {
+      "id": "rave-racer-native",
+      "name": "Rave Racer (namco22-decompile)",
+      "kind": "port",
+      "license": "MIT",
+      "homepage": "https://github.com/spacestate1/namco22-decompile",
+      "description": "Native PC version of Rave Racer (Namco System 22) from the Namco 2x Systems decompilation project: the arcade program translated to C with an OpenGL renderer, rendering at any height up to 8K, real widescreen in the screen's own shape in fullscreen (21:9, 32:9: more track at the sides; a window opens at 16:9) and LAN/online races. The game always runs at 59.9 Hz: frame rates above 60 show frames again rather than interpolating, so a 60 or 120 Hz display mode is smoothest. Marathon rebuilds the MAME 0.271+ raverace.zip and namcoc74.zip sets it needs from your own ROM files and keeps its settings in Marathon's own folder. No macOS release: build it from source with Homebrew GCC and SDL2 and link raverace/build/rr.",
+      "capabilities": {
+        "resolution": ["native", "2x", "3x", "4x", "720p", "1080p", "1440p", "4k", "5k", "8k", "display"],
+        "fps": ["original", "display"],
+        "aspect": ["auto", "4:3", "16:9", "21:9", "32:9", "fit"],
+        "filter": ["nearest", "linear"],
+        "redraw": false,
+        "precision": false,
+        "speed": false,
+        "vsync": true,
+        "fullscreen": true
+      },
+      "params": {
+        "nativeHeight": 480,
+        "mameSet": "raverace",
+        "c74Crc": "a3dce360"
+      },
+      "sources": {
+        "windows-x86_64": {
+          "kind": "github",
+          "repo": "spacestate1/namco22-decompile",
+          "asset": "windows-release-*.zip",
+          "archive": "zip",
+          "executable": "*/RaveRacer.exe"
+        },
+        "linux-x86_64": {
+          "kind": "github",
+          "repo": "spacestate1/namco22-decompile",
+          "asset": "RaveRacer-x86_64.AppImage",
+          "archive": "appimage",
+          "executable": "RaveRacer-x86_64.AppImage"
+        },
+        "macos-arm64": {
+          "kind": "user",
+          "executable": "raverace/build/rr",
+          "note": "No macOS release. Build Rave Racer from the namco22-decompile source (it needs your raverace.zip and namcoc74.zip at build time) with Homebrew gcc, cmake, pkgconf and sdl2, then use Link existing on raverace/build/rr."
+        }
+      }
+    },
+    {
+      "id": "fukami",
+      "name": "Fukami (Ridge Racer V recomp)",
+      "kind": "recomp",
+      "license": "GPL-3.0",
+      "homepage": "https://github.com/danisandoval/fukami",
+      "description": "Native port of Ridge Racer V (USA, SLUS-20002) by static recompilation (PS2Recomp) with PCSX2's GS renderer: internal resolution up to 8x the 448-line frame, real widescreen at 16:9, 16:10 or 21:9 (wider screens get bars at the sides), FXAA and more cars at full detail. No BIOS needed. The game runs at 59.94 frames a second: on Windows fullscreen switches the display to a multiple of 60 Hz or uses FreeSync/G-Sync; on macOS and Linux every frame is paced evenly at the desktop's rate. Fukami unpacks the game once (about 480 MB) from your disc image into its own folder, which Marathon shares with a standalone Fukami (settings and saves too). On a Mac, Fukami asks for the disc image itself on its first start. Needs macOS 27 or later; Windows needs the Microsoft Visual C++ x64 runtime.",
+      "capabilities": {
+        "resolution": ["native", "2x", "3x", "4x", "5x", "6x", "7x", "8x", "720p", "1080p", "1440p", "4k", "5k", "display"],
+        "fps": ["original"],
+        "aspect": ["auto", "4:3", "16:9", "21:9", "fit"],
+        "filter": ["nearest", "linear"],
+        "antiAlias": ["off", "fxaa"],
+        "redraw": false,
+        "precision": false,
+        "speed": false,
+        "vsync": true,
+        "fullscreen": true
+      },
+      "params": {
+        "nativeHeight": 448,
+        "minMacos": 27
+      },
+      "sources": {
+        "macos-arm64": {
+          "kind": "github",
+          "repo": "danisandoval/fukami",
+          "asset": "Fukami-*-macos-arm64.zip",
+          "archive": "zip",
+          "executable": "*Fukami.app/Contents/MacOS/Fukami"
+        },
+        "windows-x86_64": {
+          "kind": "github",
+          "repo": "danisandoval/fukami",
+          "asset": "Fukami-*-windows-x86_64.zip",
+          "archive": "zip",
+          "executable": "Fukami/Fukami.exe"
+        },
+        "linux-x86_64": {
+          "kind": "github",
+          "repo": "danisandoval/fukami",
+          "asset": "Fukami-*-linux-x86_64.tar.gz",
+          "archive": "tar.gz",
+          "executable": "Fukami/Fukami"
+        }
+      }
+    },
+    {
+      "id": "rr6-recomp",
+      "name": "Ridge Racer 6 Recomp",
+      "kind": "recomp",
+      "license": "BSD-3-Clause (project); ReXGlue SDK runtime under its own licence",
+      "homepage": "https://github.com/Sirhalo23/RidgeRacer6-Recompilation",
+      "description": "Native PC version of Ridge Racer 6 (Xbox 360, USA disc only) recompiled with the ReXGlue SDK: up to 4x the original 720 lines, ultrawide in full screen (21:9, 32:9 or your screen's shape) with menus and HUD kept in shape and the race HUD at the screen edges, FXAA. 60 fps (the game's speed is tied to 60 Hz). Early test release. The first start copies the game files (about 6 GB) out of your own ISO, once.",
+      "capabilities": {
+        "resolution": ["native", "2x", "3x", "4x", "1080p", "1440p", "4k", "5k", "display"],
+        "fps": ["original"],
+        "aspect": ["auto", "16:9", "21:9", "32:9", "fit"],
+        "antiAlias": ["off", "fxaa"],
+        "redraw": false,
+        "precision": false,
+        "speed": false,
+        "vsync": true,
+        "fullscreen": true
+      },
+      "params": {
+        "nativeHeight": 720,
+        "prerelease": true
+      },
+      "sources": {
+        "windows-x86_64": {
+          "kind": "github",
+          "repo": "Sirhalo23/RidgeRacer6-Recompilation",
+          "asset": "RidgeRacer6-PC-v*.zip",
+          "archive": "zip",
+          "executable": "*RR6 Launcher.exe",
+          "note": "Needs DirectX 12 and the Microsoft Visual C++ 2015-2022 runtime (x64). The first start copies the game files out of your ISO with the release's prepare-game.ps1 (a console window shows the progress)."
+        },
+        "linux-x86_64": {
+          "kind": "github",
+          "repo": "Sirhalo23/RidgeRacer6-Recompilation",
+          "asset": "RidgeRacer6-Linux-TestBuild-*.tar.gz",
+          "archive": "tar.gz",
+          "executable": "*/ridge-racer-6.sh",
+          "note": "Experimental Vulkan test build (pre-release); needs glibc 2.35+."
+        },
+        "macos-arm64": {
+          "kind": "user",
+          "executable": "*Contents/MacOS/rr6-launcher",
+          "note": "No macOS download: build it yourself (BUILDING.md, macOS: Xcode 16+, CMake, Ninja, the SDK fork's rr6 branch beside the repo; ./build-macos.sh \"<your USA ISO>\", then ./macos/make-package.sh) and link \"Ridge Racer 6.app\" from dist/RidgeRacer6-macOS-arm64-test.zip. The development build's rr6_recomp.app can be linked too."
+        }
+      }
+    }
+  ]
+}

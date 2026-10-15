@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Ridge Racer Marathon
+GenericName=Game launcher
+Comment=Play your own Ridge Racer game dumps from one app (unofficial)
+Exec=RidgeRacerMarathon
+Icon=io.github.ridgeracermarathon
+Terminal=false
+Categories=Game;Emulator;
+Keywords=Ridge Racer;racing;launcher;emulator;
+StartupWMClass=io.github.ridgeracermarathon

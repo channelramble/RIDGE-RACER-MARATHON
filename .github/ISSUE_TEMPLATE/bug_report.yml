@@ -1,0 +1,102 @@
+name: Bug report
+description: Something in Marathon, a backend or the catalog does not work as described.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report. **Never attach or link game files, disc images, ROMs, BIOS files,
+        console firmware (such as PS3UPDAT.PUP) or decrypted executables**, not even parts of them.
+        Issues or comments that contain them are deleted. Logs, screenshots, serials (e.g. SLUS-00797)
+        and hashes are fine.
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - macOS (Apple Silicon)
+        - Windows x64
+        - Linux x64
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: os-version
+    attributes:
+      label: OS version and hardware
+      description: For example "macOS 27.0, Mac mini M4", "Windows 11 24H2, RTX 4070", "Ubuntu 26.04, Wayland, Radeon 780M".
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Marathon version
+      description: Shown at the top of the About page, for example "Version 0.1.0 | macos-arm64". Add the commit if you built it yourself.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: game
+    attributes:
+      label: Game
+      options:
+        - Not game-specific
+        - Ridge Racer (PS1)
+        - Rave Racer (arcade)
+        - Rage Racer (PS1)
+        - R4 (PS1)
+        - Ridge Racer V (PS2)
+        - Ridge Racer (PSP)
+        - Ridge Racer 2 (PSP)
+        - Ridge Racer 6 (Xbox 360)
+        - Ridge Racer 7 (PS3)
+    validations:
+      required: true
+
+  - type: input
+    id: backend
+    attributes:
+      label: Backend
+      description: >-
+        The way the game runs, as shown on the game page (for example "SwanStation (PS1 core)",
+        "R4 Recompiled (PSXRecomp)", "RPCS3"), and whether Marathon installed it or you linked your own build.
+      placeholder: RPCS3, installed by Marathon
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you did, what you expected, and what happened instead. Include the enhancement settings you changed (resolution, aspect ratio, frame rate, smoothing, speed).
+    validations:
+      required: true
+
+  - type: textarea
+    id: log
+    attributes:
+      label: Backend log
+      description: |
+        Marathon writes one log per backend to the `logs` folder inside its data folder
+        (Settings > Open data folder, or the Log button while a game runs), for example `logs/rpcs3.log`.
+        Paste the part from the last start, or drag the file here. Remove anything personal first.
+      render: text
+
+  - type: textarea
+    id: files
+    attributes:
+      label: Game files (description only)
+      description: >-
+        For recognition or verification problems: the file format (CUE/BIN, ISO, CHD, folder, zip),
+        region and serial, and the verification result on the game page. No files, please.
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I have not attached or linked any game files, ROMs, BIOS, firmware or decrypted executables.
+          required: true
+        - label: I searched the existing issues, and the Known limitations section of the README.
+          required: false
