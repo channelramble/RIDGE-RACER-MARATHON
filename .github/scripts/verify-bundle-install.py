@@ -14,6 +14,7 @@ def load_core(path):
         _fields_ = [("name", ctypes.c_char_p), ("version", ctypes.c_char_p),
                     ("extensions", ctypes.c_char_p), ("need_fullpath", ctypes.c_bool),
                     ("block_extract", ctypes.c_bool)]
+    dll_directory = os.add_dll_directory(str(path.parent)) if os.name == "nt" else None
     core = ctypes.CDLL(str(path))
     core.retro_get_system_info.argtypes = [ctypes.POINTER(Info)]
     info = Info()

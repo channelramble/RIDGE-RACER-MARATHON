@@ -1,0 +1,417 @@
+{
+  "schema": 1,
+  "pinned_at": "2026-10-15",
+  "sources": [
+    {
+      "id": "swanstation",
+      "repo": "libretro/swanstation",
+      "commit": "e436e9b85374def58d211df7f78880f0f4a917b4",
+      "backends": [
+        "lr-swanstation"
+      ]
+    },
+    {
+      "id": "pcsx-rearmed",
+      "repo": "libretro/pcsx_rearmed",
+      "commit": "c8816799b50388e61cfe237fe2cdbb7d8175f20a",
+      "backends": [
+        "lr-pcsx-rearmed"
+      ]
+    },
+    {
+      "id": "ppsspp-libretro",
+      "repo": "hrydgard/ppsspp",
+      "commit": "f6aea4c85c2979818ba498940db2d60128899518",
+      "backends": [
+        "lr-ppsspp"
+      ],
+      "runtime_assets": "assets"
+    },
+    {
+      "id": "mame-libretro",
+      "repo": "libretro/mame",
+      "commit": "5f5a07748ce5c239c4118463ce8e6473743d4859",
+      "backends": [
+        "lr-mame"
+      ]
+    },
+    {
+      "id": "ppsspp",
+      "repo": "hrydgard/ppsspp",
+      "commit": "fa50bb1976065c4f8b1b47af227d367fe9771555",
+      "backends": [
+        "ppsspp"
+      ]
+    },
+    {
+      "id": "pcsx2",
+      "repo": "PCSX2/pcsx2",
+      "commit": "fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3",
+      "backends": [
+        "pcsx2"
+      ]
+    },
+    {
+      "id": "rpcs3",
+      "repo": "RPCS3/rpcs3",
+      "commit": "4d5def5880217135554ed434cd5055cceebe9cc2",
+      "backends": [
+        "rpcs3"
+      ]
+    },
+    {
+      "id": "mame",
+      "repo": "mamedev/mame",
+      "commit": "f34f02505e32c1993c6a782b6814232cbfc74e36",
+      "backends": [
+        "mame"
+      ]
+    },
+    {
+      "id": "xenia-canary",
+      "repo": "xenia-canary/xenia-canary",
+      "commit": "b7350635be5a48a1b28b3bcf0e334b7f7c671abd",
+      "backends": [
+        "xenia-canary"
+      ]
+    },
+    {
+      "id": "ppsspp-ffmpeg-history",
+      "repo": "hrydgard/ppsspp-ffmpeg",
+      "commit": "b87f7c6d522d1edba77cfc4fac96ce48a236f806",
+      "backends": [
+        "ppsspp",
+        "lr-ppsspp"
+      ],
+      "history": true,
+      "note": "Full history preserves the exact source used for the prebuilt Windows (2e8b42f/779fa19527), macOS (b04d34d/6ef2fd83aa), and Linux (eafa5ae9ae) FFmpeg libraries."
+    }
+  ],
+  "binaries": [
+    {
+      "id": "lr-swanstation",
+      "platform": "macos-arm64",
+      "version": "e436e9b85374",
+      "url": "https://buildbot.libretro.com/nightly/apple/osx/arm64/latest/swanstation_libretro.dylib.zip",
+      "sha256": "116c6df88587120ba231a371f70ec33697990d877d4b56a7ef426eed9d68b00e",
+      "size": 1477934,
+      "archive": "zip",
+      "executable": "swanstation_libretro.dylib",
+      "source": "swanstation",
+      "license": "GPL-3.0",
+      "revision_marker": "1.0.0 e436e9b"
+    },
+    {
+      "id": "lr-pcsx-rearmed",
+      "platform": "macos-arm64",
+      "version": "c8816799b503",
+      "url": "https://buildbot.libretro.com/nightly/apple/osx/arm64/latest/pcsx_rearmed_libretro.dylib.zip",
+      "sha256": "14d27c1f342da20e78b81afd81d25d121874491f74bab157b1e960863e80afcd",
+      "size": 506694,
+      "archive": "zip",
+      "executable": "pcsx_rearmed_libretro.dylib",
+      "source": "pcsx-rearmed",
+      "license": "GPL-2.0; GPL-3.0; LGPL-2.1; LGPL-3.0",
+      "revision_marker": "r26 c881679"
+    },
+    {
+      "id": "lr-ppsspp",
+      "platform": "macos-arm64",
+      "version": "f6aea4c85c29",
+      "url": "https://buildbot.libretro.com/nightly/apple/osx/arm64/latest/ppsspp_libretro.dylib.zip",
+      "sha256": "dff8987f639c1bb33de46c2f73d00b8d1bdf44e7dea299278e029b17d1ec681a",
+      "size": 7163040,
+      "archive": "zip",
+      "executable": "ppsspp_libretro.dylib",
+      "source": "ppsspp-libretro",
+      "license": "GPL-2.0-or-later; GPL-3.0-or-later; LGPL-2.1-or-later",
+      "revision_marker": "f6aea4c8",
+      "system_files": [
+        {
+          "source": "system/PPSSPP",
+          "destination": "libretro/PPSSPP"
+        }
+      ]
+    },
+    {
+      "id": "lr-mame",
+      "platform": "macos-arm64",
+      "version": "5f5a07748ce5",
+      "url": "https://buildbot.libretro.com/nightly/apple/osx/arm64/latest/mame_libretro.dylib.zip",
+      "sha256": "eef96813bb4a1b32a7a172701270750e6858d18e92daa2198d1a13a0ea91190c",
+      "size": 101692076,
+      "archive": "zip",
+      "executable": "mame_libretro.dylib",
+      "source": "mame-libretro",
+      "license": "GPL-2.0-or-later",
+      "revision_marker": "0.289 (5f5a0774)"
+    },
+    {
+      "id": "lr-swanstation",
+      "platform": "windows-x86_64",
+      "version": "e436e9b85374",
+      "url": "https://buildbot.libretro.com/nightly/windows/x86_64/latest/swanstation_libretro.dll.zip",
+      "sha256": "44090efd959965faccdbd1449a36b673404605736f96b429373d699fd0c6ffde",
+      "size": 3097523,
+      "archive": "zip",
+      "executable": "swanstation_libretro.dll",
+      "source": "swanstation",
+      "license": "GPL-3.0",
+      "revision_marker": "1.0.0 e436e9b"
+    },
+    {
+      "id": "lr-pcsx-rearmed",
+      "platform": "windows-x86_64",
+      "version": "c8816799b503",
+      "url": "https://buildbot.libretro.com/nightly/windows/x86_64/latest/pcsx_rearmed_libretro.dll.zip",
+      "sha256": "6c06afe6e0812cd682d771f790bd73e9052e70349d1cd8f04d16baa703851014",
+      "size": 846163,
+      "archive": "zip",
+      "executable": "pcsx_rearmed_libretro.dll",
+      "source": "pcsx-rearmed",
+      "license": "GPL-2.0; GPL-3.0; LGPL-2.1; LGPL-3.0",
+      "revision_marker": "r26 c881679"
+    },
+    {
+      "id": "lr-ppsspp",
+      "platform": "windows-x86_64",
+      "version": "f6aea4c85c29",
+      "url": "https://buildbot.libretro.com/nightly/windows/x86_64/latest/ppsspp_libretro.dll.zip",
+      "sha256": "633581f171ca47b890f7c19c4e76b2f60a0a0c6089bab74ec17c7d4aef9bb216",
+      "size": 6814616,
+      "archive": "zip",
+      "executable": "ppsspp_libretro.dll",
+      "source": "ppsspp-libretro",
+      "license": "GPL-2.0-or-later; GPL-3.0-or-later; LGPL-2.1-or-later",
+      "revision_marker": "f6aea4c8",
+      "system_files": [
+        {
+          "source": "system/PPSSPP",
+          "destination": "libretro/PPSSPP"
+        }
+      ]
+    },
+    {
+      "id": "lr-mame",
+      "platform": "windows-x86_64",
+      "version": "5f5a07748ce5",
+      "url": "https://buildbot.libretro.com/nightly/windows/x86_64/latest/mame_libretro.dll.zip",
+      "sha256": "2d26bb3495770ec2ed232742c153295c15bc460fc2306d0d9a205ecaf8dbb132",
+      "size": 107978473,
+      "archive": "zip",
+      "executable": "mame_libretro.dll",
+      "source": "mame-libretro",
+      "license": "GPL-2.0-or-later",
+      "revision_marker": "0.289 (5f5a0774)"
+    },
+    {
+      "id": "lr-swanstation",
+      "platform": "linux-x86_64",
+      "version": "e436e9b85374",
+      "url": "https://buildbot.libretro.com/nightly/linux/x86_64/latest/swanstation_libretro.so.zip",
+      "sha256": "58c492962654061888bff15d8087b2d763191ac23b0d461397b42a4da85da22f",
+      "size": 1563554,
+      "archive": "zip",
+      "executable": "swanstation_libretro.so",
+      "source": "swanstation",
+      "license": "GPL-3.0",
+      "revision_marker": "1.0.0 e436e9b"
+    },
+    {
+      "id": "lr-pcsx-rearmed",
+      "platform": "linux-x86_64",
+      "version": "c8816799b503",
+      "url": "https://buildbot.libretro.com/nightly/linux/x86_64/latest/pcsx_rearmed_libretro.so.zip",
+      "sha256": "a4a49dddf62d31a2fd58a7c9d87b8c3ffc0bba906256f40e26e070d03d1f6b19",
+      "size": 725864,
+      "archive": "zip",
+      "executable": "pcsx_rearmed_libretro.so",
+      "source": "pcsx-rearmed",
+      "license": "GPL-2.0; GPL-3.0; LGPL-2.1; LGPL-3.0",
+      "revision_marker": "r26 c881679"
+    },
+    {
+      "id": "lr-ppsspp",
+      "platform": "linux-x86_64",
+      "version": "f6aea4c85c29",
+      "url": "https://buildbot.libretro.com/nightly/linux/x86_64/latest/ppsspp_libretro.so.zip",
+      "sha256": "dff00651db9c576c64a2a56b4b82a70b0bcee9345c4a06fd75aa16f578ba419f",
+      "size": 8775829,
+      "archive": "zip",
+      "executable": "ppsspp_libretro.so",
+      "source": "ppsspp-libretro",
+      "license": "GPL-2.0-or-later; GPL-3.0-or-later; LGPL-2.1-or-later",
+      "revision_marker": "f6aea4c",
+      "system_files": [
+        {
+          "source": "system/PPSSPP",
+          "destination": "libretro/PPSSPP"
+        }
+      ]
+    },
+    {
+      "id": "lr-mame",
+      "platform": "linux-x86_64",
+      "version": "5f5a07748ce5",
+      "url": "https://buildbot.libretro.com/nightly/linux/x86_64/latest/mame_libretro.so.zip",
+      "sha256": "1cb4f6bfe59c62b86977ef281c79ce435417413dad36d9e83c88c3d86befbe44",
+      "size": 116311065,
+      "archive": "zip",
+      "executable": "mame_libretro.so",
+      "source": "mame-libretro",
+      "license": "GPL-2.0-or-later",
+      "revision_marker": "0.289 (5f5a0774)"
+    },
+    {
+      "id": "ppsspp",
+      "platform": "macos-arm64",
+      "version": "v1.20.4",
+      "url": "https://github.com/hrydgard/ppsspp/releases/download/v1.20.4/PPSSPPSDL-macOS-v1.20.4.zip",
+      "sha256": "fb32a215861a293c28f641bf47f3164766ba512214025f4457796c8d14242665",
+      "size": 37389023,
+      "archive": "zip",
+      "executable": "PPSSPPSDL.app/Contents/MacOS/PPSSPPSDL",
+      "source": "ppsspp",
+      "license": "GPL-2.0-or-later; GPL-3.0-or-later"
+    },
+    {
+      "id": "ppsspp",
+      "platform": "windows-x86_64",
+      "version": "v1.20.4",
+      "url": "https://github.com/hrydgard/ppsspp/releases/download/v1.20.4/PPSSPP-v1.20.4-Windows-x64.zip",
+      "sha256": "fbc9cd2f5131b159a92424e5c458c35ce43ba603cdded64dfc98e4bd4f17ff93",
+      "size": 20390334,
+      "archive": "zip",
+      "executable": "PPSSPPWindows64.exe",
+      "source": "ppsspp",
+      "license": "GPL-2.0-or-later; GPL-3.0-or-later"
+    },
+    {
+      "id": "ppsspp",
+      "platform": "linux-x86_64",
+      "version": "v1.20.4",
+      "url": "https://github.com/hrydgard/ppsspp/releases/download/v1.20.4/PPSSPP-v1.20.4-anylinux-x86_64.AppImage",
+      "sha256": "661c098e6b7f7610171a57b7c533ce8bba6f2312b71e76d61e850461973eba21",
+      "size": 50689748,
+      "archive": "appimage",
+      "executable": "AppRun",
+      "source": "ppsspp",
+      "license": "GPL-2.0-or-later; GPL-3.0-or-later"
+    },
+    {
+      "id": "pcsx2",
+      "platform": "macos-arm64",
+      "version": "v2.8.2",
+      "url": "https://github.com/PCSX2/pcsx2/releases/download/v2.8.2/pcsx2-v2.8.2-macos-Qt.tar.xz",
+      "sha256": "3ed9eb40a33eae67134142c24255a079be444f0616ca29575a04a37981f7d426",
+      "size": 24377200,
+      "archive": "tar.xz",
+      "executable": "PCSX2*.app/Contents/MacOS/PCSX2",
+      "source": "pcsx2",
+      "license": "GPL-3.0-or-later"
+    },
+    {
+      "id": "pcsx2",
+      "platform": "windows-x86_64",
+      "version": "v2.8.2",
+      "url": "https://github.com/PCSX2/pcsx2/releases/download/v2.8.2/pcsx2-v2.8.2-windows-x64-Qt.7z",
+      "sha256": "7dfc829ca1994cc1045ac49f05e39b6cf968b72e6a374c40e05c2a2b4ac200b4",
+      "size": 25670075,
+      "archive": "7z",
+      "executable": "pcsx2-qt.exe",
+      "source": "pcsx2",
+      "license": "GPL-3.0-or-later"
+    },
+    {
+      "id": "pcsx2",
+      "platform": "linux-x86_64",
+      "version": "v2.8.2",
+      "url": "https://github.com/PCSX2/pcsx2/releases/download/v2.8.2/pcsx2-v2.8.2-linux-appimage-x64-Qt.AppImage",
+      "sha256": "0c46bb6a88aa2782b10853a7b07cf3387ba99cbef2b966372cd2315b8571abea",
+      "size": 60119544,
+      "archive": "appimage",
+      "executable": "AppRun",
+      "source": "pcsx2",
+      "license": "GPL-3.0-or-later"
+    },
+    {
+      "id": "rpcs3",
+      "platform": "macos-arm64",
+      "version": "build-4d5def5880217135554ed434cd5055cceebe9cc2",
+      "url": "https://github.com/RPCS3/rpcs3-binaries-mac-arm64/releases/download/build-4d5def5880217135554ed434cd5055cceebe9cc2/rpcs3-v0.0.43-20310-4d5def58_macos_aarch64.7z",
+      "sha256": "85596697b2622ea8ff1d651e5d02b1ed30cd8e9fd6d35c75dd071d6e0fc87a2c",
+      "size": 34940160,
+      "archive": "7z",
+      "executable": "RPCS3.app/Contents/MacOS/rpcs3",
+      "source": "rpcs3",
+      "license": "GPL-2.0-only"
+    },
+    {
+      "id": "rpcs3",
+      "platform": "windows-x86_64",
+      "version": "build-4d5def5880217135554ed434cd5055cceebe9cc2",
+      "url": "https://github.com/RPCS3/rpcs3-binaries-win/releases/download/build-4d5def5880217135554ed434cd5055cceebe9cc2/rpcs3-v0.0.43-20310-4d5def58_win64_msvc.7z",
+      "sha256": "18c4c98082e85e71b32a4afac52abf019d9237170073983fa60a3961723a8c47",
+      "size": 39332447,
+      "archive": "7z",
+      "executable": "rpcs3.exe",
+      "source": "rpcs3",
+      "license": "GPL-2.0-only"
+    },
+    {
+      "id": "rpcs3",
+      "platform": "linux-x86_64",
+      "version": "build-4d5def5880217135554ed434cd5055cceebe9cc2",
+      "url": "https://github.com/RPCS3/rpcs3-binaries-linux/releases/download/build-4d5def5880217135554ed434cd5055cceebe9cc2/rpcs3-v0.0.43-20310-4d5def58_linux64.AppImage",
+      "sha256": "40bf99a9d04dee9e196907f20b5aff2ccc945808ef79b91be240e8431ba44271",
+      "size": 94100569,
+      "archive": "appimage",
+      "executable": "AppRun",
+      "source": "rpcs3",
+      "license": "GPL-2.0-only"
+    },
+    {
+      "id": "mame",
+      "platform": "windows-x86_64",
+      "version": "mame0289",
+      "url": "https://github.com/mamedev/mame/releases/download/mame0289/mame0289b_x64.exe",
+      "sha256": "a1aa7912168c9d1b05e611906bc21b8b9be3935822aead36d12a1da363150b7d",
+      "size": 87626249,
+      "archive": "7z",
+      "executable": "mame.exe",
+      "source": "mame",
+      "license": "GPL-2.0-or-later",
+      "remove": [
+        "**/mame.sym"
+      ]
+    },
+    {
+      "id": "xenia-canary",
+      "platform": "windows-x86_64",
+      "version": "b735063",
+      "url": "https://github.com/xenia-canary/xenia-canary/releases/download/b735063/xenia_canary_windows.7z",
+      "sha256": "92485faf20ddf994ba343f9cf305646bfc3f5cfe1870be48535c92814204c61b",
+      "size": 3679268,
+      "archive": "7z",
+      "executable": "xenia_canary.exe",
+      "source": "xenia-canary",
+      "license": "BSD-3-Clause; LGPL-2.1-or-later"
+    },
+    {
+      "id": "xenia-canary",
+      "platform": "linux-x86_64",
+      "version": "b735063",
+      "url": "https://github.com/xenia-canary/xenia-canary/releases/download/b735063/xenia_canary_linux.AppImage",
+      "sha256": "49987f779695e2ed603f10f6ea3c01bda6769e9676772f8e5c844f7fa60bc345",
+      "size": 17869304,
+      "archive": "appimage",
+      "executable": "AppRun",
+      "source": "xenia-canary",
+      "license": "BSD-3-Clause; LGPL-2.1-or-later"
+    }
+  ],
+  "excluded": {
+    "game_isos": "Supply your own discs, ROMs and firmware.",
+    "native_ports": "No native game recompilations or unlicensed ports are redistributed; their catalog Install/Link actions remain available."
+  }
+}

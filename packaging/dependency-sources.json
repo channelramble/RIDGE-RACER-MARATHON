@@ -1,0 +1,1788 @@
+{
+  "schema": 1,
+  "description": "Pinned dependency source inputs from upstream release recipes. Platform lists name the Marathon bundles that use these inputs. MacPorts/distro dependencies are separately listed.",
+  "sources": [
+    {
+      "id": "pcsx2-qtbase-everywhere-src-6.11.1.zip",
+      "url": "https://download.qt.io/official_releases/qt/6.11/6.11.1/submodules/qtbase-everywhere-src-6.11.1.zip",
+      "sha256": "3529cc37297a5a7aae4486843b9fd41c30df1d79a770f85e240b537dcc327ca5",
+      "archive": "zip",
+      "filename": "qtbase-everywhere-src-6.11.1.zip",
+      "platforms": [
+        "windows-x86_64"
+      ],
+      "backends": [
+        "pcsx2"
+      ],
+      "evidence": [
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/windows/build-dependencies.bat"
+      ]
+    },
+    {
+      "id": "pcsx2-qtimageformats-everywhere-src-6.11.1.zip",
+      "url": "https://download.qt.io/official_releases/qt/6.11/6.11.1/submodules/qtimageformats-everywhere-src-6.11.1.zip",
+      "sha256": "37fba768f2780580dfae535ad6654cb9dc0bf2272e71b9b9781988de9ed0dac0",
+      "archive": "zip",
+      "filename": "qtimageformats-everywhere-src-6.11.1.zip",
+      "platforms": [
+        "windows-x86_64"
+      ],
+      "backends": [
+        "pcsx2"
+      ],
+      "evidence": [
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/windows/build-dependencies.bat"
+      ]
+    },
+    {
+      "id": "pcsx2-qtsvg-everywhere-src-6.11.1.zip",
+      "url": "https://download.qt.io/official_releases/qt/6.11/6.11.1/submodules/qtsvg-everywhere-src-6.11.1.zip",
+      "sha256": "767730188d4610a89bf8da502f87acf1c8881a3ac54f1e0eb167ab1e08b03a75",
+      "archive": "zip",
+      "filename": "qtsvg-everywhere-src-6.11.1.zip",
+      "platforms": [
+        "windows-x86_64"
+      ],
+      "backends": [
+        "pcsx2"
+      ],
+      "evidence": [
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/windows/build-dependencies.bat"
+      ]
+    },
+    {
+      "id": "pcsx2-qttools-everywhere-src-6.11.1.zip",
+      "url": "https://download.qt.io/official_releases/qt/6.11/6.11.1/submodules/qttools-everywhere-src-6.11.1.zip",
+      "sha256": "2d6ed2a98f458152e3cb17bf0be0494250194933a2d937b5a434e5b2006efca9",
+      "archive": "zip",
+      "filename": "qttools-everywhere-src-6.11.1.zip",
+      "platforms": [
+        "windows-x86_64"
+      ],
+      "backends": [
+        "pcsx2"
+      ],
+      "evidence": [
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/windows/build-dependencies.bat"
+      ]
+    },
+    {
+      "id": "pcsx2-qttranslations-everywhere-src-6.11.1.zip",
+      "url": "https://download.qt.io/official_releases/qt/6.11/6.11.1/submodules/qttranslations-everywhere-src-6.11.1.zip",
+      "sha256": "eef43700ffd079f5893e435aca1330c8bdbf2a94ae45013e3fc63870df53d3b0",
+      "archive": "zip",
+      "filename": "qttranslations-everywhere-src-6.11.1.zip",
+      "platforms": [
+        "windows-x86_64"
+      ],
+      "backends": [
+        "pcsx2"
+      ],
+      "evidence": [
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/windows/build-dependencies.bat"
+      ]
+    },
+    {
+      "id": "pcsx2-qtapng-1.3.0.zip",
+      "url": "https://github.com/jurplel/QtApng/archive/refs/tags/1.3.0.zip",
+      "sha256": "5176082cdd468047a7eb1ec1f106b032f57df207aa318d559b29606b00d159ac",
+      "archive": "zip",
+      "filename": "QtApng-1.3.0.zip",
+      "platforms": [
+        "windows-x86_64"
+      ],
+      "backends": [
+        "pcsx2"
+      ],
+      "evidence": [
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/windows/build-dependencies.bat"
+      ]
+    },
+    {
+      "id": "pcsx2-ffmpeg-8.1.tar.xz",
+      "url": "https://ffmpeg.org/releases/ffmpeg-8.1.tar.xz",
+      "sha256": "b072aed6871998cce9b36e7774033105ca29e33632be5b6347f3206898e0756a",
+      "archive": "tar.xz",
+      "filename": "ffmpeg-8.1.tar.xz",
+      "platforms": [
+        "windows-x86_64",
+        "macos-arm64",
+        "linux-x86_64"
+      ],
+      "backends": [
+        "pcsx2"
+      ],
+      "evidence": [
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/windows/build-dependencies.bat",
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/macos/build-dependencies.sh",
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/linux/build-dependencies-qt.sh"
+      ]
+    },
+    {
+      "id": "pcsx2-meson-1.10.2.tar.gz",
+      "url": "https://github.com/mesonbuild/meson/releases/download/1.10.2/meson-1.10.2.tar.gz",
+      "sha256": "7890287d911dd4ee1ebd0efb61ed0321bfcd87c725df923a837cf90c6508f96b",
+      "archive": "tar.gz",
+      "filename": "meson-1.10.2.tar.gz",
+      "platforms": [
+        "windows-x86_64"
+      ],
+      "backends": [
+        "pcsx2"
+      ],
+      "evidence": [
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/windows/build-dependencies.bat"
+      ]
+    },
+    {
+      "id": "pcsx2-pkgconf-pkgconf-2.5.1.zip",
+      "url": "https://github.com/pkgconf/pkgconf/archive/refs/tags/pkgconf-2.5.1.zip",
+      "sha256": "c5b5f88a2ca2324dc5d857e35bb145e24290e326357ea94a86d47b8d7fa15477",
+      "archive": "zip",
+      "filename": "pkgconf-pkgconf-2.5.1.zip",
+      "platforms": [
+        "windows-x86_64"
+      ],
+      "backends": [
+        "pcsx2"
+      ],
+      "evidence": [
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/windows/build-dependencies.bat"
+      ]
+    },
+    {
+      "id": "pcsx2-amf-headers-v1.5.0.tar.gz",
+      "url": "https://github.com/GPUOpen-LibrariesAndSDKs/AMF/releases/download/v1.5.0/AMF-headers-v1.5.0.tar.gz",
+      "sha256": "d569647fa26f289affe81a206259fa92f819d06db1e80cc334559953e82a3f01",
+      "archive": "tar.gz",
+      "filename": "amf-headers-v1.5.0.tar.gz",
+      "platforms": [
+        "windows-x86_64"
+      ],
+      "backends": [
+        "pcsx2"
+      ],
+      "evidence": [
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/windows/build-dependencies.bat"
+      ]
+    },
+    {
+      "id": "pcsx2-libvpl-2.16.0.zip",
+      "url": "https://github.com/intel/libvpl/archive/v2.16.0.zip",
+      "sha256": "0b2ee8da8b9ef07ed4b52bf9ddee05008ec999b7c3c41944d7a9f804631c398e",
+      "archive": "zip",
+      "filename": "libvpl-2.16.0.zip",
+      "platforms": [
+        "windows-x86_64"
+      ],
+      "backends": [
+        "pcsx2"
+      ],
+      "evidence": [
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/windows/build-dependencies.bat"
+      ]
+    },
+    {
+      "id": "pcsx2-nv-codec-headers-13.0.19.0.tar.gz",
+      "url": "https://github.com/FFmpeg/nv-codec-headers/releases/download/n13.0.19.0/nv-codec-headers-13.0.19.0.tar.gz",
+      "sha256": "13da39edb3a40ed9713ae390ca89faa2f1202c9dda869ef306a8d4383e242bee",
+      "archive": "tar.gz",
+      "filename": "nv-codec-headers-13.0.19.0.tar.gz",
+      "platforms": [
+        "windows-x86_64",
+        "linux-x86_64"
+      ],
+      "backends": [
+        "pcsx2",
+        "rpcs3"
+      ],
+      "evidence": [
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/windows/build-dependencies.bat",
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/linux/build-dependencies-qt.sh"
+      ]
+    },
+    {
+      "id": "pcsx2-opus-1.6.1.tar.gz",
+      "url": "https://downloads.xiph.org/releases/opus/opus-1.6.1.tar.gz",
+      "sha256": "6ffcb593207be92584df15b32466ed64bbec99109f007c82205f0194572411a1",
+      "archive": "tar.gz",
+      "filename": "opus-1.6.1.tar.gz",
+      "platforms": [
+        "windows-x86_64"
+      ],
+      "backends": [
+        "pcsx2"
+      ],
+      "evidence": [
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/windows/build-dependencies.bat"
+      ]
+    },
+    {
+      "id": "pcsx2-svt-av1-v4.0.1.zip",
+      "url": "https://gitlab.com/AOMediaCodec/SVT-AV1/-/archive/v4.0.1/SVT-AV1-v4.0.1.zip",
+      "sha256": "bfafad9af17f87fff75e44ca9b2c10cdd83c576047c3e96229285a8a64c81afc",
+      "archive": "zip",
+      "filename": "SVT-AV1-v4.0.1.zip",
+      "platforms": [
+        "windows-x86_64"
+      ],
+      "backends": [
+        "pcsx2"
+      ],
+      "evidence": [
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/windows/build-dependencies.bat"
+      ]
+    },
+    {
+      "id": "pcsx2-x264-b35605ace3ddf7c1a5d67a2eb553f034aef41d55.zip",
+      "url": "https://code.videolan.org/videolan/x264/-/archive/b35605ace3ddf7c1a5d67a2eb553f034aef41d55.zip",
+      "sha256": "d95d059eff81cc565165cd058b66e208f0cc9874106a8fe94a811a66cf8a85a2",
+      "archive": "zip",
+      "filename": "x264-b35605ace3ddf7c1a5d67a2eb553f034aef41d55.zip",
+      "platforms": [
+        "windows-x86_64"
+      ],
+      "backends": [
+        "pcsx2"
+      ],
+      "evidence": [
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/windows/build-dependencies.bat"
+      ]
+    },
+    {
+      "id": "pcsx2-freetype-2.14.3.tar.gz",
+      "url": "https://sourceforge.net/projects/freetype/files/freetype2/2.14.3/freetype-2.14.3.tar.gz/download",
+      "sha256": "e61b31ab26358b946e767ed7eb7f4bb2e507da1cfefeb7a8861ace7fd5c899a1",
+      "archive": "tar.gz",
+      "filename": "freetype-2.14.3.tar.gz",
+      "platforms": [
+        "windows-x86_64"
+      ],
+      "backends": [
+        "pcsx2"
+      ],
+      "evidence": [
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/windows/build-dependencies.bat"
+      ]
+    },
+    {
+      "id": "pcsx2-harfbuzz-14.2.0.zip",
+      "url": "https://github.com/harfbuzz/harfbuzz/archive/refs/tags/14.2.0.zip",
+      "sha256": "bb2f83255706b1c92d731541c7cefaf98bb5b93e8f76d16f6deda05225ff20ee",
+      "archive": "zip",
+      "filename": "harfbuzz-14.2.0.zip",
+      "platforms": [
+        "windows-x86_64"
+      ],
+      "backends": [
+        "pcsx2"
+      ],
+      "evidence": [
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/windows/build-dependencies.bat"
+      ]
+    },
+    {
+      "id": "pcsx2-lpng1658.zip",
+      "url": "https://download.sourceforge.net/libpng/lpng1658.zip",
+      "sha256": "b32f170855dbbe3e6d9e645af40b538137041773672c3ba3e02db5816c82d376",
+      "archive": "zip",
+      "filename": "lpng1658.zip",
+      "platforms": [
+        "windows-x86_64"
+      ],
+      "backends": [
+        "pcsx2"
+      ],
+      "evidence": [
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/windows/build-dependencies.bat"
+      ]
+    },
+    {
+      "id": "pcsx2-lpng1658-apng.patch.gz",
+      "url": "https://download.sourceforge.net/libpng-apng/libpng-1.6.58-apng.patch.gz",
+      "sha256": "eee7dea22ed502868017971c86c63c4ed1e6085de0baebfdcc3d3322f00f3eb0",
+      "archive": "none",
+      "filename": "lpng1658-apng.patch.gz",
+      "platforms": [
+        "windows-x86_64",
+        "macos-arm64",
+        "linux-x86_64"
+      ],
+      "backends": [
+        "pcsx2"
+      ],
+      "evidence": [
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/windows/build-dependencies.bat",
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/macos/build-dependencies.sh",
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/linux/build-dependencies-qt.sh"
+      ]
+    },
+    {
+      "id": "pcsx2-libjpeg-turbo-3.2.0.tar.gz",
+      "url": "https://github.com/libjpeg-turbo/libjpeg-turbo/releases/download/3.2.0/libjpeg-turbo-3.2.0.tar.gz",
+      "sha256": "6f30092cef9fb839779646608f4ee14ae3cbac989c47fa05e841b0841f09878e",
+      "archive": "tar.gz",
+      "filename": "libjpeg-turbo-3.2.0.tar.gz",
+      "platforms": [
+        "windows-x86_64",
+        "macos-arm64",
+        "linux-x86_64"
+      ],
+      "backends": [
+        "pcsx2"
+      ],
+      "evidence": [
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/windows/build-dependencies.bat",
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/macos/build-dependencies.sh",
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/linux/build-dependencies-qt.sh"
+      ]
+    },
+    {
+      "id": "pcsx2-libwebp-1.6.0.tar.gz",
+      "url": "https://storage.googleapis.com/downloads.webmproject.org/releases/webp/libwebp-1.6.0.tar.gz",
+      "sha256": "e4ab7009bf0629fd11982d4c2aa83964cf244cffba7347ecd39019a9e38c4564",
+      "archive": "tar.gz",
+      "filename": "libwebp-1.6.0.tar.gz",
+      "platforms": [
+        "windows-x86_64",
+        "macos-arm64",
+        "linux-x86_64"
+      ],
+      "backends": [
+        "pcsx2"
+      ],
+      "evidence": [
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/windows/build-dependencies.bat",
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/macos/build-dependencies.sh",
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/linux/build-dependencies-qt.sh"
+      ]
+    },
+    {
+      "id": "pcsx2-sdl3-3.4.12.zip",
+      "url": "https://libsdl.org/release/SDL3-3.4.12.zip",
+      "sha256": "3d4de8967a49c0451e775a0c1e9022092c19fdef41ba38a83fcf031c5a6496e2",
+      "archive": "zip",
+      "filename": "SDL3-3.4.12.zip",
+      "platforms": [
+        "windows-x86_64"
+      ],
+      "backends": [
+        "pcsx2"
+      ],
+      "evidence": [
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/windows/build-dependencies.bat"
+      ]
+    },
+    {
+      "id": "pcsx2-lz4-1.10.0.zip",
+      "url": "https://github.com/lz4/lz4/archive/refs/tags/v1.10.0.zip",
+      "sha256": "3224b4c80f351f194984526ef396f6079bd6332dd9825c72ac0d7a37b3cdc565",
+      "archive": "zip",
+      "filename": "lz4-1.10.0.zip",
+      "platforms": [
+        "windows-x86_64"
+      ],
+      "backends": [
+        "pcsx2"
+      ],
+      "evidence": [
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/windows/build-dependencies.bat"
+      ]
+    },
+    {
+      "id": "pcsx2-zlib132.zip",
+      "url": "https://github.com/madler/zlib/releases/download/v1.3.2/zlib132.zip",
+      "sha256": "e8bf55f3017aa181690990cb58a994e77885da140609fc8f94abe9b65d2cae28",
+      "archive": "zip",
+      "filename": "zlib132.zip",
+      "platforms": [
+        "windows-x86_64"
+      ],
+      "backends": [
+        "pcsx2"
+      ],
+      "evidence": [
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/windows/build-dependencies.bat"
+      ]
+    },
+    {
+      "id": "pcsx2-zstd-1.5.7.zip",
+      "url": "https://github.com/facebook/zstd/archive/refs/tags/v1.5.7.zip",
+      "sha256": "7897bc5d620580d9b7cd3539c44b59d78f3657d33663fe97a145e07b4ebd69a4",
+      "archive": "zip",
+      "filename": "zstd-1.5.7.zip",
+      "platforms": [
+        "windows-x86_64"
+      ],
+      "backends": [
+        "pcsx2"
+      ],
+      "evidence": [
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/windows/build-dependencies.bat"
+      ]
+    },
+    {
+      "id": "pcsx2-kddockwidgets-2.4.1.zip",
+      "url": "https://github.com/KDAB/KDDockWidgets/archive/v2.4.1.zip",
+      "sha256": "6f803c533e95687b3cf968ea851fb9b04e253b32e02b5a40a1542cf202dcd9d1",
+      "archive": "zip",
+      "filename": "KDDockWidgets-2.4.1.zip",
+      "platforms": [
+        "windows-x86_64"
+      ],
+      "backends": [
+        "pcsx2"
+      ],
+      "evidence": [
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/windows/build-dependencies.bat"
+      ]
+    },
+    {
+      "id": "pcsx2-plutovg-1.3.2.zip",
+      "url": "https://github.com/sammycage/plutovg/archive/v1.3.2.zip",
+      "sha256": "4fe4e48f28aa80171b2166d45c0976ab0f21eecedb52cd4c3ef73b5afb48fac9",
+      "archive": "zip",
+      "filename": "plutovg-1.3.2.zip",
+      "platforms": [
+        "windows-x86_64"
+      ],
+      "backends": [
+        "pcsx2"
+      ],
+      "evidence": [
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/windows/build-dependencies.bat"
+      ]
+    },
+    {
+      "id": "pcsx2-plutosvg-0.0.7.zip",
+      "url": "https://github.com/sammycage/plutosvg/archive/v0.0.7.zip",
+      "sha256": "82dee2c57ad712bdd6d6d81d3e76249d89caa4b5a4214353660fd5adff12201a",
+      "archive": "zip",
+      "filename": "plutosvg-0.0.7.zip",
+      "platforms": [
+        "windows-x86_64"
+      ],
+      "backends": [
+        "pcsx2"
+      ],
+      "evidence": [
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/windows/build-dependencies.bat"
+      ]
+    },
+    {
+      "id": "pcsx2-directx-headers-1.619.1.zip",
+      "url": "https://github.com/microsoft/DirectX-Headers/archive/v1.619.1.zip",
+      "sha256": "9eb8b102a90a42e4ea72a825f7d249d55ec90d164f030966c9b7784b93374927",
+      "archive": "zip",
+      "filename": "DirectX-Headers-1.619.1.zip",
+      "platforms": [
+        "windows-x86_64"
+      ],
+      "backends": [
+        "pcsx2"
+      ],
+      "evidence": [
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/windows/build-dependencies.bat"
+      ]
+    },
+    {
+      "id": "pcsx2-rapidyaml-0.12.1-src.zip",
+      "url": "https://github.com/biojppm/rapidyaml/releases/download/v0.12.1/rapidyaml-0.12.1-src.zip",
+      "sha256": "96276f55b9fa7837ac8f3f72fd52965879cbb5d5d2e6af548c69a177fb078304",
+      "archive": "zip",
+      "filename": "rapidyaml-0.12.1-src.zip",
+      "platforms": [
+        "windows-x86_64"
+      ],
+      "backends": [
+        "pcsx2"
+      ],
+      "evidence": [
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/windows/build-dependencies.bat"
+      ]
+    },
+    {
+      "id": "pcsx2-shaderc-2026.2.zip",
+      "url": "https://github.com/google/shaderc/archive/refs/tags/v2026.2.zip",
+      "sha256": "f9401cc5cb36c276cd1e072b6595dbd728148e8dba389e50f7339e2d388dbc08",
+      "archive": "zip",
+      "filename": "shaderc-2026.2.zip",
+      "platforms": [
+        "windows-x86_64"
+      ],
+      "backends": [
+        "pcsx2"
+      ],
+      "evidence": [
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/windows/build-dependencies.bat"
+      ]
+    },
+    {
+      "id": "pcsx2-shaderc-glslang-275822a6261ee689aadb1da5f09a0ec2f058685c.zip",
+      "url": "https://github.com/KhronosGroup/glslang/archive/275822a6261ee689aadb1da5f09a0ec2f058685c.zip",
+      "sha256": "2b63189efad0348d88d410a5e12ec550a612e0b6ceef64624b8f45491269fb9c",
+      "archive": "zip",
+      "filename": "shaderc-glslang-275822a6261ee689aadb1da5f09a0ec2f058685c.zip",
+      "platforms": [
+        "windows-x86_64"
+      ],
+      "backends": [
+        "pcsx2"
+      ],
+      "evidence": [
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/windows/build-dependencies.bat"
+      ]
+    },
+    {
+      "id": "pcsx2-shaderc-spirv-headers-58006c901d1d5c37dece6b6610e9af87fa951375.zip",
+      "url": "https://github.com/KhronosGroup/SPIRV-Headers/archive/58006c901d1d5c37dece6b6610e9af87fa951375.zip",
+      "sha256": "d2f071e94c081f5a4606559770ebf1f7d1eac92a1def0c3e10609844aa8b69b2",
+      "archive": "zip",
+      "filename": "shaderc-spirv-headers-58006c901d1d5c37dece6b6610e9af87fa951375.zip",
+      "platforms": [
+        "windows-x86_64"
+      ],
+      "backends": [
+        "pcsx2"
+      ],
+      "evidence": [
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/windows/build-dependencies.bat"
+      ]
+    },
+    {
+      "id": "pcsx2-shaderc-spirv-tools-6337eb62cadd7d124ac6789bf39c0f71148f0a73.zip",
+      "url": "https://github.com/KhronosGroup/SPIRV-Tools/archive/6337eb62cadd7d124ac6789bf39c0f71148f0a73.zip",
+      "sha256": "4011be89aa73e3461c9deef73936a62c79a3097590c5135d058041cc9fb99c6f",
+      "archive": "zip",
+      "filename": "shaderc-spirv-tools-6337eb62cadd7d124ac6789bf39c0f71148f0a73.zip",
+      "platforms": [
+        "windows-x86_64"
+      ],
+      "backends": [
+        "pcsx2"
+      ],
+      "evidence": [
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/windows/build-dependencies.bat"
+      ]
+    },
+    {
+      "id": "pcsx2-freetype-2.14.3.tar.xz",
+      "url": "https://sourceforge.net/projects/freetype/files/freetype2/2.14.3/freetype-2.14.3.tar.xz",
+      "sha256": "36bc4f1cc413335368ee656c42afca65c5a3987e8768cc28cf11ba775e785a5f",
+      "archive": "tar.xz",
+      "filename": "freetype-2.14.3.tar.xz",
+      "platforms": [
+        "macos-arm64"
+      ],
+      "backends": [
+        "pcsx2"
+      ],
+      "evidence": [
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/macos/build-dependencies.sh"
+      ]
+    },
+    {
+      "id": "pcsx2-harfbuzz-14.2.0.tar.gz",
+      "url": "https://github.com/harfbuzz/harfbuzz/archive/14.2.0/harfbuzz-14.2.0.tar.gz",
+      "sha256": "c652d5d94971031654ab3989891a490a895d3e3f2b71171c62692b28e94b1b93",
+      "archive": "tar.gz",
+      "filename": "harfbuzz-14.2.0.tar.gz",
+      "platforms": [
+        "macos-arm64"
+      ],
+      "backends": [
+        "pcsx2"
+      ],
+      "evidence": [
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/macos/build-dependencies.sh"
+      ]
+    },
+    {
+      "id": "pcsx2-sdl3-3.4.12.tar.gz",
+      "url": "https://libsdl.org/release/SDL3-3.4.12.tar.gz",
+      "sha256": "f07b958a9ac5020fb7a44cadb957f658b2149c3c8abb4f63145fac9303249db7",
+      "archive": "tar.gz",
+      "filename": "SDL3-3.4.12.tar.gz",
+      "platforms": [
+        "macos-arm64",
+        "linux-x86_64"
+      ],
+      "backends": [
+        "pcsx2"
+      ],
+      "evidence": [
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/macos/build-dependencies.sh",
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/linux/build-dependencies-qt.sh"
+      ]
+    },
+    {
+      "id": "pcsx2-zstd-1.5.7.tar.gz",
+      "url": "https://github.com/facebook/zstd/releases/download/v1.5.7/zstd-1.5.7.tar.gz",
+      "sha256": "eb33e51f49a15e023950cd7825ca74a4a2b43db8354825ac24fc1b7ee09e6fa3",
+      "archive": "tar.gz",
+      "filename": "zstd-1.5.7.tar.gz",
+      "platforms": [
+        "macos-arm64",
+        "linux-x86_64"
+      ],
+      "backends": [
+        "pcsx2"
+      ],
+      "evidence": [
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/macos/build-dependencies.sh",
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/linux/build-dependencies-qt.sh"
+      ]
+    },
+    {
+      "id": "pcsx2-lz4-1.10.0.tar.gz",
+      "url": "https://github.com/lz4/lz4/releases/download/v1.10.0/lz4-1.10.0.tar.gz",
+      "sha256": "537512904744b35e232912055ccf8ec66d768639ff3abe5788d90d792ec5f48b",
+      "archive": "tar.gz",
+      "filename": "lz4-1.10.0.tar.gz",
+      "platforms": [
+        "macos-arm64",
+        "linux-x86_64"
+      ],
+      "backends": [
+        "pcsx2"
+      ],
+      "evidence": [
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/macos/build-dependencies.sh",
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/linux/build-dependencies-qt.sh"
+      ]
+    },
+    {
+      "id": "pcsx2-libpng-1.6.58.tar.xz",
+      "url": "https://downloads.sourceforge.net/project/libpng/libpng16/1.6.58/libpng-1.6.58.tar.xz",
+      "sha256": "28eb403f51f0f7405249132cecfe82ea5c0ef97f1b32c5a65828814ae0d34775",
+      "archive": "tar.xz",
+      "filename": "libpng-1.6.58.tar.xz",
+      "platforms": [
+        "macos-arm64",
+        "linux-x86_64"
+      ],
+      "backends": [
+        "pcsx2"
+      ],
+      "evidence": [
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/macos/build-dependencies.sh",
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/linux/build-dependencies-qt.sh"
+      ]
+    },
+    {
+      "id": "pcsx2-moltenvk-1.4.1.tar.gz",
+      "url": "https://github.com/KhronosGroup/MoltenVK/archive/v1.4.1/MoltenVK-1.4.1.tar.gz",
+      "sha256": "9985f141902a17de818e264d17c1ce334b748e499ee02fcb4703e4dc0038f89c",
+      "archive": "tar.gz",
+      "filename": "MoltenVK-1.4.1.tar.gz",
+      "platforms": [
+        "macos-arm64"
+      ],
+      "backends": [
+        "pcsx2"
+      ],
+      "evidence": [
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/macos/build-dependencies.sh"
+      ]
+    },
+    {
+      "id": "pcsx2-qtbase-everywhere-src-6.11.1.tar.xz",
+      "url": "https://download.qt.io/archive/qt/6.11/6.11.1/submodules/qtbase-everywhere-src-6.11.1.tar.xz",
+      "sha256": "d9594a31228aa23ad6b531719a29b45f0f3989fe6c136d45767ea179f233c1ac",
+      "archive": "tar.xz",
+      "filename": "qtbase-everywhere-src-6.11.1.tar.xz",
+      "platforms": [
+        "macos-arm64",
+        "linux-x86_64"
+      ],
+      "backends": [
+        "pcsx2",
+        "rpcs3"
+      ],
+      "evidence": [
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/macos/build-dependencies.sh",
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/linux/build-dependencies-qt.sh"
+      ]
+    },
+    {
+      "id": "pcsx2-qtimageformats-everywhere-src-6.11.1.tar.xz",
+      "url": "https://download.qt.io/archive/qt/6.11/6.11.1/submodules/qtimageformats-everywhere-src-6.11.1.tar.xz",
+      "sha256": "b2bf6c6845ac175ed7f819145483ba4676f617aaa6a5012c8efee63c8bbac413",
+      "archive": "tar.xz",
+      "filename": "qtimageformats-everywhere-src-6.11.1.tar.xz",
+      "platforms": [
+        "macos-arm64",
+        "linux-x86_64"
+      ],
+      "backends": [
+        "pcsx2",
+        "rpcs3"
+      ],
+      "evidence": [
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/macos/build-dependencies.sh",
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/linux/build-dependencies-qt.sh"
+      ]
+    },
+    {
+      "id": "pcsx2-qtsvg-everywhere-src-6.11.1.tar.xz",
+      "url": "https://download.qt.io/archive/qt/6.11/6.11.1/submodules/qtsvg-everywhere-src-6.11.1.tar.xz",
+      "sha256": "7f3cf02f4824bf03c2c5859ea6db173bf1482a1daf24e6cdf7bc78cfa26a8a94",
+      "archive": "tar.xz",
+      "filename": "qtsvg-everywhere-src-6.11.1.tar.xz",
+      "platforms": [
+        "macos-arm64",
+        "linux-x86_64"
+      ],
+      "backends": [
+        "pcsx2",
+        "rpcs3"
+      ],
+      "evidence": [
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/macos/build-dependencies.sh",
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/linux/build-dependencies-qt.sh"
+      ]
+    },
+    {
+      "id": "pcsx2-qttools-everywhere-src-6.11.1.tar.xz",
+      "url": "https://download.qt.io/archive/qt/6.11/6.11.1/submodules/qttools-everywhere-src-6.11.1.tar.xz",
+      "sha256": "8e61835a679c93fa9c6065b142353c2071ba68e297898937c32a03777fcaf50d",
+      "archive": "tar.xz",
+      "filename": "qttools-everywhere-src-6.11.1.tar.xz",
+      "platforms": [
+        "macos-arm64",
+        "linux-x86_64"
+      ],
+      "backends": [
+        "pcsx2",
+        "rpcs3"
+      ],
+      "evidence": [
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/macos/build-dependencies.sh",
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/linux/build-dependencies-qt.sh"
+      ]
+    },
+    {
+      "id": "pcsx2-qttranslations-everywhere-src-6.11.1.tar.xz",
+      "url": "https://download.qt.io/archive/qt/6.11/6.11.1/submodules/qttranslations-everywhere-src-6.11.1.tar.xz",
+      "sha256": "37c02c81206594c7bb4edca85ac93e8e55a9836b70c960fde6cb0f8623ec5677",
+      "archive": "tar.xz",
+      "filename": "qttranslations-everywhere-src-6.11.1.tar.xz",
+      "platforms": [
+        "macos-arm64",
+        "linux-x86_64"
+      ],
+      "backends": [
+        "pcsx2",
+        "rpcs3"
+      ],
+      "evidence": [
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/macos/build-dependencies.sh",
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/linux/build-dependencies-qt.sh"
+      ]
+    },
+    {
+      "id": "pcsx2-qtapng-1.3.0.tar.gz",
+      "url": "https://github.com/jurplel/QtApng/archive/1.3.0/QtApng-1.3.0.tar.gz",
+      "sha256": "f1d3be3489f758efe1a8f12118a212febbe611aa670af32e0159fa3c1feab2a6",
+      "archive": "tar.gz",
+      "filename": "QtApng-1.3.0.tar.gz",
+      "platforms": [
+        "macos-arm64",
+        "linux-x86_64"
+      ],
+      "backends": [
+        "pcsx2"
+      ],
+      "evidence": [
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/macos/build-dependencies.sh",
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/linux/build-dependencies-qt.sh"
+      ]
+    },
+    {
+      "id": "pcsx2-shaderc-2026.2.tar.gz",
+      "url": "https://github.com/google/shaderc/archive/v2026.2/shaderc-2026.2.tar.gz",
+      "sha256": "f924178e75e3293082481b25ed64d5e48a795b479dac3bd3c83d23070855df42",
+      "archive": "tar.gz",
+      "filename": "shaderc-2026.2.tar.gz",
+      "platforms": [
+        "macos-arm64",
+        "linux-x86_64"
+      ],
+      "backends": [
+        "pcsx2"
+      ],
+      "evidence": [
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/macos/build-dependencies.sh",
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/linux/build-dependencies-qt.sh"
+      ]
+    },
+    {
+      "id": "pcsx2-shaderc-glslang-275822a6261ee689aadb1da5f09a0ec2f058685c.tar.gz",
+      "url": "https://github.com/KhronosGroup/glslang/archive/275822a6261ee689aadb1da5f09a0ec2f058685c/shaderc-glslang-275822a6261ee689aadb1da5f09a0ec2f058685c.tar.gz",
+      "sha256": "971848a1cc639ce8dc244e778b17efe0f690e32ac398a75e31d1c67ad06d3e0a",
+      "archive": "tar.gz",
+      "filename": "shaderc-glslang-275822a6261ee689aadb1da5f09a0ec2f058685c.tar.gz",
+      "platforms": [
+        "macos-arm64",
+        "linux-x86_64"
+      ],
+      "backends": [
+        "pcsx2"
+      ],
+      "evidence": [
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/macos/build-dependencies.sh",
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/linux/build-dependencies-qt.sh"
+      ]
+    },
+    {
+      "id": "pcsx2-shaderc-spirv-headers-58006c901d1d5c37dece6b6610e9af87fa951375.tar.gz",
+      "url": "https://github.com/KhronosGroup/SPIRV-Headers/archive/58006c901d1d5c37dece6b6610e9af87fa951375/shaderc-spirv-headers-58006c901d1d5c37dece6b6610e9af87fa951375.tar.gz",
+      "sha256": "a6cb1b300bb8171795e116457e858e555334749f9cacaed8068ae0ef8681110c",
+      "archive": "tar.gz",
+      "filename": "shaderc-spirv-headers-58006c901d1d5c37dece6b6610e9af87fa951375.tar.gz",
+      "platforms": [
+        "macos-arm64",
+        "linux-x86_64"
+      ],
+      "backends": [
+        "pcsx2"
+      ],
+      "evidence": [
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/macos/build-dependencies.sh",
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/linux/build-dependencies-qt.sh"
+      ]
+    },
+    {
+      "id": "pcsx2-shaderc-spirv-tools-6337eb62cadd7d124ac6789bf39c0f71148f0a73.tar.gz",
+      "url": "https://github.com/KhronosGroup/SPIRV-Tools/archive/6337eb62cadd7d124ac6789bf39c0f71148f0a73/shaderc-spirv-tools-6337eb62cadd7d124ac6789bf39c0f71148f0a73.tar.gz",
+      "sha256": "e156be0bd81c8812f1bff8e520422bfa9df61b3045587b9eb483185f1074a7b2",
+      "archive": "tar.gz",
+      "filename": "shaderc-spirv-tools-6337eb62cadd7d124ac6789bf39c0f71148f0a73.tar.gz",
+      "platforms": [
+        "macos-arm64",
+        "linux-x86_64"
+      ],
+      "backends": [
+        "pcsx2"
+      ],
+      "evidence": [
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/macos/build-dependencies.sh",
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/linux/build-dependencies-qt.sh"
+      ]
+    },
+    {
+      "id": "pcsx2-kddockwidgets-2.4.1.tar.gz",
+      "url": "https://github.com/KDAB/KDDockWidgets/archive/v2.4.1/KDDockWidgets-2.4.1.tar.gz",
+      "sha256": "5cd9495d9316cf6cc937bb328a7fd491c3248ef2469cfa42511f1039f6148aca",
+      "archive": "tar.gz",
+      "filename": "KDDockWidgets-2.4.1.tar.gz",
+      "platforms": [
+        "macos-arm64",
+        "linux-x86_64"
+      ],
+      "backends": [
+        "pcsx2"
+      ],
+      "evidence": [
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/macos/build-dependencies.sh",
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/linux/build-dependencies-qt.sh"
+      ]
+    },
+    {
+      "id": "pcsx2-plutovg-1.3.2.tar.gz",
+      "url": "https://github.com/sammycage/plutovg/archive/v1.3.2/plutovg-1.3.2.tar.gz",
+      "sha256": "7bd4e79ce18b1d47517e7e91fbb7cf19d4f01942804a519bc7c0bf32b6325dd5",
+      "archive": "tar.gz",
+      "filename": "plutovg-1.3.2.tar.gz",
+      "platforms": [
+        "macos-arm64",
+        "linux-x86_64"
+      ],
+      "backends": [
+        "pcsx2"
+      ],
+      "evidence": [
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/macos/build-dependencies.sh",
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/linux/build-dependencies-qt.sh"
+      ]
+    },
+    {
+      "id": "pcsx2-plutosvg-0.0.7.tar.gz",
+      "url": "https://github.com/sammycage/plutosvg/archive/v0.0.7/plutosvg-0.0.7.tar.gz",
+      "sha256": "78561b571ac224030cdc450ca2986b4de915c2ba7616004a6d71a379bffd15f3",
+      "archive": "tar.gz",
+      "filename": "plutosvg-0.0.7.tar.gz",
+      "platforms": [
+        "macos-arm64",
+        "linux-x86_64"
+      ],
+      "backends": [
+        "pcsx2"
+      ],
+      "evidence": [
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/macos/build-dependencies.sh",
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/linux/build-dependencies-qt.sh"
+      ]
+    },
+    {
+      "id": "pcsx2-rapidyaml-0.12.1-src.tgz",
+      "url": "https://github.com/biojppm/rapidyaml/releases/download/v0.12.1/rapidyaml-0.12.1-src.tgz",
+      "sha256": "e9efcdd17f86287748793cf21d106e461fcad8d103a3e5a23632afe93828660d",
+      "archive": "tgz",
+      "filename": "rapidyaml-0.12.1-src.tgz",
+      "platforms": [
+        "macos-arm64",
+        "linux-x86_64"
+      ],
+      "backends": [
+        "pcsx2"
+      ],
+      "evidence": [
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/macos/build-dependencies.sh",
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/linux/build-dependencies-qt.sh"
+      ]
+    },
+    {
+      "id": "pcsx2-libbacktrace-ad106d5fdd5d960bd33fae1c48a351af567fd075.tar.gz",
+      "url": "https://github.com/ianlancetaylor/libbacktrace/archive/ad106d5fdd5d960bd33fae1c48a351af567fd075/libbacktrace-ad106d5fdd5d960bd33fae1c48a351af567fd075.tar.gz",
+      "sha256": "96e5c2d7f2c482a60d5804da48a2eb9a0db0719b2c65dcc169fbfdcf37f3a45d",
+      "archive": "tar.gz",
+      "filename": "libbacktrace-ad106d5fdd5d960bd33fae1c48a351af567fd075.tar.gz",
+      "platforms": [
+        "linux-x86_64"
+      ],
+      "backends": [
+        "pcsx2"
+      ],
+      "evidence": [
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/linux/build-dependencies-qt.sh"
+      ]
+    },
+    {
+      "id": "pcsx2-vulkan-sdk-1.4.328.1.tar.gz",
+      "url": "https://github.com/KhronosGroup/Vulkan-Headers/archive/refs/tags/vulkan-sdk-1.4.328.1.tar.gz",
+      "sha256": "c465aa56757e7746ac707f582b6e2d51546569a4a2488c1172fb543aa5fdfc2c",
+      "archive": "tar.gz",
+      "filename": "vulkan-sdk-1.4.328.1.tar.gz",
+      "platforms": [
+        "linux-x86_64"
+      ],
+      "backends": [
+        "pcsx2"
+      ],
+      "evidence": [
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/linux/build-dependencies-qt.sh"
+      ]
+    },
+    {
+      "id": "pcsx2-qtwayland-everywhere-src-6.11.1.tar.xz",
+      "url": "https://download.qt.io/official_releases/qt/6.11/6.11.1/submodules/qtwayland-everywhere-src-6.11.1.tar.xz",
+      "sha256": "95788aa502f75441d4edf65932b235f76523084e13dbbb7b9ee2d207b32bd9b3",
+      "archive": "tar.xz",
+      "filename": "qtwayland-everywhere-src-6.11.1.tar.xz",
+      "platforms": [
+        "linux-x86_64"
+      ],
+      "backends": [
+        "pcsx2",
+        "rpcs3"
+      ],
+      "evidence": [
+        "https://github.com/PCSX2/pcsx2/blob/fd9d310ccbb6b8b62c976da8886a3c8fd3a10ff3/.github/workflows/scripts/linux/build-dependencies-qt.sh"
+      ]
+    },
+    {
+      "id": "rpcs3-qtbase-6.12.0",
+      "url": "https://download.qt.io/official_releases/qt/6.12/6.12.0/submodules/qtbase-everywhere-src-6.12.0.tar.xz",
+      "sha256": "a951bd163c7b80fc6b8c88d7668fb56abf91c152373e13c10666763238131307",
+      "archive": "tar.xz",
+      "filename": "qtbase-everywhere-src-6.12.0.tar.xz",
+      "platforms": [
+        "macos-arm64",
+        "windows-x86_64",
+        "linux-x86_64"
+      ],
+      "backends": [
+        "rpcs3"
+      ],
+      "evidence": [
+        "https://download.qt.io/official_releases/qt/6.12/6.12.0/submodules/qtbase-everywhere-src-6.12.0.tar.xz.sha256",
+        "https://github.com/RPCS3/rpcs3/blob/4d5def5880217135554ed434cd5055cceebe9cc2/.github/workflows/rpcs3.yml"
+      ]
+    },
+    {
+      "id": "rpcs3-qtdeclarative-6.12.0",
+      "url": "https://download.qt.io/official_releases/qt/6.12/6.12.0/submodules/qtdeclarative-everywhere-src-6.12.0.tar.xz",
+      "sha256": "311f3a2603e1973bb59baef9dfa740a376de713157d4782ee043681e889c9260",
+      "archive": "tar.xz",
+      "filename": "qtdeclarative-everywhere-src-6.12.0.tar.xz",
+      "platforms": [
+        "macos-arm64",
+        "windows-x86_64",
+        "linux-x86_64"
+      ],
+      "backends": [
+        "rpcs3"
+      ],
+      "evidence": [
+        "https://download.qt.io/official_releases/qt/6.12/6.12.0/submodules/qtdeclarative-everywhere-src-6.12.0.tar.xz.sha256",
+        "https://github.com/RPCS3/rpcs3/blob/4d5def5880217135554ed434cd5055cceebe9cc2/.github/workflows/rpcs3.yml"
+      ]
+    },
+    {
+      "id": "rpcs3-qttools-6.12.0",
+      "url": "https://download.qt.io/official_releases/qt/6.12/6.12.0/submodules/qttools-everywhere-src-6.12.0.tar.xz",
+      "sha256": "8dab8f3611496486a470ad5f115ceea584f36bc22a2b8b6f6ebdbafbb8160693",
+      "archive": "tar.xz",
+      "filename": "qttools-everywhere-src-6.12.0.tar.xz",
+      "platforms": [
+        "macos-arm64",
+        "windows-x86_64",
+        "linux-x86_64"
+      ],
+      "backends": [
+        "rpcs3"
+      ],
+      "evidence": [
+        "https://download.qt.io/official_releases/qt/6.12/6.12.0/submodules/qttools-everywhere-src-6.12.0.tar.xz.sha256",
+        "https://github.com/RPCS3/rpcs3/blob/4d5def5880217135554ed434cd5055cceebe9cc2/.github/workflows/rpcs3.yml"
+      ]
+    },
+    {
+      "id": "rpcs3-qtmultimedia-6.12.0",
+      "url": "https://download.qt.io/official_releases/qt/6.12/6.12.0/submodules/qtmultimedia-everywhere-src-6.12.0.tar.xz",
+      "sha256": "3143f53b64257ba2a0685c940f5dce476c75871ff86b516de45cfd54ea93a62d",
+      "archive": "tar.xz",
+      "filename": "qtmultimedia-everywhere-src-6.12.0.tar.xz",
+      "platforms": [
+        "macos-arm64",
+        "windows-x86_64",
+        "linux-x86_64"
+      ],
+      "backends": [
+        "rpcs3"
+      ],
+      "evidence": [
+        "https://download.qt.io/official_releases/qt/6.12/6.12.0/submodules/qtmultimedia-everywhere-src-6.12.0.tar.xz.sha256",
+        "https://github.com/RPCS3/rpcs3/blob/4d5def5880217135554ed434cd5055cceebe9cc2/.github/workflows/rpcs3.yml"
+      ]
+    },
+    {
+      "id": "rpcs3-qtsvg-6.12.0",
+      "url": "https://download.qt.io/official_releases/qt/6.12/6.12.0/submodules/qtsvg-everywhere-src-6.12.0.tar.xz",
+      "sha256": "e4ab39534ec97987b1b9b60ef7f4d3253d5912a69f8c713a01753174a4029331",
+      "archive": "tar.xz",
+      "filename": "qtsvg-everywhere-src-6.12.0.tar.xz",
+      "platforms": [
+        "macos-arm64",
+        "windows-x86_64",
+        "linux-x86_64"
+      ],
+      "backends": [
+        "rpcs3"
+      ],
+      "evidence": [
+        "https://download.qt.io/official_releases/qt/6.12/6.12.0/submodules/qtsvg-everywhere-src-6.12.0.tar.xz.sha256",
+        "https://github.com/RPCS3/rpcs3/blob/4d5def5880217135554ed434cd5055cceebe9cc2/.github/workflows/rpcs3.yml"
+      ]
+    },
+    {
+      "id": "rpcs3-qttranslations-6.12.0",
+      "url": "https://download.qt.io/official_releases/qt/6.12/6.12.0/submodules/qttranslations-everywhere-src-6.12.0.tar.xz",
+      "sha256": "85929c0c30d6f273f23bd879bb69803ea17b010ab73cab2f8abf95357f6f6bbb",
+      "archive": "tar.xz",
+      "filename": "qttranslations-everywhere-src-6.12.0.tar.xz",
+      "platforms": [
+        "macos-arm64",
+        "windows-x86_64",
+        "linux-x86_64"
+      ],
+      "backends": [
+        "rpcs3"
+      ],
+      "evidence": [
+        "https://download.qt.io/official_releases/qt/6.12/6.12.0/submodules/qttranslations-everywhere-src-6.12.0.tar.xz.sha256",
+        "https://github.com/RPCS3/rpcs3/blob/4d5def5880217135554ed434cd5055cceebe9cc2/.github/workflows/rpcs3.yml"
+      ]
+    },
+    {
+      "id": "rpcs3-qtimageformats-6.12.0",
+      "url": "https://download.qt.io/official_releases/qt/6.12/6.12.0/submodules/qtimageformats-everywhere-src-6.12.0.tar.xz",
+      "sha256": "0943132b5db8de6b6a7f1d162682173e8763c7ed94e80fd39113292845f67762",
+      "archive": "tar.xz",
+      "filename": "qtimageformats-everywhere-src-6.12.0.tar.xz",
+      "platforms": [
+        "macos-arm64",
+        "windows-x86_64",
+        "linux-x86_64"
+      ],
+      "backends": [
+        "rpcs3"
+      ],
+      "evidence": [
+        "https://download.qt.io/official_releases/qt/6.12/6.12.0/submodules/qtimageformats-everywhere-src-6.12.0.tar.xz.sha256",
+        "https://github.com/RPCS3/rpcs3/blob/4d5def5880217135554ed434cd5055cceebe9cc2/.github/workflows/rpcs3.yml"
+      ]
+    },
+    {
+      "id": "rpcs3-llvm-22.1.8",
+      "repo": "llvm/llvm-project",
+      "commit": "ca7933e47d3a3451d81e72ac174dcb5aa28b59d1",
+      "platforms": [
+        "macos-arm64",
+        "windows-x86_64",
+        "linux-x86_64"
+      ],
+      "backends": [
+        "rpcs3"
+      ],
+      "evidence": [
+        "https://github.com/RPCS3/llvm-mirror/releases/tag/custom-build-win-22.1.8"
+      ]
+    },
+    {
+      "id": "rpcs3-ffmpeg-8.1.1",
+      "repo": "FFmpeg/FFmpeg",
+      "commit": "239f2c733de417201d7ad3b3b8b0d9b63285b2b1",
+      "platforms": [
+        "macos-arm64",
+        "windows-x86_64",
+        "linux-x86_64"
+      ],
+      "backends": [
+        "rpcs3"
+      ],
+      "evidence": [
+        "https://github.com/microsoft/vcpkg/blob/f3e10653cc27d62a37a3763cd84b38bca07c6075/ports/ffmpeg/vcpkg.json"
+      ]
+    },
+    {
+      "id": "rpcs3-ffmpeg-9.0.1",
+      "repo": "FFmpeg/FFmpeg",
+      "commit": "bf1b838f2ab88b4f8fd83443325c782ea0e0f7fa",
+      "platforms": [
+        "macos-arm64",
+        "windows-x86_64",
+        "linux-x86_64"
+      ],
+      "backends": [
+        "rpcs3"
+      ],
+      "evidence": [
+        "RPCS3 build 20310 macOS: bundled libavutil.61.dylib av_version_info() returns 9.0.1; Qt multimedia dependency"
+      ]
+    },
+    {
+      "id": "rpcs3-vcpkg-2026.06.01",
+      "repo": "microsoft/vcpkg",
+      "commit": "f3e10653cc27d62a37a3763cd84b38bca07c6075",
+      "platforms": [
+        "macos-arm64",
+        "windows-x86_64",
+        "linux-x86_64"
+      ],
+      "backends": [
+        "rpcs3"
+      ],
+      "evidence": [
+        "https://github.com/RPCS3/ffmpeg-core/blob/649d9d9353184a17ae78d9df4a6fbbe7456f0428/.github/workflows/build.yml"
+      ]
+    },
+    {
+      "id": "rpcs3-macports-recipes",
+      "repo": "macports/macports-ports",
+      "commit": "6d11f5a14d3ff1add9195cf0b8bd4bb0b871c1e2",
+      "platforms": [
+        "macos-arm64"
+      ],
+      "backends": [
+        "rpcs3"
+      ],
+      "evidence": [
+        "Versioned Portfiles, local patches and PortGroups for the dynamic libraries shipped in RPCS3 build 20310."
+      ]
+    },
+    {
+      "id": "rpcs3-macports-libiconv",
+      "url": "https://distfiles.macports.org/libiconv/libiconv-1.19.tar.gz",
+      "sha256": "88dd96a8c0464eca144fc791ae60cd31cd8ee78321e67397e25fc095c4a19aa6",
+      "archive": "tar.gz",
+      "filename": "libiconv-1.19.tar.gz",
+      "platforms": [
+        "macos-arm64"
+      ],
+      "backends": [
+        "rpcs3"
+      ],
+      "evidence": [
+        "https://github.com/macports/macports-ports/blob/6d11f5a14d3ff1add9195cf0b8bd4bb0b871c1e2/textproc/libiconv/Portfile"
+      ]
+    },
+    {
+      "id": "rpcs3-macports-sdl3",
+      "url": "https://distfiles.macports.org/SDL3/SDL3-3.4.18.tar.gz",
+      "sha256": "9c75cf16330322c217dedd2e0609f1124f1b54b8633e763467b4684d0f4334a3",
+      "archive": "tar.gz",
+      "filename": "SDL3-3.4.18.tar.gz",
+      "platforms": [
+        "macos-arm64"
+      ],
+      "backends": [
+        "rpcs3"
+      ],
+      "evidence": [
+        "https://github.com/macports/macports-ports/blob/6d11f5a14d3ff1add9195cf0b8bd4bb0b871c1e2/devel/SDL3/Portfile"
+      ]
+    },
+    {
+      "id": "rpcs3-macports-opencv4",
+      "url": "https://distfiles.macports.org/opencv4/opencv-4.9.0.tar.gz",
+      "sha256": "6e7c0688d8dc9280e3fa84cd80c69825b3c4edceccc32fea924494300afc6370",
+      "archive": "tar.gz",
+      "filename": "opencv-4.9.0.tar.gz",
+      "platforms": [
+        "macos-arm64"
+      ],
+      "backends": [
+        "rpcs3"
+      ],
+      "evidence": [
+        "https://github.com/macports/macports-ports/blob/6d11f5a14d3ff1add9195cf0b8bd4bb0b871c1e2/graphics/opencv4/Portfile"
+      ]
+    },
+    {
+      "id": "rpcs3-macports-abseil",
+      "url": "https://distfiles.macports.org/abseil/abseil-cpp-20260817.0.tar.gz",
+      "sha256": "f7e05179df39c45434cad433f5783840bb3788ef322976f9138bc6b72b3a107d",
+      "archive": "tar.gz",
+      "filename": "abseil-cpp-20260817.0.tar.gz",
+      "platforms": [
+        "macos-arm64"
+      ],
+      "backends": [
+        "rpcs3"
+      ],
+      "evidence": [
+        "https://github.com/macports/macports-ports/blob/6d11f5a14d3ff1add9195cf0b8bd4bb0b871c1e2/devel/abseil/Portfile"
+      ]
+    },
+    {
+      "id": "rpcs3-macports-zlib",
+      "url": "https://distfiles.macports.org/zlib/zlib-1.3.2.tar.xz",
+      "sha256": "d7a0654783a4da529d1bb793b7ad9c3318020af77667bcae35f95d0e42a792f3",
+      "archive": "tar.xz",
+      "filename": "zlib-1.3.2.tar.xz",
+      "platforms": [
+        "macos-arm64"
+      ],
+      "backends": [
+        "rpcs3"
+      ],
+      "evidence": [
+        "https://github.com/macports/macports-ports/blob/6d11f5a14d3ff1add9195cf0b8bd4bb0b871c1e2/archivers/zlib/Portfile"
+      ]
+    },
+    {
+      "id": "rpcs3-macports-zstd",
+      "url": "https://distfiles.macports.org/zstd/zstd-1.5.7.tar.gz",
+      "sha256": "37d7284556b20954e56e1ca85b80226768902e2edabd3b649e9e72c0c9012ee3",
+      "archive": "tar.gz",
+      "filename": "zstd-1.5.7.tar.gz",
+      "platforms": [
+        "macos-arm64"
+      ],
+      "backends": [
+        "rpcs3"
+      ],
+      "evidence": [
+        "https://github.com/macports/macports-ports/blob/6d11f5a14d3ff1add9195cf0b8bd4bb0b871c1e2/archivers/zstd/Portfile"
+      ]
+    },
+    {
+      "id": "rpcs3-macports-vulkan-loader",
+      "url": "https://distfiles.macports.org/vulkan-loader/Vulkan-Loader-1.4.363.0.tar.gz",
+      "sha256": "941eff558fc74f248745fb7df367640cf89a8457f216dae498a74ae14b6ba6f7",
+      "archive": "tar.gz",
+      "filename": "Vulkan-Loader-1.4.363.0.tar.gz",
+      "platforms": [
+        "macos-arm64"
+      ],
+      "backends": [
+        "rpcs3"
+      ],
+      "evidence": [
+        "https://github.com/macports/macports-ports/blob/6d11f5a14d3ff1add9195cf0b8bd4bb0b871c1e2/graphics/vulkan-loader/Portfile"
+      ]
+    },
+    {
+      "id": "rpcs3-moltenvk-1.4.2",
+      "repo": "KhronosGroup/MoltenVK",
+      "commit": "db66022459ffb663aa2b50f6b018bc2e124f5edf",
+      "platforms": [
+        "macos-arm64"
+      ],
+      "backends": [
+        "rpcs3"
+      ],
+      "evidence": [
+        "https://github.com/RPCS3/rpcs3/blob/4d5def5880217135554ed434cd5055cceebe9cc2/.ci/deploy-mac.sh"
+      ]
+    },
+    {
+      "id": "pcsx2-moltenvk-1.4.1-spirv-cross",
+      "repo": "KhronosGroup/SPIRV-Cross",
+      "commit": "adec7acbf41a988713cdb85f93f26c8ca5ea863e",
+      "platforms": [
+        "macos-arm64"
+      ],
+      "backends": [
+        "pcsx2"
+      ],
+      "evidence": [
+        "https://raw.githubusercontent.com/KhronosGroup/MoltenVK/v1.4.1/ExternalRevisions/SPIRV-Cross_repo_revision"
+      ]
+    },
+    {
+      "id": "pcsx2-moltenvk-1.4.1-spirv-headers",
+      "repo": "KhronosGroup/SPIRV-Headers",
+      "commit": "b824a462d4256d720bebb40e78b9eb8f78bbb305",
+      "platforms": [
+        "macos-arm64"
+      ],
+      "backends": [
+        "pcsx2"
+      ],
+      "evidence": [
+        "https://raw.githubusercontent.com/KhronosGroup/MoltenVK/v1.4.1/ExternalRevisions/SPIRV-Headers_repo_revision"
+      ]
+    },
+    {
+      "id": "pcsx2-moltenvk-1.4.1-spirv-tools",
+      "repo": "KhronosGroup/SPIRV-Tools",
+      "commit": "262bdab48146c937467f826699a40da0fdfc0f1a",
+      "platforms": [
+        "macos-arm64"
+      ],
+      "backends": [
+        "pcsx2"
+      ],
+      "evidence": [
+        "https://raw.githubusercontent.com/KhronosGroup/MoltenVK/v1.4.1/ExternalRevisions/SPIRV-Tools_repo_revision"
+      ]
+    },
+    {
+      "id": "pcsx2-moltenvk-1.4.1-volk",
+      "repo": "zeux/volk",
+      "commit": "59660878571aa99e3c9a366bb1d19fdcd701f0e7",
+      "platforms": [
+        "macos-arm64"
+      ],
+      "backends": [
+        "pcsx2"
+      ],
+      "evidence": [
+        "https://raw.githubusercontent.com/KhronosGroup/MoltenVK/v1.4.1/ExternalRevisions/Volk_repo_revision"
+      ]
+    },
+    {
+      "id": "pcsx2-moltenvk-1.4.1-vulkan-headers",
+      "repo": "KhronosGroup/Vulkan-Headers",
+      "commit": "6aefb8eb95c8e170d0805fd0f2d02832ec1e099a",
+      "platforms": [
+        "macos-arm64"
+      ],
+      "backends": [
+        "pcsx2"
+      ],
+      "evidence": [
+        "https://raw.githubusercontent.com/KhronosGroup/MoltenVK/v1.4.1/ExternalRevisions/Vulkan-Headers_repo_revision"
+      ]
+    },
+    {
+      "id": "pcsx2-moltenvk-1.4.1-vulkan-tools",
+      "repo": "KhronosGroup/Vulkan-Tools",
+      "commit": "013058f74e2356347f8d9317233bc769816c9dfb",
+      "platforms": [
+        "macos-arm64"
+      ],
+      "backends": [
+        "pcsx2"
+      ],
+      "evidence": [
+        "https://raw.githubusercontent.com/KhronosGroup/MoltenVK/v1.4.1/ExternalRevisions/Vulkan-Tools_repo_revision"
+      ]
+    },
+    {
+      "id": "pcsx2-moltenvk-1.4.1-cereal",
+      "repo": "USCiLab/cereal",
+      "commit": "a56bad8bbb770ee266e930c95d37fff2a5be7fea",
+      "platforms": [
+        "macos-arm64"
+      ],
+      "backends": [
+        "pcsx2"
+      ],
+      "evidence": [
+        "https://raw.githubusercontent.com/KhronosGroup/MoltenVK/v1.4.1/ExternalRevisions/cereal_repo_revision"
+      ]
+    },
+    {
+      "id": "rpcs3-moltenvk-1.4.2-spirv-cross",
+      "repo": "KhronosGroup/SPIRV-Cross",
+      "commit": "6c09849fe88c48eaed08413aa022aaa136a3a057",
+      "platforms": [
+        "macos-arm64"
+      ],
+      "backends": [
+        "rpcs3"
+      ],
+      "evidence": [
+        "https://raw.githubusercontent.com/KhronosGroup/MoltenVK/v1.4.2/ExternalRevisions/SPIRV-Cross_repo_revision"
+      ]
+    },
+    {
+      "id": "rpcs3-moltenvk-1.4.2-spirv-headers",
+      "repo": "KhronosGroup/SPIRV-Headers",
+      "commit": "29981f65241605e08b0ede4cfeb999fe3b723c6a",
+      "platforms": [
+        "macos-arm64"
+      ],
+      "backends": [
+        "rpcs3"
+      ],
+      "evidence": [
+        "https://raw.githubusercontent.com/KhronosGroup/MoltenVK/v1.4.2/ExternalRevisions/SPIRV-Headers_repo_revision"
+      ]
+    },
+    {
+      "id": "rpcs3-moltenvk-1.4.2-spirv-tools",
+      "repo": "KhronosGroup/SPIRV-Tools",
+      "commit": "0d6fd73ca73830ccab5fa1f00ed5ed40124e2c55",
+      "platforms": [
+        "macos-arm64"
+      ],
+      "backends": [
+        "rpcs3"
+      ],
+      "evidence": [
+        "https://raw.githubusercontent.com/KhronosGroup/MoltenVK/v1.4.2/ExternalRevisions/SPIRV-Tools_repo_revision"
+      ]
+    },
+    {
+      "id": "rpcs3-moltenvk-1.4.2-volk",
+      "repo": "zeux/volk",
+      "commit": "776893306c5d3b22b6185b5d4a258b81d94572bf",
+      "platforms": [
+        "macos-arm64"
+      ],
+      "backends": [
+        "rpcs3"
+      ],
+      "evidence": [
+        "https://raw.githubusercontent.com/KhronosGroup/MoltenVK/v1.4.2/ExternalRevisions/Volk_repo_revision"
+      ]
+    },
+    {
+      "id": "rpcs3-moltenvk-1.4.2-vulkan-headers",
+      "repo": "KhronosGroup/Vulkan-Headers",
+      "commit": "e3b1eec08173d6b825cd3ac88c885a63b621504a",
+      "platforms": [
+        "macos-arm64"
+      ],
+      "backends": [
+        "rpcs3"
+      ],
+      "evidence": [
+        "https://raw.githubusercontent.com/KhronosGroup/MoltenVK/v1.4.2/ExternalRevisions/Vulkan-Headers_repo_revision"
+      ]
+    },
+    {
+      "id": "rpcs3-moltenvk-1.4.2-vulkan-tools",
+      "repo": "KhronosGroup/Vulkan-Tools",
+      "commit": "8c66b352925cb771f793a4d3220b1321ae0febf1",
+      "platforms": [
+        "macos-arm64"
+      ],
+      "backends": [
+        "rpcs3"
+      ],
+      "evidence": [
+        "https://raw.githubusercontent.com/KhronosGroup/MoltenVK/v1.4.2/ExternalRevisions/Vulkan-Tools_repo_revision"
+      ]
+    },
+    {
+      "id": "rpcs3-moltenvk-1.4.2-cereal",
+      "repo": "USCiLab/cereal",
+      "commit": "a56bad8bbb770ee266e930c95d37fff2a5be7fea",
+      "platforms": [
+        "macos-arm64"
+      ],
+      "backends": [
+        "rpcs3"
+      ],
+      "evidence": [
+        "https://raw.githubusercontent.com/KhronosGroup/MoltenVK/v1.4.2/ExternalRevisions/cereal_repo_revision"
+      ]
+    },
+    {
+      "id": "rpcs3-qtdeclarative-6.11.1",
+      "url": "https://download.qt.io/official_releases/qt/6.11/6.11.1/submodules/qtdeclarative-everywhere-src-6.11.1.tar.xz",
+      "sha256": "52e670f670b0304f534b24f98c47ceb8a41bb710464414ebc9527ec71cc86aa4",
+      "archive": "tar.xz",
+      "filename": "qtdeclarative-everywhere-src-6.11.1.tar.xz",
+      "platforms": [
+        "linux-x86_64"
+      ],
+      "backends": [
+        "rpcs3"
+      ],
+      "evidence": [
+        "https://download.qt.io/official_releases/qt/6.11/6.11.1/submodules/qtdeclarative-everywhere-src-6.11.1.tar.xz.sha256",
+        "rpcs3/rpcs3-ci-jammy:2.1 OCI image build history"
+      ]
+    },
+    {
+      "id": "rpcs3-qtmultimedia-6.11.1",
+      "url": "https://download.qt.io/official_releases/qt/6.11/6.11.1/submodules/qtmultimedia-everywhere-src-6.11.1.tar.xz",
+      "sha256": "390f8e52ddee3aca5c4de7eead900c84c4fa61ff6d1f0ebea9c7543365c09b0a",
+      "archive": "tar.xz",
+      "filename": "qtmultimedia-everywhere-src-6.11.1.tar.xz",
+      "platforms": [
+        "linux-x86_64"
+      ],
+      "backends": [
+        "rpcs3"
+      ],
+      "evidence": [
+        "https://download.qt.io/official_releases/qt/6.11/6.11.1/submodules/qtmultimedia-everywhere-src-6.11.1.tar.xz.sha256",
+        "rpcs3/rpcs3-ci-jammy:2.1 OCI image build history"
+      ]
+    },
+    {
+      "id": "rpcs3-sdl-3.4.14",
+      "repo": "libsdl-org/SDL",
+      "commit": "147a8ee32dbf9ac02f3794964490687b6bbda1bc",
+      "platforms": [
+        "linux-x86_64"
+      ],
+      "backends": [
+        "rpcs3"
+      ],
+      "evidence": [
+        "rpcs3/rpcs3-ci-jammy:2.1 OCI image build history"
+      ]
+    },
+    {
+      "id": "rpcs3-opencv-4.13.0",
+      "repo": "opencv/opencv",
+      "commit": "fe38fc608f6acb8b68953438a62305d8318f4fcd",
+      "platforms": [
+        "linux-x86_64"
+      ],
+      "backends": [
+        "rpcs3"
+      ],
+      "evidence": [
+        "rpcs3/rpcs3-ci-jammy:2.1 OCI image build history"
+      ]
+    },
+    {
+      "id": "rpcs3-opencv-4.14.0",
+      "repo": "opencv/opencv",
+      "commit": "0654a42e19215ef25b1d367d822f3c630447e7c7",
+      "platforms": [
+        "windows-x86_64"
+      ],
+      "backends": [
+        "rpcs3"
+      ],
+      "evidence": [
+        "https://github.com/Megamouse/opencv_minimal/blob/d4dde8afe3098f33f253278e25d45d6554afb10c/.github/workflows/opencv.yml"
+      ]
+    },
+    {
+      "id": "rpcs3-openal-soft-1.25.2",
+      "repo": "kcat/openal-soft",
+      "commit": "b2c48f7718ef3fcf67921a8b6534c4914e328970",
+      "platforms": [
+        "linux-x86_64"
+      ],
+      "backends": [
+        "rpcs3"
+      ],
+      "evidence": [
+        "rpcs3/rpcs3-ci-jammy:2.1 OCI image build history"
+      ]
+    },
+    {
+      "id": "rpcs3-vulkan-headers-1.4.341.0",
+      "repo": "KhronosGroup/Vulkan-Headers",
+      "commit": "b5c8f996196ba4aa6d8f97e52b5d3b6e70f7e4e2",
+      "platforms": [
+        "linux-x86_64"
+      ],
+      "backends": [
+        "rpcs3"
+      ],
+      "evidence": [
+        "rpcs3/rpcs3-ci-jammy:2.1 OCI image build history"
+      ]
+    },
+    {
+      "id": "rpcs3-vulkan-loader-1.4.341.0",
+      "repo": "KhronosGroup/Vulkan-Loader",
+      "commit": "32fcb949e253cbeb40cda7ea76122b492db579ae",
+      "platforms": [
+        "linux-x86_64"
+      ],
+      "backends": [
+        "rpcs3"
+      ],
+      "evidence": [
+        "rpcs3/rpcs3-ci-jammy:2.1 OCI image build history"
+      ]
+    },
+    {
+      "id": "ppsspp-sdl-2.26.5",
+      "repo": "libsdl-org/SDL",
+      "commit": "ac13ca9ab691e13e8eebe9684740ddcb0d716203",
+      "platforms": [
+        "macos-arm64"
+      ],
+      "backends": [
+        "ppsspp-standalone"
+      ],
+      "evidence": [
+        "https://github.com/hrydgard/ppsspp-mac-sdl/blob/c387d93ab5910b5a6be78b4840a5bbbc452f3ac8/SDL2.framework/Versions/A/Resources/Info.plist"
+      ]
+    },
+    {
+      "id": "ppsspp-moltenvk-1.4.0",
+      "repo": "KhronosGroup/MoltenVK",
+      "commit": "458870543b9bcf6b0edd6f90aaa776707b310d96",
+      "platforms": [
+        "macos-arm64"
+      ],
+      "backends": [
+        "ppsspp-standalone"
+      ],
+      "evidence": [
+        "PPSSPP1.20.4 macOS libMoltenVK.dylib vkGetVersionStringsMVK:1.4.0 / Vulkan1.4.323"
+      ]
+    },
+    {
+      "id": "ppsspp-moltenvk-1.4.0-spirv-cross",
+      "repo": "KhronosGroup/SPIRV-Cross",
+      "commit": "0a88b2d5c08708d45692b7096a0a84e7bfae366c",
+      "platforms": [
+        "macos-arm64"
+      ],
+      "backends": [
+        "ppsspp-standalone"
+      ],
+      "evidence": [
+        "https://raw.githubusercontent.com/KhronosGroup/MoltenVK/v1.4.0/ExternalRevisions/SPIRV-Cross_repo_revision"
+      ]
+    },
+    {
+      "id": "ppsspp-moltenvk-1.4.0-spirv-headers",
+      "repo": "KhronosGroup/SPIRV-Headers",
+      "commit": "bab63ff679c41eb75fc67dac76e1dc44426101e1",
+      "platforms": [
+        "macos-arm64"
+      ],
+      "backends": [
+        "ppsspp-standalone"
+      ],
+      "evidence": [
+        "https://raw.githubusercontent.com/KhronosGroup/MoltenVK/v1.4.0/ExternalRevisions/SPIRV-Headers_repo_revision"
+      ]
+    },
+    {
+      "id": "ppsspp-moltenvk-1.4.0-spirv-tools",
+      "repo": "KhronosGroup/SPIRV-Tools",
+      "commit": "783d7033613cedaa7147d0700b517abc5c32312d",
+      "platforms": [
+        "macos-arm64"
+      ],
+      "backends": [
+        "ppsspp-standalone"
+      ],
+      "evidence": [
+        "https://raw.githubusercontent.com/KhronosGroup/MoltenVK/v1.4.0/ExternalRevisions/SPIRV-Tools_repo_revision"
+      ]
+    },
+    {
+      "id": "ppsspp-moltenvk-1.4.0-volk",
+      "repo": "zeux/volk",
+      "commit": "43c29e655cb8117fd9cfb65ad9cefe2d40965102",
+      "platforms": [
+        "macos-arm64"
+      ],
+      "backends": [
+        "ppsspp-standalone"
+      ],
+      "evidence": [
+        "https://raw.githubusercontent.com/KhronosGroup/MoltenVK/v1.4.0/ExternalRevisions/Volk_repo_revision"
+      ]
+    },
+    {
+      "id": "ppsspp-moltenvk-1.4.0-vulkan-headers",
+      "repo": "KhronosGroup/Vulkan-Headers",
+      "commit": "088a00d81d1fc30ff77aacf31485871aebec7cb2",
+      "platforms": [
+        "macos-arm64"
+      ],
+      "backends": [
+        "ppsspp-standalone"
+      ],
+      "evidence": [
+        "https://raw.githubusercontent.com/KhronosGroup/MoltenVK/v1.4.0/ExternalRevisions/Vulkan-Headers_repo_revision"
+      ]
+    },
+    {
+      "id": "ppsspp-moltenvk-1.4.0-vulkan-tools",
+      "repo": "KhronosGroup/Vulkan-Tools",
+      "commit": "682e42f7ae70a8fadf374199c02de737daa5c70d",
+      "platforms": [
+        "macos-arm64"
+      ],
+      "backends": [
+        "ppsspp-standalone"
+      ],
+      "evidence": [
+        "https://raw.githubusercontent.com/KhronosGroup/MoltenVK/v1.4.0/ExternalRevisions/Vulkan-Tools_repo_revision"
+      ]
+    },
+    {
+      "id": "ppsspp-moltenvk-1.4.0-cereal",
+      "repo": "USCiLab/cereal",
+      "commit": "51cbda5f30e56c801c07fe3d3aba5d7fb9e6cca4",
+      "platforms": [
+        "macos-arm64"
+      ],
+      "backends": [
+        "ppsspp-standalone"
+      ],
+      "evidence": [
+        "https://raw.githubusercontent.com/KhronosGroup/MoltenVK/v1.4.0/ExternalRevisions/cereal_repo_revision"
+      ]
+    },
+    {
+      "id": "rpcs3-pipewire-1.0.5",
+      "url": "https://gitlab.freedesktop.org/pipewire/pipewire/-/archive/1.0.5/pipewire-1.0.5.tar.gz",
+      "sha256": "c5a5de26d684a1a84060ad7b6131654fb2835e03fccad85059be92f8e3ffe993",
+      "archive": "tar.gz",
+      "filename": "pipewire-1.0.5.tar.gz",
+      "platforms": [
+        "linux-x86_64"
+      ],
+      "backends": [
+        "rpcs3"
+      ],
+      "evidence": [
+        "rpcs3/rpcs3-ci-jammy:2.1 OCI image build history"
+      ]
+    }
+  ]
+}

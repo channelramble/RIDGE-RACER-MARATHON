@@ -47,6 +47,7 @@ mkdir -p "$PKGDIR"
 # CMake's install rules (CMakeLists.txt) lay out bin/ and share/, including the licence files.
 cmake --install "$BUILD_DIR" --prefix "$PKGDIR" --strip
 rrm_copy_legal "$PKGDIR"
+rrm_copy_bundle "$PKGDIR/share/ridge-racer-marathon"
 find "$PKGDIR" -name .DS_Store -delete
 
 EXE="$PKGDIR/bin/RidgeRacerMarathon"

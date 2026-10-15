@@ -10,7 +10,7 @@ them.
 
 ![Marathon's library: the nine games of the series, each waiting for your own game files](docs/images/library.png)
 
-**Status:** version 0.1.0, an early release. macOS on Apple Silicon is the most
+**Status:** version 0.2.0, an early release. macOS on Apple Silicon is the most
 tested; the Windows and Linux packages are built and checked by CI, but Marathon has
 not been played on Windows or Linux yet; Android and iOS are not buildable yet. See
 [Known limitations](#known-limitations).
@@ -31,8 +31,17 @@ Get the newest package for your system from the
   `RidgeRacerMarathon-linux-x64.tar.gz`. Extract it and run
   `RidgeRacerMarathon/bin/RidgeRacerMarathon`.
 
-Marathon then downloads the emulators and ports each game needs from their official
-pages when you ask it to. Bring your own game files (see [What you need](#what-you-need)).
+These are **Complete packages**: the redistributable emulator backends are included
+and set up automatically on first launch, without downloading them again. Extract
+the whole archive and wait for the setup progress to finish, then add your games.
+Existing backend installs and saves are preserved.
+
+Native ports and recompilations with upstream-only distribution or builds generated
+from your disc remain available through **Backends > Install all** or **Link existing**.
+Game files, BIOS and firmware are not included. See the exact
+[bundle contents and exclusions](docs/BUNDLED_BACKENDS.md); the matching backend
+source archives are on the same release page, but are not needed to play.
+Bring your own game files (see [What you need](#what-you-need)).
 
 The enhancement settings:
 
@@ -42,6 +51,9 @@ The enhancement settings:
   games, the European discs of the PSP games and Ridge Racer 7 (Marathon's own patch for
   the USA disc); 21:9 on Ridge Racer V (wider through an experimental PCSX2 patch).
   Details per game: [docs/SETTINGS.md](docs/SETTINGS.md).
+- **Controllers:** one set of controller settings for every game (analog stick or d-pad
+  steering, trigger pedals, vibration, dead zone, players), and a whole UI that works with
+  a gamepad ([docs/CONTROLLERS.md](docs/CONTROLLERS.md)).
 - **High refresh rate:** up to 360 FPS (Rage Racer PC up to 1000): real frames from
   the native redraws and the recomps that support it, motion-interpolated in-between
   images for games running inside Marathon and, on macOS, for Ridge Racer 6 and 7
@@ -97,6 +109,8 @@ The Android and iOS packages are not buildable yet ([docs/BUILDING.md](docs/BUIL
    the backend, and holds the enhancement settings.
 3. **Race:** in-app games: Esc / Guide / MENU opens the pause menu, Tab or
    right-stick click fast-forwards, F11 toggles fullscreen, F5/F8 save/load state.
+4. **Controllers** work out of the box, both in Marathon's menus and in every game;
+   hold Guide + Start to close any game. See [docs/CONTROLLERS.md](docs/CONTROLLERS.md).
 
 ## Known limitations
 
@@ -114,6 +128,12 @@ The Android and iOS packages are not buildable yet ([docs/BUILDING.md](docs/BUIL
   Its game speed follows the frame rate, so races run slower than full speed there.
 - **macOS package:** ad-hoc signed unless built with a Developer ID, so Gatekeeper asks
   for confirmation on the first start (System Settings > Privacy & Security > Open Anyway).
+- **Controllers** ([details](docs/CONTROLLERS.md)): the Ridge Racer recompilation reads the
+  controller as a digital pad only (the game rejects analog); Ridge Racer 6 on Xenia needs a
+  trigger layout picked once in the game's own options for analog gas and brake; in Fukami
+  the triggers are the PS2's L2 / R2, not the pedals; on macOS the Guide button may be taken
+  by the system (use Back + Start to close games then). Controller support was tested with
+  virtual controllers, not yet with every real one.
 
 ## Building
 

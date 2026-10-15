@@ -62,6 +62,7 @@ rm -rf "$STAGE"
 mkdir -p "$PKGDIR"
 ditto "$BUILT_APP" "$APP"
 rrm_copy_legal "$PKGDIR"
+rrm_copy_bundle "$APP/Contents/Resources"
 find "$PKGDIR" -name .DS_Store -delete
 xattr -cr "$APP"
 

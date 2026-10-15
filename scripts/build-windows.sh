@@ -41,6 +41,7 @@ STRIP="$(command -v "$TRIPLE-strip" || true)"
 [[ -n "$STRIP" ]] && "$STRIP" --strip-unneeded "$APPDIR/RidgeRacerMarathon.exe"
 cp -R "$RRM_ROOT/catalog" "$RRM_ROOT/assets" "$APPDIR/"
 rrm_copy_legal "$APPDIR"
+rrm_copy_bundle "$APPDIR"
 rrm_check_sdl_licenses "$BUILD_DIR"
 find "$APPDIR" -name .DS_Store -delete
 

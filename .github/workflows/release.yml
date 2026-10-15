@@ -1,11 +1,15 @@
-# On a version tag (v0.1.0, v0.2.0-rc1, ...): builds the three desktop packages with
-# scripts/build-*.sh and attaches them, with SHA-256 checksums, to a draft GitHub release.
-# Nothing is published until a maintainer reviews the draft and publishes it.
+# Complete runtime packages plus the matching backend sources, in one draft release.
 name: Release
 
 on:
   push:
     tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag (must match the CMake project version)
+        required: true
+        default: v0.2.0
 
 permissions:
   contents: read
@@ -14,77 +18,143 @@ defaults:
   run:
     shell: bash
 
+env:
+  RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
+
 jobs:
+  sources:
+    name: Mirror matching backend sources
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/cache/restore@v4
+        id: source-cache
+        with:
+          path: dist/sources
+          key: backend-sources-${{ hashFiles('packaging/*sources*.json', 'packaging/backend-lock.json') }}
+          restore-keys: backend-sources-
+      - name: Check release version
+        run: |
+          version="$(sed -n 's/^project([^)]*VERSION \([0-9][0-9.]*\).*/\1/p' CMakeLists.txt | head -n1)"
+          case "${RELEASE_TAG#v}" in
+            "$version" | "$version"-*) ;;
+            *) echo "::error::Release tag does not match project version $version"; exit 1 ;;
+          esac
+      - name: Install archive tools
+        run: sudo apt-get update -q && sudo apt-get install -y -q p7zip-full
+      - name: Mirror source and license files
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 scripts/bundle-backends.py sources --output dist/sources --cache .bundle-cache
+      - uses: actions/cache/save@v4
+        if: always() && steps.source-cache.outputs.cache-hit != 'true'
+        with:
+          path: dist/sources
+          key: backend-sources-${{ hashFiles('packaging/*sources*.json', 'packaging/backend-lock.json') }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: source-notices
+          path: |
+            dist/sources/source-manifest.json
+            dist/sources/SOURCE-README.txt
+            dist/sources/licenses/
+            dist/sources/runtime-data/
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-backend-sources
+          path: |
+            dist/sources/rrm-source-*
+            dist/sources/source-manifest.json
+            dist/sources/SOURCE-README.txt
+          compression-level: 0
+          if-no-files-found: error
+
   package:
-    name: ${{ matrix.name }}
+    name: Package ${{ matrix.name }}
+    needs: sources
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 90
     strategy:
       fail-fast: false
       matrix:
         include:
           - name: macOS (arm64)
             os: macos-latest
+            platform: macos-arm64
             script: scripts/build-macos.sh
             package: RidgeRacerMarathon-macos-arm64.zip
           - name: Linux (x64)
-            os: ubuntu-22.04  # glibc 2.35: the package also runs on older distributions
+            os: ubuntu-22.04
+            platform: linux-x86_64
             script: scripts/build-linux.sh
             package: RidgeRacerMarathon-linux-x64.tar.gz
-          - name: Windows (x64, mingw-w64)
+          - name: Windows (x64)
             os: ubuntu-latest
+            platform: windows-x86_64
             script: scripts/build-windows.sh
             package: RidgeRacerMarathon-windows-x64.zip
     env:
       HOMEBREW_NO_AUTO_UPDATE: 1
       HOMEBREW_NO_INSTALL_CLEANUP: 1
-
     steps:
       - uses: actions/checkout@v4
-
-      # The packages report the version from CMakeLists.txt; the tag must match it.
-      - name: Check the tag against the project version
-        run: |
-          version="$(sed -n 's/^project([^)]*VERSION \([0-9][0-9.]*\).*/\1/p' CMakeLists.txt | head -n1)"
-          tag="${GITHUB_REF_NAME#v}"
-          case "$tag" in
-              "$version" | "$version"-*) echo "tag $GITHUB_REF_NAME matches version $version" ;;
-              *) echo "::error::tag $GITHUB_REF_NAME does not match project version $version in CMakeLists.txt"; exit 1 ;;
-          esac
-
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v4
+        with:
+          name: source-notices
+          path: source-notices
       - name: Install tools (macOS)
         if: runner.os == 'macOS'
-        run: brew install ninja
-
+        run: brew install ninja sevenzip
+      - name: Install tools (Linux runners)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update -q && sudo apt-get install -y -q p7zip-full
       - name: Install packages (Linux)
-        if: matrix.script == 'scripts/build-linux.sh'
+        if: matrix.platform == 'linux-x86_64'
         run: bash .github/scripts/install-linux-deps.sh
-
       - name: Install mingw-w64
-        if: matrix.script == 'scripts/build-windows.sh'
+        if: matrix.platform == 'windows-x86_64'
+        run: sudo apt-get install -y -q --no-install-recommends mingw-w64 ninja-build zip
+      - name: Assemble pinned offline backends
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          python3 scripts/bundle-backends.py bundle
+          --platform '${{ matrix.platform }}'
+          --output "$RUNNER_TEMP/offline-bundle"
+          --source-index source-notices/source-manifest.json
+          --licenses source-notices/licenses
+          --runtime-data source-notices/runtime-data
+          --cache .bundle-cache
+      - name: Build Complete package
+        run: RRM_BUNDLE_DIR="$RUNNER_TEMP/offline-bundle" bash '${{ matrix.script }}'
+      - name: Check asset size
         run: |
-          sudo apt-get update -q
-          sudo apt-get install -y -q --no-install-recommends mingw-w64 ninja-build zip
-
-      # The macOS app is signed ad-hoc: a Developer ID signature and notarization
-      # (CODESIGN_IDENTITY, NOTARY_PROFILE in scripts/build-macos.sh) need a signing keychain on the runner.
-      - name: Build package
-        run: bash ${{ matrix.script }}
-
-      - name: Check the package
-        run: test -s "dist/${{ matrix.package }}" && ls -l dist/
-
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('dist/${{ matrix.package }}')
+          assert 0 < p.stat().st_size < 2_000_000_000, 'Package exceeds GitHub asset limit'
+          print(p.name, p.stat().st_size)
+          PY
       - uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.package }}
+          name: release-${{ matrix.package }}
           path: dist/${{ matrix.package }}
+          compression-level: 0
           if-no-files-found: error
 
-  # Each finished package is unpacked and started on its own OS before the release is drafted.
   test:
     name: Test ${{ matrix.name }}
     needs: package
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 15
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
@@ -93,39 +163,37 @@ jobs:
             os: macos-latest
             package: RidgeRacerMarathon-macos-arm64.zip
             app: RidgeRacerMarathon/Ridge Racer Marathon.app/Contents/MacOS/Ridge Racer Marathon
+            bundle: RidgeRacerMarathon/Ridge Racer Marathon.app/Contents/Resources/bundle
           - name: Linux package
             os: ubuntu-22.04
             package: RidgeRacerMarathon-linux-x64.tar.gz
             app: RidgeRacerMarathon/bin/RidgeRacerMarathon
+            bundle: RidgeRacerMarathon/share/ridge-racer-marathon/bundle
           - name: Windows package
             os: windows-latest
             package: RidgeRacerMarathon-windows-x64.zip
             app: RidgeRacerMarathon/RidgeRacerMarathon.exe
-    defaults:
-      run:
-        shell: bash
+            bundle: RidgeRacerMarathon/bundle
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
-          sparse-checkout: .github/scripts
-
+          python-version: '3.12'
       - uses: actions/download-artifact@v4
         with:
-          name: ${{ matrix.package }}
+          name: release-${{ matrix.package }}
           path: pkg
-
       - name: Unpack
         working-directory: pkg
         run: |
-          case "${{ matrix.package }}" in
-              *.tar.gz) tar xzf "${{ matrix.package }}" ;;
-              *.zip) if command -v ditto >/dev/null; then ditto -x -k "${{ matrix.package }}" .; else 7z x -y "${{ matrix.package }}" >/dev/null; fi ;;
+          case '${{ matrix.package }}' in
+            *.tar.gz) tar xzf '${{ matrix.package }}' ;;
+            *.zip) if command -v ditto >/dev/null; then ditto -x -k '${{ matrix.package }}' .; else 7z x -y '${{ matrix.package }}' >/dev/null; fi ;;
           esac
-          ls -R | head -40
-
-      - name: Start the app
-        run: .github/scripts/smoke-app.sh "pkg/${{ matrix.app }}" smoke
-
+      - name: Start app and complete offline setup
+        run: .github/scripts/smoke-app.sh 'pkg/${{ matrix.app }}' smoke
+      - name: Check imported backends and load every core
+        run: python3 .github/scripts/verify-bundle-install.py 'pkg/${{ matrix.bundle }}' smoke/appdata
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -134,32 +202,41 @@ jobs:
           if-no-files-found: ignore
 
   release:
-    name: Draft release
-    needs: [package, test]
+    name: Draft Complete release
+    needs: [sources, package, test]
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
+      - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with:
+          pattern: release-*
           path: dist
           merge-multiple: true
-
-      - name: Checksums
-        working-directory: dist
+      - name: Verify release inventory and checksums
         run: |
-          sha256sum RidgeRacerMarathon-* > SHA256SUMS.txt
-          cat SHA256SUMS.txt
-
+          python3 - <<'PY'
+          import hashlib
+          from pathlib import Path
+          root = Path('dist')
+          files = sorted(p for p in root.iterdir() if p.is_file())
+          assert len(files) > 4, 'Missing source artifacts'
+          with (root / 'SHA256SUMS.txt').open('w') as out:
+              for p in files:
+                  assert p.stat().st_size < 2_000_000_000, f'{p.name} exceeds GitHub asset limit'
+                  h = hashlib.sha256()
+                  with p.open('rb') as stream:
+                      for block in iter(lambda: stream.read(4 * 1024 * 1024), b''): h.update(block)
+                  out.write(f'{h.hexdigest()}  {p.name}\n')
+          PY
       - uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ env.RELEASE_TAG }}
+          target_commitish: ${{ github.sha }}
           draft: true
-          prerelease: ${{ contains(github.ref_name, '-') }}
-          name: RIDGE RACER MARATHON ${{ github.ref_name }}
-          generate_release_notes: true
+          prerelease: ${{ contains(env.RELEASE_TAG, '-') }}
+          name: RIDGE RACER MARATHON ${{ env.RELEASE_TAG }} — Complete
+          body_path: packaging/RELEASE_NOTES.md
           fail_on_unmatched_files: true
-          files: |
-            dist/RidgeRacerMarathon-macos-arm64.zip
-            dist/RidgeRacerMarathon-linux-x64.tar.gz
-            dist/RidgeRacerMarathon-windows-x64.zip
-            dist/SHA256SUMS.txt
+          files: dist/*

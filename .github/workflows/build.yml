@@ -61,6 +61,9 @@ jobs:
       - name: Configure
         run: cmake -S . -B build ${{ matrix.cmake_args }} -DRRM_BUILD_TESTS=ON -DRRM_VENDORED_SDL=ON
 
+      - name: Packaging fixtures
+        run: python3 -m unittest discover -s tests/packaging -v
+
       - name: Build
         run: cmake --build build --config Release --parallel
 

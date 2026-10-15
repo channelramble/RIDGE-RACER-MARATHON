@@ -7,6 +7,7 @@
 #                        (passed as FETCHCONTENT_SOURCE_DIR_SDL3; must be tag release-3.4.18)
 #   RRM_CMAKE_ARGS       extra arguments appended to the CMake configure command
 #   JOBS                 parallel build jobs          (default: number of CPUs)
+#   RRM_BUNDLE_DIR        verified offline bundle to include in this package
 
 set -euo pipefail
 
@@ -55,6 +56,17 @@ rrm_copy_legal() {
     cp "$RRM_ROOT/LICENSE" "$RRM_ROOT/THIRD_PARTY_NOTICES.md" "$dest/"
     rm -rf "$dest/LICENSES"
     cp -R "$RRM_ROOT/LICENSES" "$dest/LICENSES"
+    cp "$RRM_ROOT/packaging/START_HERE.txt" "$dest/START_HERE.txt"
+    cp -R "$RRM_ROOT/docs" "$dest/docs"
+}
+
+# Copy only the explicit, verified staging bundle; never scan developer installs or game folders.
+rrm_copy_bundle() {
+    local resources="$1"
+    [[ -n "${RRM_BUNDLE_DIR:-}" ]] || return 0
+    [[ -f "$RRM_BUNDLE_DIR/manifest.json" ]] || die "RRM_BUNDLE_DIR has no manifest.json"
+    mkdir -p "$resources"
+    cp -R "$RRM_BUNDLE_DIR" "$resources/bundle"
 }
 
 # Warns when the SDL licence texts in LICENSES/ differ from the SDL source built in build dir $1

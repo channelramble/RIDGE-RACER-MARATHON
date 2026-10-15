@@ -1,0 +1,32 @@
+RIDGE RACER MARATHON
+
+1. Extract the whole archive. On macOS, move Ridge Racer Marathon.app to Applications.
+   Windows: run RidgeRacerMarathon.exe.
+   Linux: run bin/RidgeRacerMarathon.
+
+2. On first launch, the Complete package automatically installs its included
+   emulators into your user data folder. Wait for "Setting up included backends"
+   to finish. This step works offline and keeps your existing backend installs.
+
+3. Add games > Scan a folder, select your own game files, and accept the results.
+   Pick a game and press Play. Controllers work in the menus and games.
+
+Native ports/recompilations which cannot be redistributed are available through
+Backends > Install all (internet required), or Link existing for your own builds.
+The included emulators provide an alternative where available. No game data,
+BIOS or console firmware is included. PCSX2 needs your PS2 BIOS; RPCS3 needs the
+official PS3 system software. Add those through Marathon's system-file settings.
+
+macOS: this app is ad-hoc signed, not notarized. If macOS blocks it, open
+System Settings > Privacy & Security > Open Anyway after the first attempt.
+Windows: if SmartScreen warns, choose More info > Run anyway.
+Some external backends need a newer OS or the Microsoft Visual C++ x64 runtime.
+
+Controllers: hold Guide + Start to return to Marathon (Back + Start on systems
+that reserve Guide). See docs/CONTROLLERS.md for layouts and per-game limits.
+
+Bundle contents, versions, exclusions and matching source-code downloads:
+docs/BUNDLED_BACKENDS.md and bundle/manifest.json (inside the app's Resources on
+macOS, or share/ridge-racer-marathon/bundle on Linux).
+Source archives and SHA-256 checksums are on the same GitHub release page:
+https://github.com/channelramble/RIDGE-RACER-MARATHON/releases/latest
