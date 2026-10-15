@@ -5,6 +5,7 @@ import os
 from pathlib import Path
 import stat
 import tempfile
+from types import SimpleNamespace
 import unittest
 import zipfile
 
@@ -15,6 +16,35 @@ spec.loader.exec_module(bundle)
 
 
 class BundleTest(unittest.TestCase):
+    def test_source_cache_prunes_obsolete_archives_only_after_success(self):
+        with tempfile.TemporaryDirectory() as temp:
+            base = Path(temp)
+            upstream = base / 'upstream.txt'
+            upstream.write_text('source fixture')
+            output = base / 'output'
+            output.mkdir()
+            stale = output / 'rrm-source-previous.tar.gz'
+            stale.write_text('previous source archive')
+            unrelated = output / 'unrelated.txt'
+            unrelated.write_text('retain me')
+            unrelated_dir = output / 'rrm-source-unrelated-directory'
+            unrelated_dir.mkdir()
+            args = SimpleNamespace(output=output, cache=base / 'cache', work_dir=None)
+            source = {'id': 'fixture', 'url': upstream.as_uri(), 'sha256': '0' * 64,
+                      'archive': 'none', 'filename': upstream.name}
+            with self.assertRaises(ValueError):
+                bundle.build_sources(args, {'sources': [source]})
+            self.assertTrue(stale.exists())
+            source['sha256'] = bundle.sha256(upstream)
+            bundle.build_sources(args, {'sources': [source]})
+            self.assertFalse(stale.exists())
+            self.assertTrue(unrelated.exists())
+            self.assertTrue(unrelated_dir.is_dir())
+            manifest = json.loads((output / 'source-manifest.json').read_text())
+            for entry in manifest['sources']:
+                for item in entry['files']:
+                    self.assertEqual(bundle.sha256(output / item['name']), item['sha256'])
+
     def test_lock_has_exact_offline_source_mapping(self):
         lock = bundle.load_lock()
         keys = [(b['id'], b['platform']) for b in lock['binaries']]

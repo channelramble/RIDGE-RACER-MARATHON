@@ -220,21 +220,7 @@ jobs:
           path: dist
           merge-multiple: true
       - name: Verify release inventory and checksums
-        run: |
-          python3 - <<'PY'
-          import hashlib
-          from pathlib import Path
-          root = Path('dist')
-          files = sorted(p for p in root.iterdir() if p.is_file())
-          assert len(files) > 4, 'Missing source artifacts'
-          with (root / 'SHA256SUMS.txt').open('w') as out:
-              for p in files:
-                  assert p.stat().st_size < 2_000_000_000, f'{p.name} exceeds GitHub asset limit'
-                  h = hashlib.sha256()
-                  with p.open('rb') as stream:
-                      for block in iter(lambda: stream.read(4 * 1024 * 1024), b''): h.update(block)
-                  out.write(f'{h.hexdigest()}  {p.name}\n')
-          PY
+        run: python3 .github/scripts/verify-release-inventory.py dist
       - uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ env.RELEASE_TAG }}

@@ -240,7 +240,7 @@ def checkout(source, dest):
 
 
 def source_tar(tree, target, keep_history=False):
-    with target.open('wb') as raw, gzip.GzipFile(fileobj=raw, mode='wb', mtime=0) as gz, tarfile.open(fileobj=gz, mode='w|') as tar:
+    with target.open('wb') as raw, gzip.GzipFile(fileobj=raw, mode='wb', mtime=0, compresslevel=3) as gz, tarfile.open(fileobj=gz, mode='w|') as tar:
         for path in sorted(tree.rglob('*')):
             rel = path.relative_to(tree)
             if not keep_history and '.git' in rel.parts:
@@ -328,6 +328,13 @@ def build_sources(args, lock):
             write_json(output / 'source-manifest.json', {'schema': 1, 'sources': entries})
     write_json(output / 'source-manifest.json', {'schema': 1, 'sources': entries})
     (output / 'SOURCE-README.txt').write_text('Complete corresponding source and build recipes for the emulator bundle.\nEach Git snapshot includes recursive submodules at their pinned commits.\nThe PPSSPP FFmpeg history archive also retains historical commits used by prebuilt libraries.\nFor split files: concatenate .part001, .part002, ... in numeric order before extracting.\nSee source-manifest.json for provenance, SHA256 and source-to-backend mapping.\n')
+    # A restored cache can contain archives for removed or replaced pins. Keep
+    # partial work during failures; prune obsolete release assets only once the
+    # entire current lock has been mirrored successfully.
+    current_assets = {f['name'] for entry in entries for f in entry['files']}
+    for path in output.glob('rrm-source-*'):
+        if path.is_file() and path.name not in current_assets:
+            path.unlink()
 
 
 def applicable(source, binary):

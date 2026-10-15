@@ -994,7 +994,14 @@ void testAdapters(const fs::path& work, const std::string& catalogDir) {
     }
 }
 
-void setEnv(const char* name, const std::string& value) { SDL_setenv_unsafe(name, value.c_str(), 1); }
+void setEnv(const char* name, const std::string& value) {
+#ifdef _WIN32
+    // SDL and the test can use separate CRT environment tables on Windows.
+    // The recomp adapters read std::getenv(), so update this CRT as well.
+    CHECK(_putenv_s(name, value.c_str()) == 0);
+#endif
+    CHECK(SDL_setenv_unsafe(name, value.c_str(), 1) == 0);
+}
 
 }  // namespace
 
@@ -1027,6 +1034,11 @@ int main(int argc, char** argv) {
     setEnv("LOCALAPPDATA", home + "/AppData/Local");
     setEnv("FUKAMI_DATA_DIR", home + "/Fukami");
     setEnv("RRM_RECOMP_DRY_RUN", "1");
+    const char* recompDryRun = std::getenv("RRM_RECOMP_DRY_RUN");
+    if (!recompDryRun || std::string(recompDryRun) != "1") {
+        std::fprintf(stderr, "Cannot enable recomp dry runs; refusing to launch test fixtures.\n");
+        return 1;
+    }
     emu::dryRun() = true;
     initPaths(pathToUtf8(work / "data").c_str());
     std::printf("work folder: %s\ncatalog: %s\n", workDir.c_str(), catalogDir.c_str());
