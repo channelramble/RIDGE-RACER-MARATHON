@@ -69,10 +69,17 @@ def load_lock():
         if source['id'] in ids:
             raise ValueError(f'Duplicate source {source["id"]}')
         ids.add(source['id'])
+        if sum(key in source for key in ('repo', 'url', 'svn_url', 'local_path')) != 1:
+            raise ValueError(f'Expected one source location: {source["id"]}')
         if 'repo' in source and not re.fullmatch('[0-9a-f]{40}', source['commit']):
             raise ValueError(f'Source is not pinned: {source["id"]}')
-        if 'url' in source and not re.fullmatch('[0-9a-f]{64}', source['sha256']):
+        if ('url' in source or 'local_path' in source) and not re.fullmatch('[0-9a-f]{64}', source['sha256']):
             raise ValueError(f'Archive is not pinned: {source["id"]}')
+        if 'svn_url' in source and (not source['svn_url'].startswith('https://') or
+                                   not isinstance(source['revision'], int) or source['revision'] <= 0):
+            raise ValueError(f'Subversion source is not pinned: {source["id"]}')
+        if 'local_path' in source:
+            relative(source['local_path'])
     for binary in lock['binaries']:
         if not re.fullmatch('[0-9a-f]{64}', binary['sha256']):
             raise ValueError(f'Binary is not pinned: {binary["id"]}')
@@ -136,6 +143,27 @@ def extract_zip(archive, dest):
                 path.chmod((mode & 0o777) or 0o644)
 
 
+
+def flatten_appimage_tree(dest):
+    """Handle both type2's directory and uruntime's AppDir symlink."""
+    tree = dest / 'squashfs-root'
+    if not tree.is_dir():
+        raise RuntimeError('AppImage did not create squashfs-root')
+    actual = tree.resolve()
+    base = dest.resolve()
+    if not actual.is_relative_to(base):
+        raise ValueError('AppImage extraction link escaped its temporary directory')
+    if actual != base:
+        for child in list(actual.iterdir()):
+            target = dest / child.name
+            if target.exists() or target.is_symlink():
+                raise ValueError(f'AppImage extraction path collision: {child.name}')
+            child.rename(target)
+        actual.rmdir()
+    if tree.is_symlink():
+        tree.unlink()
+
+
 def extract(archive, fmt, dest):
     dest.mkdir(parents=True, exist_ok=True)
     if fmt == 'zip':
@@ -148,14 +176,16 @@ def extract(archive, fmt, dest):
         image.chmod(0o755)
         run(image.resolve(), '--appimage-extract', cwd=dest)
         image.unlink()
-        tree = dest / 'squashfs-root'
-        if not tree.is_dir():
-            # DwarFS/uruntime builds use APPIMAGE_EXTRACT_DIR or squashfs-root;
-            # fail rather than publish a bundle with an unresolved entry point.
-            raise RuntimeError('AppImage did not create squashfs-root')
-        for child in list(tree.iterdir()):
-            child.rename(dest / child.name)
-        tree.rmdir()
+        flatten_appimage_tree(dest)
+    elif fmt in ('tar.zst', 'tzst'):
+        exe = shutil.which('zstd')
+        if not exe:
+            raise RuntimeError('Install zstd on the packaging runner')
+        with tempfile.TemporaryDirectory(prefix='rrm-tar-', dir=dest.parent) as temp:
+            unpacked = Path(temp) / 'source.tar'
+            with unpacked.open('wb') as out:
+                subprocess.run([exe, '-d', '-q', '-c', str(archive)], stdout=out, check=True)
+            extract(unpacked, 'tar', dest)
     elif fmt.startswith('tar') or fmt in ('tgz', 'tbz2', 'txz'):
         with tarfile.open(archive) as tar:
             members = tar.getmembers()
@@ -256,6 +286,24 @@ def source_tar(tree, target, keep_history=False):
                 tar.addfile(info)
 
 
+def export_svn(source, dest):
+    revision = str(source['revision'])
+    run('svn', 'export', '--non-interactive', '--revision', revision,
+        source['svn_url'] + '@' + revision, dest)
+    (dest / 'MARATHON-SOURCE.json').write_text(json.dumps(dict(source=source), indent=2) + '\n')
+
+
+def source_archive(source, cache):
+    if 'local_path' not in source:
+        return download(source['url'], source['sha256'], cache)
+    original = ROOT / str(relative(source['local_path']))
+    if not original.resolve().is_relative_to(ROOT.resolve()) or not original.is_file():
+        raise ValueError(f'Invalid local source path: {source["local_path"]}')
+    if sha256(original) != source['sha256']:
+        raise ValueError(f'Local source SHA256 mismatch: {source["local_path"]}')
+    return original
+
+
 def split_asset(path):
     if path.stat().st_size <= LIMIT:
         return [path]
@@ -306,15 +354,20 @@ def build_sources(args, lock):
                 checkout(source, tree)
                 archive = output / f'rrm-source-{sid}-{source["commit"][:12]}.tar.gz'
                 source_tar(tree, archive, source.get('history', False))
+            elif 'svn_url' in source:
+                export_svn(source, tree)
+                archive = output / f'rrm-source-{sid}-r{source["revision"]}.tar.gz'
+                source_tar(tree, archive)
             else:
-                original = download(source['url'], source['sha256'], args.cache)
-                suffix = ''.join(Path(source.get('filename', source['url'].split('?')[0])).suffixes) or '.archive'
+                original = source_archive(source, args.cache)
+                filename = source.get('filename') or Path(source.get('url', source.get('local_path', '')).split('?')[0]).name
+                suffix = ''.join(Path(filename).suffixes) or '.archive'
                 archive = output / f'rrm-source-{sid}{suffix}'
                 shutil.copyfile(original, archive)
                 fmt = source.get('archive') or ('zip' if suffix.endswith('.zip') else 'tar')
                 if fmt in ('raw', 'patch', 'gz', 'none'):
                     tree.mkdir()
-                    shutil.copyfile(original, tree / Path(source['url']).name)
+                    shutil.copyfile(original, tree / Path(filename).name)
                 else:
                     extract(original, fmt, tree)
             n = collect_licenses(tree, output / 'licenses' / sid)

@@ -123,12 +123,6 @@ public:
         return info;
     }
 
-    bool install(Library& lib, TaskProgress& progress) override {
-        if (!Backend::install(lib, progress)) return false;
-        if (const BackendInstall* bi = lib.install(def_.id)) return prepareImported(*bi, progress);
-        return true;
-    }
-
     bool prepareImported(const BackendInstall& installed, TaskProgress& progress) override {
 #if !defined(__APPLE__)
         (void)installed;
@@ -149,8 +143,10 @@ public:
                 plist.argv = {"/usr/bin/plutil", "-replace", "CFBundleIdentifier", "-string", "org.ppsspp.ppsspp.marathon",
                               pathToUtf8(app / "Contents" / "Info.plist")};
                 sign.argv = {"/usr/bin/codesign", "--force", "--deep", "--sign", "-", pathToUtf8(app)};
-                if (runProcess(plist) != 0 || runProcess(sign) != 0)
-                    progress.addLog("warning: could not give Marathon's PPSSPP its own bundle id");
+                if (runProcess(plist) != 0 || runProcess(sign) != 0) {
+                    progress.fail("Could not prepare Marathon's PPSSPP application. Check that its data folder is writable and retry setup.");
+                    return false;
+                }
             }
         }
 #endif

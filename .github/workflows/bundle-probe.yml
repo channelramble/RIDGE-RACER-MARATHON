@@ -3,6 +3,11 @@ name: Probe Linux emulator bundle
 
 on:
   workflow_dispatch:
+    inputs:
+      core_snapshot_release:
+        description: Optional draft release holding the verified build-input-cores.zip
+        type: string
+        default: ""
 
 permissions:
   contents: read
@@ -33,7 +38,32 @@ jobs:
         run: |
           cmake -S . -B build-probe -G Ninja -DCMAKE_BUILD_TYPE=Release -DRRM_BUILD_TESTS=ON -DRRM_VENDORED_SDL=ON
           cmake --build build-probe --target bundle_tool --parallel 2
+      - name: Fetch previously verified core inputs
+        if: inputs.core_snapshot_release != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SNAPSHOT_RELEASE: ${{ inputs.core_snapshot_release }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/core-inputs"
+          gh release download "$SNAPSHOT_RELEASE" --repo "$GITHUB_REPOSITORY" --pattern build-input-cores.zip --dir "$RUNNER_TEMP/core-inputs"
+          python3 - <<'PY'
+          import hashlib, os, pathlib, re, zipfile
+          directory = pathlib.Path(os.environ['RUNNER_TEMP']) / 'core-inputs'
+          archive = directory / 'build-input-cores.zip'
+          with zipfile.ZipFile(archive) as source:
+              for member in source.infolist():
+                  if not re.fullmatch(r'[0-9a-f]{64}', member.filename):
+                      raise ValueError('Unexpected core snapshot member')
+                  data = source.read(member)
+                  if hashlib.sha256(data).hexdigest() != member.filename:
+                      raise ValueError('Core snapshot checksum mismatch')
+                  (directory / member.filename).write_bytes(data)
+          archive.unlink()
+          PY
       - name: Probe pinned Linux payloads without games or firmware
-        run: python3 .github/scripts/probe-linux-bundle.py --bundle-tool build-probe/bundle_tool
+        run: python3 .github/scripts/probe-linux-bundle.py --bundle-tool build-probe/bundle_tool --input-cache "$RUNNER_TEMP/core-inputs"
+      - name: Remove temporary core inputs
+        if: always()
+        run: rm -rf "$RUNNER_TEMP/core-inputs"
       # Intentionally no artifact uploads or release steps. The probe removes all
       # synthetic bundles and downloaded payloads before returning, even on error.

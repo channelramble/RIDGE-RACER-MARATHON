@@ -91,6 +91,11 @@ def probe(args):
                     case = Path(iteration)
                     output = case / 'TEST_ONLY-bundle'
                     data = case / 'isolated-user-data'
+                    if args.input_cache:
+                        frozen = args.input_cache / binary['sha256']
+                        if frozen.is_file():
+                            cache.mkdir(parents=True, exist_ok=True)
+                            shutil.copyfile(frozen, cache / binary['sha256'])
                     bundle.build_bundle(argparse.Namespace(platform='linux-x86_64', output=output,
                         source_index=source_index, licenses=licenses, runtime_data=runtime_data,
                         cache=cache, work_dir=case), {**lock, 'binaries': [binary]})
@@ -129,6 +134,7 @@ def probe(args):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--bundle-tool', type=Path)
+    parser.add_argument('--input-cache', type=Path, help='Optional previously verified SHA-named inputs')
     parser.add_argument('--load-core', type=Path)
     parser.add_argument('--expected')
     args = parser.parse_args()

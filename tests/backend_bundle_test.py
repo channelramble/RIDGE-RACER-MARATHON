@@ -113,4 +113,16 @@ with tempfile.TemporaryDirectory(prefix="rrm-bundle-test-") as temporary:
         assert Path(installed["executable"]).is_symlink()
         assert Path(installed["executable"]).read_bytes() == b"exe"
 
+    if platform.startswith("macos-"):
+        # PPSSPP must isolate its preferences and re-sign the writable copy before
+        # registration. A malformed upstream app is a failed import, also on retry.
+        pack({"PPSSPPSDL.app/Contents/MacOS/PPSSPPSDL": b"fixture executable",
+              "PPSSPPSDL.app/Contents/Info.plist": b"not a plist"},
+             edits={"id": "ppsspp", "executable": "PPSSPPSDL.app/Contents/MacOS/PPSSPPSDL"})
+        for _ in range(2):
+            data, result = run("ppsspp-preparation-failure", success=False)
+            assert not result["imported"]
+            assert any("local backend setup" in error for error in result["errors"])
+            assert not (data / "library.json").exists(), "Failed preparation must not register an install"
+
 print("Backend bundle fixtures passed (verification, read-only source, import, no clobber, hashes, paths and links).")

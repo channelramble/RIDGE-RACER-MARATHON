@@ -181,6 +181,7 @@ bool Backend::install(Library& lib, TaskProgress& progress) {
     bi.version = version;
     bi.root = pathToUtf8(dest);
     bi.executable = exe;
+    if (!prepareImported(bi, progress)) return false;
     lib.setInstall(bi);  // the caller merges and saves (install() runs on a worker thread)
     progress.setStage(def_.name + " " + version + " installed");
     return true;

@@ -3,10 +3,15 @@ import importlib.util
 import json
 import os
 from pathlib import Path
+import shutil
 import stat
+import subprocess
+import sys
+import tarfile
 import tempfile
 from types import SimpleNamespace
 import unittest
+from unittest.mock import patch
 import zipfile
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -16,6 +21,46 @@ spec.loader.exec_module(bundle)
 
 
 class BundleTest(unittest.TestCase):
+    def test_local_source_patch_requires_exact_hash_and_stays_in_repository(self):
+        with tempfile.TemporaryDirectory() as temp:
+            base = Path(temp)
+            original = base / 'packaging/source-patches/fix.patch'
+            original.parent.mkdir(parents=True)
+            original.write_bytes(b'fixed upstream patch\n')
+            source = {'local_path': 'packaging/source-patches/fix.patch',
+                      'sha256': bundle.sha256(original)}
+            with patch.object(bundle, 'ROOT', base):
+                self.assertEqual(bundle.source_archive(source, base / 'cache'), original)
+                original.write_bytes(b'changed patch\n')
+                with self.assertRaises(ValueError):
+                    bundle.source_archive(source, base / 'cache')
+                source['local_path'] = '../outside.patch'
+                with self.assertRaises(ValueError):
+                    bundle.source_archive(source, base / 'cache')
+
+    @unittest.skipUnless(shutil.which('zstd') and sys.version_info >= (3, 12),
+                         'zstd source extraction requires the release runner tools/Python')
+    def test_zstd_source_archive_uses_safe_tar_extraction(self):
+        with tempfile.TemporaryDirectory() as temp:
+            base = Path(temp)
+            notice = base / 'LICENSE'
+            notice.write_bytes(b'upstream license\n')
+            plain = base / 'source.tar'
+            archive = base / 'source.tar.zst'
+            for member in ('source/LICENSE', '../outside'):
+                with tarfile.open(plain, 'w') as t:
+                    t.add(notice, arcname=member)
+                subprocess.run(['zstd', '-q', '-f', str(plain), '-o', str(archive)], check=True)
+                dest = base / 'extract'
+                if member.startswith('..'):
+                    with self.assertRaises(ValueError):
+                        bundle.extract(archive, 'tar.zst', dest)
+                else:
+                    bundle.extract(archive, 'tar.zst', dest)
+                    self.assertEqual((dest / member).read_bytes(), notice.read_bytes())
+            self.assertFalse((base / 'outside').exists())
+            self.assertEqual(list(base.glob('rrm-tar-*')), [])
+
     def test_source_cache_prunes_obsolete_archives_only_after_success(self):
         with tempfile.TemporaryDirectory() as temp:
             base = Path(temp)
@@ -113,6 +158,27 @@ class BundleTest(unittest.TestCase):
             descriptor.write_text(descriptor.read_text() + ' ')
             with self.assertRaises(ValueError):
                 bundle.verify_bundle(base)
+
+    def test_appimage_directory_and_dwarfs_symlink_layouts(self):
+        for symlink in (False, True):
+            with self.subTest(dwarfs=symlink), tempfile.TemporaryDirectory() as temp:
+                dest = Path(temp)
+                tree = dest / ('AppDir' if symlink else 'squashfs-root')
+                tree.mkdir()
+                (tree / 'AppRun').write_text('application')
+                if symlink:
+                    (dest / 'squashfs-root').symlink_to('AppDir', target_is_directory=True)
+                bundle.flatten_appimage_tree(dest)
+                self.assertEqual((dest / 'AppRun').read_text(), 'application')
+                self.assertFalse((dest / 'squashfs-root').is_symlink())
+                self.assertFalse(tree.exists())
+        with tempfile.TemporaryDirectory() as temp:
+            base = Path(temp)
+            dest = base / 'extract'
+            dest.mkdir()
+            (dest / 'squashfs-root').symlink_to(base, target_is_directory=True)
+            with self.assertRaises(ValueError):
+                bundle.flatten_appimage_tree(dest)
 
     def test_verify_rejects_modified_archive(self):
         with tempfile.TemporaryDirectory() as temp:
