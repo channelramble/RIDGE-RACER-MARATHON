@@ -34,6 +34,9 @@
 #include "app/Ui.h"
 #include "core/Platform.h"
 #include "core/Scanner.h"
+#include "imgui.h"
+#include "imgui_impl_opengl3.h"
+#include "imgui_impl_sdl3.h"
 
 using namespace rrm;
 
@@ -161,6 +164,42 @@ void setEnv(const char* key, const std::string& value) {
 #endif
 }
 
+void checkTextInputLifecycle(App& a) {
+    // Gameplay/menu keys must never opt into macOS's press-and-hold accent UI.
+    CHECK(!SDL_TextInputActive(a.window()));
+    if (SDL_GetKeyboardFocus() != a.window()) {
+        std::printf("text input field check skipped: native window has no keyboard focus\n");
+        return;
+    }
+    char text[32]{};
+    auto textFrame = [&](bool focus, bool showField) {
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplSDL3_NewFrame();
+        ImGui::NewFrame();
+        ImGui::Begin("Text input regression");
+        if (showField) {
+            if (focus) ImGui::SetKeyboardFocusHere();
+            ImGui::InputText("Text", text, sizeof(text));
+        }
+        ImGui::End();
+        ImGui::Render();
+    };
+    textFrame(true, true);
+    textFrame(false, true);
+    CHECK(SDL_TextInputActive(a.window()));
+    SDL_Event entered{};
+    entered.type = SDL_EVENT_TEXT_INPUT;
+    entered.text.windowID = SDL_GetWindowID(a.window());
+    entered.text.text = "caf\xC3\xA9";
+    a.handleEvent(entered);
+    textFrame(false, true);
+    CHECK(std::string(text) == "caf\xC3\xA9");
+    textFrame(false, false);
+    textFrame(false, false);
+    CHECK(!SDL_TextInputActive(a.window()));
+    std::printf("text input: inactive on menus, active for a field, UTF-8 entered, inactive after leaving\n");
+}
+
 }  // namespace
 
 int main(int argc, char** argv) {
@@ -207,6 +246,7 @@ int main(int argc, char** argv) {
         return 1;
     }
     App& a = app();
+    CHECK(!SDL_TextInputActive(a.window()));  // also catches an untracked startup request
     VirtualPad pad = attach("Marathon UI Test Pad", 0x045E, 0x0B12);  // Xbox Series X ids
     SDL_RaiseWindow(a.window());
     runFor(800);
@@ -219,6 +259,8 @@ int main(int argc, char** argv) {
     std::printf("window focus: %s, pads: %zu\n", focused ? "yes" : "no (testing as if focused)", a.padSnapshot().size());
     CHECK(a.padSnapshot().size() == 1);
     CHECK(ui::padHintsVisible(a));
+    checkTextInputLifecycle(a);
+    runFor(200);
 
     std::printf("1. tabs and Back\n");
     expectScreen(Screen::Library, "start");

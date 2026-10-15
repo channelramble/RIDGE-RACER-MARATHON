@@ -134,7 +134,8 @@ bool App::init(int argc, char** argv) {
     SDL_GL_MakeCurrent(window_, gl_);
     SDL_GL_SetSwapInterval(1);
     gl.load();
-    SDL_StartTextInput(window_);
+    // Dear ImGui's SDL backend enables native text input only for an active
+    // text field. Enabling it here also gives held gameplay keys to macOS IME.
 
     // Persistent state
     std::string error;

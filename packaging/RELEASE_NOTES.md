@@ -8,6 +8,8 @@ The Complete packages include SwanStation, PCSX-ReARMed, PPSSPP and MAME cores, 
 
 Controller support includes gamepad navigation throughout Marathon, a live controller test, steering/pedal/dead-zone/player settings, and configurations for the supported emulator and native-port backends. Hold Guide + Start to return to Marathon; Back + Start is available where the operating system reserves Guide.
 
+On macOS, holding a gameplay or navigation key no longer opens the accent-character picker. Text entry is enabled only while an editable field has focus.
+
 **Bring your own game files.** No game images, extracted game code/assets, BIOS or console firmware are included. PCSX2 needs your PS2 BIOS and RPCS3 needs official PS3 system software. Native ports/recompilations that are distributed only by upstream or generated from your disc remain available through **Backends > Install all** or **Link existing**. The package contains emulator alternatives where supported; there is no Xbox 360 emulator for macOS.
 
 The `rrm-source-*` files are matching emulator/dependency source archives and are **not needed to play**. `source-manifest.json` records their provenance; `SOURCE-README.txt` explains extraction, including any split archives. `SHA256SUMS.txt` covers every release download. See [bundle details](https://github.com/channelramble/RIDGE-RACER-MARATHON/blob/v0.2.0/docs/BUNDLED_BACKENDS.md).
