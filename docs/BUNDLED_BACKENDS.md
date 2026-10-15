@@ -49,7 +49,8 @@ A changed nightly archive fails packaging instead of silently replacing a
 reviewed build. Released application bundles contain their pinned payloads and
 remain usable independently of those rolling URLs.
 
-[`packaging/dependency-sources.json`](../packaging/dependency-sources.json) records
+[`packaging/dependency-sources.json`](../packaging/dependency-sources.json) and
+[`packaging/linux-dependency-sources.json`](../packaging/linux-dependency-sources.json) record
 third-party source archives and repositories, their exact hashes, and the
 platform/backend combinations that use them. Source provenance is recorded in
 `source-manifest.json`; each installed emulator also includes
@@ -58,7 +59,9 @@ platform/backend combinations that use them. Source provenance is recorded in
 
 Source archives are attached to the **same GitHub release** as the applications.
 Git snapshots include recursive submodules at their recorded commits, vendored
-libraries, build scripts, patches and notices. The PPSSPP FFmpeg archive retains
+libraries, build scripts, patches and notices. Linux dependency records include
+exact distribution source packages and packaging recipes matched to the bundled
+libraries. The PPSSPP FFmpeg archive retains
 Git history because upstream binaries use prebuilt libraries from historical
 commits. Dependency archives are mirrored as their original verified downloads.
 No external source URL is used as a substitute for an attached source archive.
@@ -70,7 +73,7 @@ part. Runtime ZIPs exceeding the limit fail the build.
 
 ## Building or checking a bundle
 
-Use Python 3.12+, Git, and 7-Zip. Normalize Linux binaries on a Linux x86-64
+Use Python 3.12+, Git, Subversion, zstd, and 7-Zip. Normalize Linux binaries on a Linux x86-64
 machine, since their AppImage extraction utilities run during packaging. The
 release workflow performs these steps before packaging and signing the launcher:
 

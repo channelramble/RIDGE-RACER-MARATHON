@@ -25,6 +25,8 @@ jobs:
   runtime-inputs:
     name: Freeze ${{ matrix.platform }} runtime inputs
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # GitHub requires this to read an unpublished draft's input snapshot.
     timeout-minutes: 25
     strategy:
       fail-fast: false

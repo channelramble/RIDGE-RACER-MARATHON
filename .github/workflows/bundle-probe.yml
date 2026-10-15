@@ -10,7 +10,9 @@ on:
         default: ""
 
 permissions:
-  contents: read
+  # GitHub hides draft release assets from read-only workflow tokens.
+  # The probe only downloads the private verified input snapshot.
+  contents: write
 
 concurrency:
   group: bundle-probe-${{ github.ref }}
