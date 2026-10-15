@@ -1,5 +1,6 @@
-// Xenia Canary (xenia-canary/xenia-canary-releases): Xbox 360 emulator for Windows
-// (Direct3D 12 / Vulkan) and Linux (Vulkan). No macOS build exists.
+// Xenia Canary (xenia-canary/xenia-canary): Xbox 360 emulator for Windows (Direct3D 12 /
+// Vulkan; a .7z release) and Linux (Vulkan; an AppImage). No macOS build exists. Builds were
+// published in xenia-canary/xenia-canary-releases until March 2026.
 //
 // Storage: Xenia keeps its config (xenia-canary.config.toml), patches/, content/ (saves)
 // and cache_host/ under one storage root: --storage_root if given, else the executable's
@@ -95,6 +96,19 @@ public:
     // Canary publishes a rolling build per commit; GitHub lists them in an order that does
     // not follow publication, so the newest one is taken from /releases/latest. Asset names
     // vary between builds (xenia_canary_windows.zip / xenia_canary_windows_.zip).
+#if defined(_WIN32)
+    std::vector<std::string> missingRequirements(const LaunchRequest& req) const override {
+        std::vector<std::string> out = Backend::missingRequirements(req);
+        const char* root = std::getenv("SystemRoot");
+        const fs::path system = utf8ToPath(root && *root ? root : "C:\\Windows") / "System32";
+        std::error_code ec;
+        if (!fs::exists(system / "vcruntime140_1.dll", ec) || !fs::exists(system / "msvcp140_atomic_wait.dll", ec))
+            out.push_back("Xenia Canary needs the Microsoft Visual C++ 2015-2022 runtime (x64): "
+                          "https://aka.ms/vs/17/release/vc_redist.x64.exe");
+        return out;
+    }
+#endif
+
     bool install(Library& lib, TaskProgress& progress) override {
         const BackendSource* src = def_.sourceFor(currentPlatformKey());
         if (!src || src->kind != "github") return Backend::install(lib, progress);

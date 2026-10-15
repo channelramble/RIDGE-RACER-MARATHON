@@ -104,6 +104,9 @@ public:
     Job* job(const std::string& id);
     std::vector<std::unique_ptr<Job>>& jobs() { return jobs_; }
     void installBackend(const std::string& backendId);
+    // Backends available here that Marathon can download and that are not installed yet.
+    std::vector<Backend*> missingDownloadableBackends();
+    void installAllBackends();  // installBackend() for each of them
     void scanFolder(const std::string& folder);
     void verifyGame(const std::string& gameId);
     std::vector<ScanHit> lastScanHits;  // guarded by scanMutex

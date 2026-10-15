@@ -600,6 +600,37 @@ void drawBackends(App& app) {
     ImGui::TextDisabled("Recompilations, native ports and emulators that Marathon drives. They're downloaded from their official "
                         "sources on request and keep their own licences. Nothing here contains game data.");
     ImGui::PopTextWrapPos();
+    // Everything at once: each backend downloads from its official source, as with its own Install button.
+    if (isDesktop()) {
+        const std::vector<Backend*> missing = app.missingDownloadableBackends();
+        std::vector<std::string> ownBuild;  // available here only as the user's own build
+        for (auto& def : app.catalog.backends()) {
+            Backend* b = app.backend(def.id);
+            const BackendSource* src = def.sourceFor(currentPlatformKey());
+            if (b && src && src->kind == "user" && b->installState(app.library) == InstallState::NotInstalled)
+                ownBuild.push_back(def.name);
+        }
+        ImGui::Dummy(ImVec2(0, S(4)));
+        if (!missing.empty()) {
+            if (primaryButton(("Install all (" + std::to_string(missing.size()) + ")").c_str(), ImVec2(0, 0),
+                              IM_COL32(245, 196, 0, 255)))
+                app.installAllBackends();
+            if (ImGui::IsItemHovered()) {
+                std::string names;
+                for (Backend* b : missing) names += (names.empty() ? "" : "\n") + b->def().name;
+                ImGui::SetTooltip("Downloads from the official sources:\n%s", names.c_str());
+            }
+        } else {
+            ImGui::TextColored(ImVec4(0.45f, 0.85f, 0.45f, 1.0f), "Every backend Marathon can download here is installed.");
+        }
+        if (!ownBuild.empty()) {
+            std::string names;
+            for (auto& n : ownBuild) names += (names.empty() ? "" : ", ") + n;
+            ImGui::PushTextWrapPos(0);
+            ImGui::TextDisabled("Your own build on this system (use Link existing): %s.", names.c_str());
+            ImGui::PopTextWrapPos();
+        }
+    }
     struct Group {
         const char* title;
         std::vector<std::string> kinds;

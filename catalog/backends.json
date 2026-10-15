@@ -620,18 +620,18 @@
       "sources": {
         "windows-x86_64": {
           "kind": "github",
-          "repo": "xenia-canary/xenia-canary-releases",
-          "asset": "xenia_canary_windows*.zip",
-          "archive": "zip",
+          "repo": "xenia-canary/xenia-canary",
+          "asset": "xenia_canary_windows.7z",
+          "archive": "7z",
           "executable": "xenia_canary.exe",
-          "note": "Rolling Canary build (the repository's latest release). Needs a Direct3D 12 or Vulkan graphics card."
+          "note": "Rolling Canary build (the repository's latest release). Needs a Direct3D 12 or Vulkan graphics card and the Microsoft Visual C++ 2015-2022 runtime (x64)."
         },
         "linux-x86_64": {
           "kind": "github",
-          "repo": "xenia-canary/xenia-canary-releases",
-          "asset": "xenia_canary_linux.tar*.xz",
-          "archive": "tar.xz",
-          "executable": "*xenia_canary",
+          "repo": "xenia-canary/xenia-canary",
+          "asset": "xenia_canary_linux.AppImage",
+          "archive": "appimage",
+          "executable": "xenia_canary_linux.AppImage",
           "note": "Experimental; needs a Vulkan driver."
         }
       }

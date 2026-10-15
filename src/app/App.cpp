@@ -486,6 +486,22 @@ void App::pollJobs() {
     }
 }
 
+std::vector<Backend*> App::missingDownloadableBackends() {
+    std::vector<Backend*> out;
+    for (auto& def : catalog.backends()) {
+        Backend* b = backend(def.id);
+        if (!b || !b->availableHere() || b->installState(library) != InstallState::NotInstalled) continue;
+        const BackendSource* src = def.sourceFor(currentPlatformKey());
+        const bool downloadable = def.kind == "libretro" ? isDesktop() : (src && src->kind != "user" && src->kind != "external-app");
+        if (downloadable) out.push_back(b);
+    }
+    return out;
+}
+
+void App::installAllBackends() {
+    for (Backend* b : missingDownloadableBackends()) installBackend(b->def().id);
+}
+
 void App::installBackend(const std::string& backendId) {
     Backend* b = backend(backendId);
     if (!b) return;
