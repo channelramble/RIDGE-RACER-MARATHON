@@ -26,6 +26,19 @@
 // Other regions have no such code; they stay at the PSP's own 480x272 shape.
 //
 // The PSP games run at 60 fps; PPSSPP has no frame generation, so nothing above 60.
+//
+// Controllers: PPSSPP's default mapping misses on today's pads (SDL builds: LB / RB reach
+// neither L nor R and the triggers do nothing; Windows XInput: LT opens the pause menu and RT
+// fast-forwards). Marathon writes the complete [ControlMapping] of <memstick>/PSP/SYSTEM/
+// controls.ini (ControllerConfigs.cpp; a linked Windows copy gets <data>/controls.ini through
+// --controlconfig=): the stick steers, RT / A accelerate (Cross), LT / X brake (Square), LB / RB
+// are L / R (camera / nitrous), Guide opens the pause menu, whose Exit returns to Marathon
+// (--pause-menu-exit). The section is complete, keyboard included, because PPSSPP drops the default
+// of every key it leaves out. A [Marathon] marker (ControlsVersion, Profile = steering/pedals) says
+// which mapping the file holds: it is written again only when the marker is missing or older or the
+// profile changed, so remaps made in PPSSPP survive until then; a file without the marker is kept as
+// controls.ini.bak first. An existing <DISCID>_ppsspp.ini gets the same section (PPSSPP loads the
+// mapping from it). [Control] AnalogDeadzone carries the stick dead zone.
 #include <algorithm>
 #include <cctype>
 #include <cmath>
@@ -40,6 +53,7 @@
 #include <vector>
 
 #include "backends/Adapters.h"
+#include "backends/ControllerConfigs.h"
 #include "backends/EmuCommon.h"
 #include "backends/PspCommon.h"
 #include "core/ConfigFiles.h"
@@ -95,6 +109,19 @@ Plan makePlan(const LaunchRequest& req, Layout layout) {
 class PpssppStandalone : public Backend {
 public:
     using Backend::Backend;
+
+    ControlsInfo controls(const LaunchRequest& req) const override {
+        const ControllerSettings& c = req.controllers;
+        ControlsInfo info;
+        info.steering = info.pedals = info.deadzone = true;  // the PSP has no vibration
+        info.layout.push_back(c.steering == "dpad" ? "D-pad or left stick: steer (digital)" : "Left stick or d-pad: steer");
+        info.layout.push_back(c.pedals == "triggers" ? "RT or A (Cross): accelerate; LT or X (Square): brake"
+                                                     : "A (Cross): accelerate; X (Square): brake");
+        info.layout.push_back("LB: camera, RB: nitrous");
+        info.layout.push_back("Y / B: shift");
+        info.menu = "Guide or Esc: PPSSPP's pause menu > Exit returns to Marathon";
+        return info;
+    }
 
     bool install(Library& lib, TaskProgress& progress) override {
         if (!Backend::install(lib, progress)) return false;
@@ -171,13 +198,16 @@ public:
         // --pause-menu-exit: "Exit to menu" quits, back to Marathon. Fullscreen flags are not saved.
         spec.argv = {exe, s.fullscreen ? "--fullscreen" : "--windowed", "--pause-menu-exit"};
         spec.workingDir = pathToUtf8(programFolder(exe));
-        fs::path memstick, mainIni;
+        fs::path memstick, mainIni, controlsIni;
         if (layout == Layout::LinkedWindows) {
             mainIni = data / "ppsspp.ini";
+            controlsIni = data / "controls.ini";
             spec.argv.push_back("--config=" + pathToUtf8(mainIni));
+            spec.argv.push_back("--controlconfig=" + pathToUtf8(controlsIni));
         } else {
             memstick = memstickDir(data);
             mainIni = memstick / "PSP" / "SYSTEM" / "ppsspp.ini";
+            controlsIni = memstick / "PSP" / "SYSTEM" / "controls.ini";
             std::string error;
             if (!redirectMemstick(exe, data, memstick, layout, spec, error)) return fail(error);
         }
@@ -208,6 +238,17 @@ public:
         }
         for (auto& ini : inis)
             if (!writeIni(ini, req, plan, texturePack)) return fail("Could not write " + pathToUtf8(ini));
+
+        // Controllers: controls.ini, and the per-game ini when there is one (it carries its own mapping).
+        const ControllerSettings& c = req.controllers;
+        std::string what;
+        for (size_t i = 0; i < inis.size(); ++i) {
+            const fs::path& file = i == 0 ? controlsIni : inis[i];
+            std::string done;
+            if (!writeControls(file, c, done)) return fail("Could not write " + pathToUtf8(file));
+            what += (what.empty() ? "" : "; ") + done;
+        }
+        logNote(ctl::noteLine(c, what + "; [Control] AnalogDeadzone = " + ctl::fraction(c.deadzone)));
 
         spec.argv.push_back(gamePath(req));
         return spawnLogged(def_.id, spec);
@@ -267,12 +308,32 @@ private:
         if (plan.cheat) ini.set("General", "EnableCheats", "True");
         if (texturePack) ini.set("Graphics", "ReplaceTextures", "True");
         ini.set("General", "CheckForNewVersion", "False");  // Marathon updates its own copy
+        ini.set("Control", "AnalogDeadzone", ctl::fraction(req.controllers.deadzone));
         // Advanced: settings.extra.ppssppIni {"Section": {"Key": "Value"}} wins over the mapping.
         if (auto it = s.extra.find("ppssppIni"); it != s.extra.end() && it->is_object())
             for (auto& [section, keys] : it->items())
                 if (keys.is_object())
                     for (auto& [k, v] : keys.items())
                         if (v.is_string()) ini.set(section, k, v.get<std::string>());
+        return ini.save(pathToUtf8(path));
+    }
+
+    // Marathon's [ControlMapping] when the file's marker says it is due (see the header).
+    static bool writeControls(const fs::path& path, const ControllerSettings& c, std::string& what) {
+        std::error_code ec;
+        const bool exists = fs::exists(path, ec);
+        cfg::Ini ini;
+        if (exists && !ini.load(pathToUtf8(path))) return false;
+        if (!ctl::ppssppMappingDue(ini, c)) {
+            what = pathToUtf8(path) + " kept (Marathon's " + ctl::ppssppProfile(c) + " mapping, remaps made in PPSSPP stay)";
+            return true;
+        }
+        if (exists && !ini.hasSection("Marathon")) {
+            // A mapping Marathon did not write: kept beside it once.
+            fs::copy_file(path, utf8ToPath(pathToUtf8(path) + ".bak"), fs::copy_options::overwrite_existing, ec);
+        }
+        ctl::applyPpssppMapping(ini, c, currentOs() == Os::Windows);
+        what = pathToUtf8(path) + " [ControlMapping] " + ctl::ppssppProfile(c) + (currentOs() == Os::Windows ? " (Windows)" : " (SDL)");
         return ini.save(pathToUtf8(path));
     }
 

@@ -1,4 +1,4 @@
-# Builds every target on macOS, Linux and Windows, runs the scanner unit tests and
+# Builds every target on macOS, Linux and Windows, runs the controller and scanner tests and
 # checks that the catalog loads and lists every game (launch_tool matrix, dry run).
 name: Build
 
@@ -64,6 +64,9 @@ jobs:
       - name: Build
         run: cmake --build build --config Release --parallel
 
+      - name: Controller and bundle tests
+        run: ctest --test-dir build -C Release --output-on-failure
+
       # tests/scanner is a separate project; it uses the SDL build from the main build tree.
       - name: Scanner unit tests
         env:
@@ -82,10 +85,13 @@ jobs:
       - name: App smoke test
         run: .github/scripts/smoke-app.sh "${{ matrix.app }}" build/smoke
 
+      - name: Controller UI smoke test
+        run: bash .github/scripts/smoke-controllers.sh "${{ matrix.bin }}/ui_pad_tool" build/smoke
+
       - name: Upload the screenshot
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: screenshot-${{ runner.os }}
-          path: build/smoke/library.png
+          path: build/smoke/*.png
           if-no-files-found: ignore

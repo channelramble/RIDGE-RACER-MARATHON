@@ -70,6 +70,10 @@ public:
     bool handleEvent(const SDL_Event& e);
     // Merges on-screen controls with physical input for port 0.
     void setVirtualPad(const PadState& pad);
+    // What the core reads from input_state right now (tests; RETRO_DEVICE_* arguments).
+    int16_t inputState(unsigned port, unsigned device, unsigned index, unsigned id) const;
+    // The gamepad playing on a port (0-based; 0 = none), e.g. for the pause menu's player names.
+    SDL_JoystickID portGamepad(unsigned port) const;
 
     // Advances emulation for one presented frame (handles pacing, base speed
     // and turbo). Returns false when the core asked to shut down.

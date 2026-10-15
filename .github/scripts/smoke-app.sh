@@ -48,7 +48,7 @@ esac
 
 echo "smoke-app: ${run[*]}"
 status=0
-"${run[@]}" --data "$data" --frames 120 --screenshot "$png" || status=$?
+"${run[@]}" --data "$data" --wait-for-setup --frames 120 --screenshot "$png" || status=$?
 echo "smoke-app: exit status $status"
 [[ $status -eq 0 ]] || exit "$status"
 [[ -s "$png" ]] || { echo "smoke-app: no screenshot at $png" >&2; exit 1; }

@@ -1,8 +1,10 @@
 #include "core/Settings.h"
 
 #include <algorithm>
+#include <cctype>
 #include <cmath>
 #include <cstdlib>
+#include <initializer_list>
 
 namespace rrm {
 
@@ -37,22 +39,98 @@ GameSettings GameSettings::fromJson(const json& j) {
     return s;
 }
 
+// ---- controllers ---------------------------------------------------------------------------
+
+namespace {
+
+bool oneOf(const std::string& v, std::initializer_list<const char*> allowed) {
+    for (const char* a : allowed)
+        if (v == a) return true;
+    return false;
+}
+
+// "" (automatic), "none" or an SDL GUID (lower-cased); anything else becomes automatic.
+std::string validController(std::string v) {
+    if (v.empty() || v == "none") return v;
+    if (v.size() != 32) return "";
+    for (char& c : v) {
+        if (!std::isxdigit(static_cast<unsigned char>(c))) return "";
+        c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+    }
+    return v;
+}
+
+// Applies the keys present in j onto c. Invalid values become the default when `reset`
+// (reading settings.json) or keep c's current value otherwise (a per-game override).
+void readDriving(ControllerSettings& c, const json& j, bool reset) {
+    const ControllerSettings def;
+    if (auto v = jget<std::string>(j, "steering", ""); oneOf(v, {"stick", "dpad"})) c.steering = v;
+    else if (reset) c.steering = def.steering;
+    if (auto v = jget<std::string>(j, "pedals", ""); oneOf(v, {"triggers", "buttons"})) c.pedals = v;
+    else if (reset) c.pedals = def.pedals;
+    c.vibration = jget(j, "vibration", c.vibration);
+    c.deadzone = std::clamp(jget(j, "deadzone", c.deadzone), 0, 40);
+}
+
+}  // namespace
+
+json ControllerSettings::toJson() const {
+    json p = json::array();
+    for (auto& pc : players) p.push_back({{"controller", pc.controller}, {"name", pc.name}});
+    return json{{"steering", steering},     {"pedals", pedals},       {"vibration", vibration},
+                {"deadzone", deadzone},     {"players", p},           {"quitChord", quitChord},
+                {"quitHoldMs", quitHoldMs}};
+}
+
+ControllerSettings ControllerSettings::fromJson(const json& j) {
+    ControllerSettings c;
+    if (!j.is_object()) return c;
+    readDriving(c, j, true);
+    if (auto it = j.find("players"); it != j.end() && it->is_array()) {
+        for (size_t i = 0; i < it->size() && i < c.players.size(); ++i) {
+            const json& p = (*it)[i];
+            if (!p.is_object()) continue;
+            c.players[i].controller = validController(jget<std::string>(p, "controller", ""));
+            c.players[i].name = jget<std::string>(p, "name", "");
+        }
+    }
+    if (auto v = jget<std::string>(j, "quitChord", ""); oneOf(v, {"guide-start", "back-start", "off"})) c.quitChord = v;
+    c.quitHoldMs = std::clamp(jget(j, "quitHoldMs", c.quitHoldMs), 500, 3000);
+    return c;
+}
+
+ControllerSettings ControllerSettings::withOverrides(const json& extra) const {
+    ControllerSettings c = *this;
+    if (!extra.is_object()) return c;
+    auto it = extra.find("controllers");
+    if (it != extra.end() && it->is_object()) readDriving(c, *it, false);
+    return c;
+}
+
+// ---- global ---------------------------------------------------------------------------------
+
 json GlobalSettings::toJson() const {
-    return json{{"defaults", defaults.toJson()},
+    return json{{"version", kVersion},
+                {"defaults", defaults.toJson()},
                 {"uiScale", uiScale},
                 {"showUnsupported", showUnsupported},
                 {"confirmDownloads", confirmDownloads},
-                {"lastScanFolder", lastScanFolder}};
+                {"lastScanFolder", lastScanFolder},
+                {"controllers", controllers.toJson()}};
 }
 
 GlobalSettings GlobalSettings::fromJson(const json& j) {
     GlobalSettings g;
     if (!j.is_object()) return g;
+    // Version 1 files have no "version" and no "controllers": the controller defaults apply.
+    // Older builds read version 2 files too, skipping the keys they do not know.
+    g.version = jget(j, "version", 1);
     if (auto it = j.find("defaults"); it != j.end()) g.defaults = GameSettings::fromJson(*it);
     g.uiScale = jget(j, "uiScale", g.uiScale);
     g.showUnsupported = jget(j, "showUnsupported", g.showUnsupported);
     g.confirmDownloads = jget(j, "confirmDownloads", g.confirmDownloads);
     g.lastScanFolder = jget(j, "lastScanFolder", g.lastScanFolder);
+    if (auto it = j.find("controllers"); it != j.end()) g.controllers = ControllerSettings::fromJson(*it);
     return g;
 }
 

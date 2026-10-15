@@ -26,6 +26,12 @@
 // Frame rate: Xenia's GPU `vsync` and `framerate_limit` pace the guest's vertical blank, and
 // Ridge Racer 6's speed is tied to it, so they stay at 60. Marathon's vsync choice maps to
 // the presenter (tearing / variable refresh allowed or not).
+//
+// Controllers: Xenia passes SDL controllers to the game as Xbox 360 pads with no remapping (the
+// stick and triggers analog, slots in connection order). Marathon writes only [HID]: hid = "any"
+// (SDL pads plus the keyboard driver), vibration and the stick dead zones (a fraction, 0.0-1.0).
+// Ridge Racer 6's own Options > Controller setting decides gas and brake (type A: A / X, RT
+// nitrous); it is kept in the game's save, so Marathon cannot choose it.
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
@@ -34,6 +40,7 @@
 #include <system_error>
 
 #include "backends/Adapters.h"
+#include "backends/ControllerConfigs.h"
 #include "backends/EmuCommon.h"
 #include "core/ConfigFiles.h"
 
@@ -92,6 +99,19 @@ std::string tomlString(const std::string& s) { return "\"" + s + "\""; }
 class Xenia : public Backend {
 public:
     using Backend::Backend;
+
+    ControlsInfo controls(const LaunchRequest&) const override {
+        ControlsInfo info;
+        info.vibration = info.deadzone = true;
+        info.players = 2;
+        info.layout = {"Left stick: steer (analog)",
+                       "The game's own controller setting decides gas and brake (type A: A / X; RT nitrous)"};
+        info.note = "For analog accelerator and brake, choose a configuration type with the pedals on the triggers in "
+                    "Options > Controller (kept in your save).";
+        info.menu = "No quit from the pad: hold Guide + Start (Marathon) or close the window. Switch Pro: buttons "
+                    "follow their labels in Xenia.";
+        return info;
+    }
 
     // Canary publishes a rolling build per commit; GitHub lists them in an order that does
     // not follow publication, so the newest one is taken from /releases/latest. Asset names
@@ -173,6 +193,8 @@ public:
             cfg.push_back({"UI.window_size_x", std::to_string(static_cast<int>(std::lround(720 * ratio)))});
             cfg.push_back({"UI.window_size_y", "720"});
         }
+        const std::vector<std::pair<std::string, std::string>> hid = ctl::xeniaHidKeys(req.controllers);
+        cfg.insert(cfg.end(), hid.begin(), hid.end());
         const fs::path configFile = storage / "xenia-canary.config.toml";
         std::string error;
         if (!cfg::tomlSet(pathToUtf8(configFile), cfg, &error)) return emu::fail("Could not write the Xenia config: " + error);
@@ -192,6 +214,9 @@ public:
         if (wanted > 0 && wanted < kOriginalAspect - 0.01) notes.push_back(s.aspect + " is not offered: original 16:9");
         if (wanted > kOriginalAspect + 0.01 && !patchable) notes.push_back("no aspect ratio patch for this game");
         if (resolveFps(s) != 0) notes.push_back("the game runs at 60 fps (its speed is tied to 60 Hz)");
+        std::string hidText;
+        for (auto& [k, v] : hid) hidText += (hidText.empty() ? "" : ", ") + k + " = " + v;
+        notes.push_back(ctl::noteLine(req.controllers, hidText + " (gas and brake: the game's own controller setting)"));
         {
             std::ofstream log(paths().logs / utf8ToPath(def_.id + ".log"), std::ios::binary | std::ios::app);
             log << "\n==== " << emu::timestamp() << " Marathon settings\n";

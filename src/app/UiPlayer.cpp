@@ -21,6 +21,9 @@ struct PlayerState {
     std::map<SDL_FingerID, ImVec2> fingers;  // normalised 0..1
     double lastTouch = -100;
     int stateSlot = 1;
+    bool guideDown = false;    // Guide is held...
+    bool guideAlone = false;   // ...and no other button went down meanwhile (Guide + Start is the quit chord)
+    uint32_t player1Pad = 0;   // Player 1's controller, to notice it being unplugged
 } g_player;
 
 std::string statePath(App& app, int slot) {
@@ -150,9 +153,12 @@ void drawTouchPad(App&) {
 void onPlayerStarted(App& app) {
     g_player = PlayerState();
     g_player.touchVisible = app.touchUi;
+    g_player.player1Pad = app.gamepads().playerPad(0);
 }
 
 bool playerMenuOpen() { return g_player.menuOpen; }
+
+void closePlayerMenu(App& app) { setMenu(app, false); }
 
 bool playerHandleEvent(App& app, const SDL_Event& e) {
     switch (e.type) {
@@ -190,10 +196,14 @@ bool playerHandleEvent(App& app, const SDL_Event& e) {
             }
             break;
         case SDL_EVENT_GAMEPAD_BUTTON_DOWN:
+            // Guide opens and closes the pause menu when it is let go, unless another button went
+            // down meanwhile: then it was a chord (Guide + Start quits to Marathon).
             if (e.gbutton.button == SDL_GAMEPAD_BUTTON_GUIDE) {
-                setMenu(app, !g_player.menuOpen);
+                g_player.guideDown = true;
+                g_player.guideAlone = true;
                 return true;
             }
+            if (g_player.guideDown) g_player.guideAlone = false;
             if (e.gbutton.button == SDL_GAMEPAD_BUTTON_RIGHT_STICK && !g_player.menuOpen) {
                 g_player.turboHeld = true;
                 applyTurbo(app);
@@ -201,6 +211,11 @@ bool playerHandleEvent(App& app, const SDL_Event& e) {
             }
             break;
         case SDL_EVENT_GAMEPAD_BUTTON_UP:
+            if (e.gbutton.button == SDL_GAMEPAD_BUTTON_GUIDE) {
+                if (g_player.guideDown && g_player.guideAlone) setMenu(app, !g_player.menuOpen);
+                g_player.guideDown = g_player.guideAlone = false;
+                return true;
+            }
             if (e.gbutton.button == SDL_GAMEPAD_BUTTON_RIGHT_STICK) {
                 g_player.turboHeld = false;
                 applyTurbo(app);
@@ -249,13 +264,50 @@ void drawGameView(App& app, int fbWidth, int fbHeight) {
     app.host().render(0, 0, fbWidth, fbHeight);
 }
 
+namespace {
+
+// "Player 1: <name> · Player 2: <name | nobody>", as the in-app cores assign them.
+std::string playersLine(App& app) {
+    std::string p1 = "keyboard", p2 = "nobody";
+    for (auto& p : app.padSnapshot()) {
+        std::string name = p.nameIndex > 1 ? p.name + " " + std::to_string(p.nameIndex) : p.name;
+        if (p.player == 0) p1 = name;
+        if (p.player == 1) p2 = name;
+    }
+    return "Player 1: " + p1 + " \xC2\xB7 Player 2: " + p2;
+}
+
+}  // namespace
+
 void drawPlayer(App& app) {
     if (g_player.touchVisible && !g_player.menuOpen) {
         updateTouchPad(app);
         drawTouchPad(app);
     }
+    // Player 1's controller unplugged: pause so the race does not go on without them.
+    {
+        GamepadMonitor& pads = app.gamepads();
+        if (g_player.player1Pad && !pads.connected(g_player.player1Pad)) {
+            if (!g_player.menuOpen) setMenu(app, true);
+            app.toast("Player 1's controller was disconnected. Reconnect it, then choose Resume.");
+        }
+        g_player.player1Pad = pads.playerPad(0);
+    }
     ImGuiViewport* vp = ImGui::GetMainViewport();
     ImDrawList* fg = ImGui::GetForegroundDrawList();
+    // The quit chord being held: a ring fills up in the corner.
+    if (const float progress = app.gamepads().chordProgress(SDL_GetTicks()); progress > 0.25f) {
+        const float rad = S(22);
+        const ImVec2 c(vp->Pos.x + vp->Size.x - S(40), vp->Pos.y + S(40));
+        fg->AddCircleFilled(c, rad + S(8), IM_COL32(0, 0, 0, 150), 40);
+        fg->AddCircle(c, rad, IM_COL32(255, 255, 255, 60), 40, S(4));
+        const float top = -3.14159265f * 0.5f;
+        fg->PathArcTo(c, rad, top, top + 3.14159265f * 2 * progress, 40);
+        fg->PathStroke(IM_COL32(245, 196, 0, 255), ImDrawFlags_None, S(4));
+        const char* text = "Hold to quit";
+        const ImVec2 ts = ImGui::CalcTextSize(text);
+        fg->AddText(ImVec2(c.x - rad - S(12) - ts.x, c.y - ts.y * 0.5f), IM_COL32(255, 255, 255, 230), text);
+    }
     if (app.host().turbo()) {
         GameSettings s = app.settingsFor(app.selectedGame);
         char buf[48];
@@ -282,6 +334,7 @@ void drawPlayer(App& app) {
     const GameDef* g = app.catalog.game(app.selectedGame);
     titleText(app, g ? g->title.c_str() : "Paused", S(36), IM_COL32(255, 255, 255, 255));
     ImGui::TextDisabled("Paused");
+    if (!app.padSnapshot().empty()) ImGui::TextDisabled("%s", playersLine(app).c_str());
     ImVec2 bs(S(320), S(48));
     if (ImGui::IsWindowAppearing()) ImGui::SetKeyboardFocusHere();
     if (primaryButton("RESUME", bs, IM_COL32(245, 196, 0, 255))) setMenu(app, false);
@@ -319,6 +372,11 @@ void drawPlayer(App& app) {
     if (secondaryButton("Quit to Marathon", ImVec2(bs.x, 0))) {
         g_player.menuOpen = false;
         app.exitPlayer();
+    }
+    if (const std::string& chord = app.global.controllers.quitChord; chord != "off" && !app.padSnapshot().empty()) {
+        ImGui::SameLine();
+        ImGui::AlignTextToFramePadding();
+        ImGui::TextDisabled("or hold %s", chord == "back-start" ? "Back + Start" : "Guide + Start");
     }
     ImGui::End();
     ImGui::PopStyleVar(2);

@@ -70,6 +70,7 @@ void backendActions(App& app, Backend* b, const char* idSuffix) {
         ImGui::SameLine();
         if (secondaryButton("Cancel")) job->progress->cancel = true;
     } else {
+        if (takeFocusRequest()) ImGui::SetKeyboardFocusHere();  // Backends page reached with the pad
         if (st == InstallState::NotInstalled && canDownload) {
             if (secondaryButton("Install")) app.installBackend(b->def().id);
             ImGui::SameLine();
@@ -161,8 +162,10 @@ void drawTopBar(App& app) {
         ImGui::SetCursorScreenPos(ImVec2(x, p.y + S(12)));
         ImGui::PushID(i);
         bool active = app.screen == tabs[i].screen || (tabs[i].screen == Screen::Library && app.screen == Screen::Game);
-        if (ImGui::InvisibleButton("tab", ImVec2(tw, h - S(24)))) app.screen = tabs[i].screen;
+        // (EnableNav: invisible buttons are skipped by the pad's navigation otherwise)
+        if (ImGui::InvisibleButton("tab", ImVec2(tw, h - S(24)), ImGuiButtonFlags_EnableNav)) app.screen = tabs[i].screen;
         bool hov = ImGui::IsItemHovered();
+        focusOutline(S(8));
         ImGui::PopID();
         ImU32 col = active ? kYellow : (hov ? IM_COL32(255, 255, 255, 255) : IM_COL32(170, 178, 196, 255));
         dl->AddText(f, tabFs, ImVec2(x + S(14), p.y + (h - tabFs) * 0.5f - S(1)), col, tabs[i].label);
@@ -193,6 +196,12 @@ void drawLibrary(App& app) {
     int cols = std::max(1, (int)((avail + S(18)) / (minCard + S(18))));
     float cardW = (avail - S(18) * (cols - 1)) / cols;
     float cardH = cardW * 0.56f;
+    // Coming back with the pad, the focus returns to the game that was open (else the first card).
+    bool focusHere = takeFocusRequest();
+    bool selectedShown = false;
+    if (focusHere)
+        if (const GameDef* sel = app.catalog.game(app.selectedGame))
+            selectedShown = app.global.showUnsupported || app.statusOf(*sel) != App::GameStatus::Unsupported;
     int i = 0;
     for (auto& g : app.catalog.games()) {
         auto st = app.statusOf(g);
@@ -200,8 +209,15 @@ void drawLibrary(App& app) {
         if (i % cols != 0) ImGui::SameLine(0, S(18));
         ImGui::PushID(g.id.c_str());
         ImVec2 a = ImGui::GetCursorScreenPos();
-        bool clicked = ImGui::InvisibleButton("card", ImVec2(cardW, cardH));
-        bool hov = ImGui::IsItemHovered() || ImGui::IsItemFocused();
+        if (focusHere && (!selectedShown || g.id == app.selectedGame)) {
+            ImGui::SetKeyboardFocusHere();
+            focusHere = false;
+        }
+        bool clicked = ImGui::InvisibleButton("card", ImVec2(cardW, cardH), ImGuiButtonFlags_EnableNav);
+        const bool focused = ImGui::IsItemFocused();
+        bool hov = ImGui::IsItemHovered() || focused;
+        // Start and Y act on this card (ui::handlePadActions).
+        if (focused || (ImGui::IsItemHovered() && !app.lastInputPad)) app.focusedGame = g.id;
         if (clicked) {
             app.selectedGame = g.id;
             app.screen = Screen::Game;
@@ -241,6 +257,8 @@ void drawLibrary(App& app) {
                                 bn.c_str());
             }
         }
+        if (focused && navCursorVisible())
+            dl->AddRect(ImVec2(a.x - S(1.5f), a.y - S(1.5f)), ImVec2(b.x + S(1.5f), b.y + S(1.5f)), kYellow, r, 0, S(3));
         ImGui::PopID();
         ++i;
     }
@@ -256,6 +274,11 @@ void drawGame(App& app) {
         return;
     }
     const GameDef& g = *gp;
+    // Reached with the pad: RACE! (or STOP) when it can be pressed, else the way back.
+    const bool focusHere = takeFocusRequest();
+    const auto statusNow = app.statusOf(g);
+    const bool focusPlay = focusHere && (statusNow == App::GameStatus::Ready || statusNow == App::GameStatus::Running);
+    if (focusHere && !focusPlay) ImGui::SetKeyboardFocusHere();
     if (secondaryButton("< Library")) app.screen = Screen::Library;
 
     // Hero banner
@@ -284,6 +307,7 @@ void drawGame(App& app) {
         float bw = S(260), bh = S(58);
         bool canPlay = status == App::GameStatus::Ready;
         bool running = status == App::GameStatus::Running;
+        if (focusPlay) ImGui::SetKeyboardFocusHere();
         if (running) {
             if (primaryButton("STOP", ImVec2(bw, bh), kRed)) {
                 if (app.playingInProcess()) app.exitPlayer();
@@ -451,6 +475,11 @@ void drawGame(App& app) {
     beginPanel("settings", ImVec2(colW, 0));
     sectionHeader(app, "ENHANCEMENTS");
     bool custom = entry.customSettings;
+    if (app.focusSettingsRequest) {  // Y (Triangle) with the pad: straight to this game's settings
+        app.focusSettingsRequest = false;
+        ImGui::SetKeyboardFocusHere();  // (the focus move scrolls the page to it)
+        ImGui::SetNavCursorVisible(true);
+    }
     if (ImGui::Checkbox("Custom settings for this game", &custom)) {
         GameSettings cur = app.settingsFor(g.id);
         app.setGameSettings(g.id, cur, custom);
@@ -462,6 +491,11 @@ void drawGame(App& app) {
     if (settingsEditor(app, edit, &caps, backend ? backend->def().name : std::string("this backend")))
         app.setGameSettings(g.id, edit, true);
     ImGui::EndDisabled();
+    endPanel();
+    ImGui::Dummy(ImVec2(0, S(4)));
+    beginPanel("controls", ImVec2(colW, 0));
+    sectionHeader(app, "CONTROLS");
+    drawGameControls(app, g, backend, chosen);
     endPanel();
     ImGui::EndGroup();
 }
@@ -485,6 +519,7 @@ void drawAddGames(App& app) {
     ImVec2 ts = app.fonts.display->CalcTextSizeA(S(28), FLT_MAX, 0, dropText);
     dl->AddText(app.fonts.display, S(28), ImVec2(a.x + (w - ts.x) * 0.5f, a.y + S(24)), IM_COL32(255, 255, 255, 220), dropText);
     ImGui::SetCursorScreenPos(ImVec2(a.x + w * 0.5f - S(250), a.y + S(68)));
+    if (takeFocusRequest()) ImGui::SetKeyboardFocusHere();
     if (secondaryButton("Scan a folder...", ImVec2(S(240), 0))) app.pickFolder("scan-folder");
     ImGui::SameLine();
     if (app.touchUi) {
@@ -612,6 +647,7 @@ void drawBackends(App& app) {
         }
         ImGui::Dummy(ImVec2(0, S(4)));
         if (!missing.empty()) {
+            if (takeFocusRequest()) ImGui::SetKeyboardFocusHere();
             if (primaryButton(("Install all (" + std::to_string(missing.size()) + ")").c_str(), ImVec2(0, 0),
                               IM_COL32(245, 196, 0, 255)))
                 app.installAllBackends();
@@ -689,6 +725,22 @@ void drawBackends(App& app) {
 
 void drawSettings(App& app) {
     titleText(app, "Settings", S(34), IM_COL32(255, 255, 255, 255));
+    // Two pages (LT / RT on a pad).
+    struct Page {
+        const char* label;
+        App::SettingsPage page;
+    } pages[] = {{"GENERAL", App::SettingsPage::General}, {"CONTROLLERS", App::SettingsPage::Controllers}};
+    for (auto& pg : pages) {
+        if (pg.page != pages[0].page) ImGui::SameLine();
+        const bool active = app.settingsPage == pg.page;
+        if (active ? primaryButton(pg.label, ImVec2(S(170), 0), kYellow) : secondaryButton(pg.label, ImVec2(S(170), 0)))
+            app.settingsPage = pg.page;
+    }
+    ImGui::Dummy(ImVec2(0, S(4)));
+    if (app.settingsPage == App::SettingsPage::Controllers) {
+        drawControllersPage(app);
+        return;
+    }
     float w = ImGui::GetContentRegionAvail().x;
     float colW = w < S(900) ? w : (w - S(20)) * 0.5f;
     ImGui::BeginGroup();
@@ -717,13 +769,9 @@ void drawSettings(App& app) {
     ImGui::TextWrapped("%s", pathToUtf8(paths().data).c_str());
     if (secondaryButton("Open data folder")) openExternal(pathToUtf8(paths().data));
     ImGui::Separator();
-    sectionHeader(app, "CONTROLS");
-    ImGui::TextDisabled("While playing inside Marathon:");
-    ImGui::BulletText("Esc / Guide button / two-finger tap: pause menu");
-    ImGui::BulletText("Tab (hold) / right-stick click: fast-forward");
-    ImGui::BulletText("F11: fullscreen   F5 / F8: save / load state");
-    ImGui::BulletText("Keyboard: arrows, Z/X/A/S, Q/W, Enter (Start)");
-    ImGui::TextDisabled("External recomps and emulators use their own controls.");
+    ImGui::PushTextWrapPos(0);
+    ImGui::TextDisabled("Controllers, players, the quit chord and the keyboard keys are on the Controllers page.");
+    ImGui::PopTextWrapPos();
     endPanel();
     ImGui::EndGroup();
 }
@@ -767,6 +815,7 @@ void drawAbout(App& app) {
         ImGui::PushID(c[0]);
         ImGui::BulletText("%s", c[0]);
         ImGui::SameLine();
+        if (takeFocusRequest()) ImGui::SetKeyboardFocusHere();
         if (ImGui::SmallButton("link")) openExternal(c[1]);
         ImGui::PopID();
     }
@@ -791,6 +840,9 @@ void drawOverlays(App& app) {
         if (ImGui::SmallButton("Stop")) app.stopRunning();
         ImGui::SameLine();
         if (ImGui::SmallButton("Log")) openExternal(r->logFile);
+        const std::string& chord = app.global.controllers.quitChord;
+        if (padHintsVisible(app) && chord != "off")
+            ImGui::TextDisabled("Hold %s on the controller to close it.", chord == "back-start" ? "Back + Start" : "Guide + Start");
         ImGui::End();
     }
     // Modal
@@ -804,7 +856,9 @@ void drawOverlays(App& app) {
             ImGui::TextUnformatted(app.modalText.c_str());
             ImGui::PopTextWrapPos();
             ImGui::Dummy(ImVec2(0, S(6)));
-            if (primaryButton("OK", ImVec2(S(140), S(40)), kYellow) || ImGui::IsKeyPressed(ImGuiKey_Escape)) {
+            const ImGuiKey padBack = ImGui::GetIO().ConfigNavSwapGamepadButtons ? ImGuiKey_GamepadFaceDown : ImGuiKey_GamepadFaceRight;
+            if (primaryButton("OK", ImVec2(S(140), S(40)), kYellow) || ImGui::IsKeyPressed(ImGuiKey_Escape) ||
+                ImGui::IsKeyPressed(padBack, false)) {
                 app.modalTitle.clear();
                 app.modalText.clear();
                 ImGui::CloseCurrentPopup();

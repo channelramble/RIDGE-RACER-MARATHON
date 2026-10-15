@@ -17,6 +17,15 @@
 // refresh displays get VSync/VRR presentation only.
 //
 // macOS: the official macOS build is x86_64 only and runs through Rosetta 2.
+//
+// Controllers: PCSX2's defaults bind only the keyboard ([Pad1] DualShock2, [Pad2] None), and with
+// the setup wizard skipped a controller did nothing. Marathon adds SDL bindings to [Pad1] and
+// [Pad2] (SDL-0 / SDL-1: PCSX2 numbers controllers itself) next to the keyboard ones, which stay:
+// sticks and d-pad, face buttons, shoulders, motors when vibration is on, and the stick dead zone.
+// With trigger pedals RT / LT also press Cross / Square, whose pressure Ridge Racer V reads (analog
+// accelerator and brake), and the right-stick click is the rear view (R2). Back + Start opens
+// PCSX2's pause menu ([Hotkeys] OpenPauseMenu, next to Esc). Analog is never bound: the game
+// switches the pad to analog itself. Pad2 is None when Player 2 is set to Nobody.
 #include <chrono>
 #include <cmath>
 #include <cstdint>
@@ -24,6 +33,7 @@
 #include <numeric>
 
 #include "backends/Adapters.h"
+#include "backends/ControllerConfigs.h"
 #include "backends/EmuCommon.h"
 #include "core/ConfigFiles.h"
 
@@ -225,6 +235,26 @@ class Pcsx2 : public Backend {
 public:
     using Backend::Backend;
 
+    ControlsInfo controls(const LaunchRequest& req) const override {
+        ControlsInfo info;
+        info.pedals = info.vibration = info.deadzone = true;
+        info.players = 2;
+        info.note = "PCSX2 numbers controllers itself: player 1 is the first one it sees.";
+        info.layout.push_back("Left stick or d-pad: steer (analog)");
+        if (req.controllers.pedals == "triggers") {
+            info.layout.push_back("RT / LT: accelerate / brake (analog pressure); A / X: full");
+            info.layout.push_back("LB / RB: shift down / up (manual)");
+            info.layout.push_back("Y (Triangle): camera; right-stick click: rear view");
+        } else {
+            info.layout.push_back("A / X (Cross / Square): accelerate / brake");
+            info.layout.push_back("LB / RB: shift down / up (manual)");
+            info.layout.push_back("Y (Triangle): camera; LT / RT: rear view");
+        }
+        info.layout.push_back("Start: pause");
+        info.menu = "Back + Start (or Esc): PCSX2's pause menu > Close Game";
+        return info;
+    }
+
     // PCSX2 publishes a nightly pre-release almost every day, so the newest 30 releases the
     // generic installer scans usually hold no stable build: resolve /releases/latest instead.
     bool install(Library& lib, TaskProgress& progress) override {
@@ -324,6 +354,14 @@ public:
         ini.set("EmuCore", "EnableWideScreenPatches", boolStr(wide && !derived));
         if (wide && !is169 && !derived)
             notes.push_back("no " + ratioLabel(req) + " patch for this disc: PCSX2's 16:9 widescreen patch is used");
+
+        // Controllers, before the advanced overrides so pcsx2Ini still wins.
+        const ControllerSettings& c = req.controllers;
+        ctl::applyPcsx2Controllers(ini, c);
+        notes.push_back(ctl::noteLine(c, std::string("PCSX2.ini SDL bindings in [Pad1]") +
+                                             (c.players[1].controller == "none" ? " ([Pad2] off)" : " and [Pad2]") +
+                                             " next to the keyboard's, OpenPauseMenu = Back + Start"));
+        if (c.steering == "dpad") notes.push_back("controllers: the stick stays analog in PCSX2; the d-pad steers digitally");
         applyExtraIni(s.extra, ini);
         if (!ini.save(pathToUtf8(iniPath))) return fail("Could not write " + pathToUtf8(iniPath));
 

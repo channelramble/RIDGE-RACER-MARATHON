@@ -12,6 +12,26 @@ the UI disables what a backend can't do instead of silently ignoring it.
 | Smoothing method | interpolate, blend | Interpolate: in-between images built from the motion between two game frames. Blend: a crossfade between game frames (some ghosting, no extra motion detail). |
 | Game speed / fast-forward | 50-300 %, hold-to-fast-forward | Where the backend supports it. |
 
+## Controllers
+
+*Settings > Controllers* holds one set of controller settings for every game, saved in
+`settings.json` under `controllers` (format version 2; files from older versions get the
+defaults):
+
+| Key | Values | Default |
+|---|---|---|
+| `steering` | `stick` (left stick, analog), `dpad` (digital, full lock) | `stick` |
+| `pedals` | `triggers` (RT gas, LT brake), `buttons` (the game's own layout) | `triggers` |
+| `vibration` | `true` / `false` | `true` |
+| `deadzone` | stick dead zone in percent, 0-40 | `8` |
+| `players` | four entries `{"controller": "", "name": ""}`: `""` automatic, `"none"` nobody, or a controller ID | automatic |
+| `quitChord` | `guide-start`, `back-start`, `off` | `guide-start` |
+| `quitHoldMs` | 500-3000 | `1000` |
+
+A game with custom settings can override `steering`, `pedals`, `vibration` and `deadzone`
+in its `extra.controllers` (players and the quit chord stay global). What each backend does
+with them, the button layouts and the quit chord are in [CONTROLLERS.md](CONTROLLERS.md).
+
 ## 4K, ultrawide and high refresh, per game
 
 "Native" ultrawide means the game really draws more of the world at the sides with the

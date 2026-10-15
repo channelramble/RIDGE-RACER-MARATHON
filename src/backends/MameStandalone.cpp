@@ -17,11 +17,19 @@
 // straight into the 640x480 screen bitmap (59.906 Hz raster timing); it has no
 // internal-resolution option, so MAME can only scale that image. Aspect is the
 // cabinet's 4:3.
+//
+// Controllers: MAME already puts the wheel on the left stick and the pedals on the triggers for
+// XInput and SDL pads (its per-controller defaults, kept). Marathon adds -joystick, the stick dead
+// zone and a controller file of its own, <data>/ctrlr/marathon.cfg (-ctrlrpath / -ctrlr): Back +
+// Start opens MAME's menu and Back + B quits (no pad could reach either on Windows), and LB / RB and
+// the d-pad shift down / up, taken off the stick's up/down so a diagonal stick no longer changes
+// gear. MAME saves later changes in <data>/cfg on top of that file.
 #include <string>
 #include <system_error>
 #include <vector>
 
 #include "backends/Adapters.h"
+#include "backends/ControllerConfigs.h"
 #include "backends/EmuCommon.h"
 
 namespace rrm {
@@ -130,12 +138,33 @@ public:
             spec.argv.push_back("-speed");
             spec.argv.push_back(fmtNumber(s.speed / 100.0));
         }
+        // Controllers (Marathon's own controller file), before the advanced arguments so those win.
+        const fs::path ctrlr = data / "ctrlr";
+        if (!writeText(ctrlr / "marathon.cfg", ctl::mameControllerFile(mameSetName(req))))
+            return fail("Could not write " + pathToUtf8(ctrlr / "marathon.cfg"));
+        for (auto& a : ctl::mameControllerArgs(req.controllers, pathToUtf8(ctrlr))) spec.argv.push_back(a);
         // Advanced: settings.extra.mameArgs ["-video", "bgfx", ...] appended as they are.
         if (auto it = s.extra.find("mameArgs"); it != s.extra.end() && it->is_array())
             for (auto& a : *it)
                 if (a.is_string()) spec.argv.push_back(a.get<std::string>());
         spec.workingDir = pathToUtf8(programFolder(exe));
-        return spawnLogged(def_.id, spec);
+        LaunchResult r = spawnLogged(def_.id, spec);
+        std::ofstream log(paths().logs / utf8ToPath(def_.id + ".log"), std::ios::binary | std::ios::app);
+        log << "  [marathon] "
+            << ctl::noteLine(req.controllers, pathToUtf8(ctrlr / "marathon.cfg") + " (Back + Start: menu, Back + B: quit, "
+                                              "LB / RB and d-pad: shift), -joystick_deadzone " +
+                                              ctl::fraction(req.controllers.deadzone))
+            << "\n";
+        return r;
+    }
+
+    ControlsInfo controls(const LaunchRequest&) const override {
+        ControlsInfo info;
+        info.deadzone = true;
+        info.layout = {"Left stick: steering wheel (analog)", "RT / LT: gas / brake (analog)",
+                       "LB / RB or d-pad up / down: shift down / up (manual)", "Y: view change", "Back: insert coin"};
+        info.menu = "Back + Start: MAME's menu; Back + B: quit (Esc / Tab on the keyboard)";
+        return info;
     }
 };
 

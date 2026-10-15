@@ -160,9 +160,12 @@ void sectionHeader(App& app, const char* text) {
 }
 
 void helpMarker(const char* text) {
+    // Also shown while the widget before it has the pad's focus: the "(?)" itself is not focusable.
+    const bool focused = ImGui::IsItemFocused() && navCursorVisible();
     ImGui::SameLine();
     ImGui::TextDisabled("(?)");
-    if (ImGui::BeginItemTooltip()) {
+    if (ImGui::IsItemHovered(ImGuiHoveredFlags_ForTooltip) || focused) {
+        ImGui::BeginTooltip();
         ImGui::PushTextWrapPos(ImGui::GetFontSize() * 30.0f);
         ImGui::TextUnformatted(text);
         ImGui::PopTextWrapPos();
@@ -245,7 +248,9 @@ std::string formatDuration(int64_t s) {
 
 void beginPanel(const char* id, const ImVec2& size) {
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(S(18), S(14)));
-    ImGui::BeginChild(id, size, ImGuiChildFlags_Borders | ImGuiChildFlags_AutoResizeY | ImGuiChildFlags_AlwaysUseWindowPadding);
+    // NavFlattened: the pad moves straight into and out of panels.
+    ImGui::BeginChild(id, size, ImGuiChildFlags_Borders | ImGuiChildFlags_AutoResizeY | ImGuiChildFlags_AlwaysUseWindowPadding |
+                                    ImGuiChildFlags_NavFlattened);
 }
 
 void endPanel() {
@@ -338,6 +343,7 @@ bool combo(const char* label, std::string& value, const Choice (&choices)[N], co
     ImGui::EndDisabled();
     if (!any && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
         ImGui::SetTooltip("%s does not support this setting.", backendName.c_str());
+    if (!any) unsupportedMarker((backendName + " does not support this setting.##" + key).c_str());
     if (any && caps && !ok(value.c_str()))
         ImGui::TextDisabled("  %s can't use this value; it picks the closest option it supports.", backendName.c_str());
     return changed;
@@ -349,6 +355,7 @@ bool checkbox(const char* label, bool& v, bool supported, const std::string& bac
     ImGui::EndDisabled();
     if (!supported && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
         ImGui::SetTooltip("%s does not support this setting.", backendName.c_str());
+    if (!supported) unsupportedMarker((backendName + " does not support this setting.##" + label).c_str());
     if (help) helpMarker(help);
     return changed;
 }
@@ -361,6 +368,7 @@ bool settingsEditor(App& app, GameSettings& s, const json* caps, const std::stri
     ImGui::PushItemWidth(-labelW);
 
     ImGui::SeparatorText("Picture");
+    if (takeFocusRequest()) ImGui::SetKeyboardFocusHere();  // Settings page reached with the pad
     changed |= combo("Resolution", s.resolution, kResolutions, caps, "resolution", backendName);
     helpMarker("Internal rendering resolution. Higher values give crisper 3D at a GPU cost.");
     changed |= combo("Aspect ratio", s.aspect, kAspects, caps, "aspect", backendName);
@@ -398,6 +406,7 @@ bool settingsEditor(App& app, GameSettings& s, const json* caps, const std::stri
     ImGui::EndDisabled();
     if (!baseSpeed && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
         ImGui::SetTooltip("%s runs at the original speed only.", backendName.c_str());
+    if (!baseSpeed) unsupportedMarker((backendName + " runs at the original speed only.##speed").c_str());
     helpMarker("100% is the authentic speed. Raise it to speed the whole game up.");
     ImGui::BeginDisabled(!turbo);
     char turboLabel[32];
@@ -480,36 +489,91 @@ void onDialogResult(App& app, const DialogResult& r) {
 
 // ---- frame -------------------------------------------------------------------------------------------
 
+namespace {
+
+// ImGui scrolls the window of the focused item with the left stick. Inside a panel that is the
+// panel itself, which never scrolls, so the page around it scrolls instead.
+void scrollPageWithStick() {
+    ImGuiContext& g = *GImGui;
+    ImGuiWindow* w = g.NavWindow;
+    if (!w || !(g.IO.BackendFlags & ImGuiBackendFlags_HasGamepad) || w->ScrollMax.y > 0) return;
+    while (w && w->ScrollMax.y <= 0 && (w->Flags & ImGuiWindowFlags_ChildWindow)) w = w->ParentWindow;
+    if (!w || w->ScrollMax.y <= 0) return;
+    const float dy = ImGui::GetKeyMagnitude2d(ImGuiKey_GamepadLStickLeft, ImGuiKey_GamepadLStickRight, ImGuiKey_GamepadLStickUp,
+                                              ImGuiKey_GamepadLStickDown).y;
+    if (dy == 0.0f) return;
+    const float speed = IM_ROUND(w->FontRefSize * 100 * g.IO.DeltaTime);  // (as ImGui's own)
+    ImGui::SetScrollY(w, ImTrunc(w->Scroll.y + dy * speed));
+}
+
+}  // namespace
+
 void draw(App& app) {
+    // What the previous frame ended with: ImGui's navigation already reacted to this frame's
+    // presses (closing a popup with B, ending an edit) before anything is drawn.
+    static bool popupWasOpen = false, itemWasActive = false;
+    static bool firstFrame = true;
+    static Screen lastScreen = Screen::Library;
+    static App::SettingsPage lastPage = App::SettingsPage::General;
+    // The controller test only runs while its page is shown (the mouse can leave it).
+    if (app.padTestActive && (app.screen != Screen::Settings || app.settingsPage != App::SettingsPage::Controllers))
+        app.padTestActive = false;
+    if (firstFrame || app.screen != lastScreen || app.settingsPage != lastPage) {
+        // A new screen reached with the pad: put the focus on its first item, visibly.
+        if (app.lastInputPad) {
+            requestFocus();
+            ImGui::SetNavCursorVisible(true);
+        }
+        firstFrame = false;
+        lastScreen = app.screen;
+        lastPage = app.settingsPage;
+    }
+
     ImGuiViewport* vp = ImGui::GetMainViewport();
     if (app.screen == Screen::Playing) {
         drawPlayer(app);
         drawOverlays(app);
-        return;
+    } else {
+        scrollPageWithStick();
+        ImGui::SetNextWindowPos(vp->WorkPos);
+        ImGui::SetNextWindowSize(vp->WorkSize);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+        ImGui::Begin("##marathon", nullptr,
+                     ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings |
+                         ImGuiWindowFlags_NoBringToFrontOnFocus);
+        ImGui::PopStyleVar();
+        drawTopBar(app);
+        // Button hints at the bottom while a pad is connected (the bar plus the spacing before it).
+        const float footer = padHintsVisible(app) ? S(44) + ImGui::GetStyle().ItemSpacing.y : 0.0f;
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(S(28), S(20)));
+        ImGui::BeginChild("##content", ImVec2(0, -footer), ImGuiChildFlags_AlwaysUseWindowPadding | ImGuiChildFlags_NavFlattened,
+                          ImGuiWindowFlags_NoBackground);
+        switch (app.screen) {
+            case Screen::Library: drawLibrary(app); break;
+            case Screen::Game: drawGame(app); break;
+            case Screen::AddGames: drawAddGames(app); break;
+            case Screen::Backends: drawBackends(app); break;
+            case Screen::Settings: drawSettings(app); break;
+            case Screen::About: drawAbout(app); break;
+            case Screen::Playing: break;
+        }
+        ImGui::EndChild();
+        ImGui::PopStyleVar();
+        if (footer > 0) drawPadHints(app, padHintsFor(app));
+        ImGui::End();
+        drawOverlays(app);
     }
-    ImGui::SetNextWindowPos(vp->WorkPos);
-    ImGui::SetNextWindowSize(vp->WorkSize);
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
-    ImGui::Begin("##marathon", nullptr,
-                 ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings |
-                     ImGuiWindowFlags_NoBringToFrontOnFocus);
-    ImGui::PopStyleVar();
-    drawTopBar(app);
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(S(28), S(20)));
-    ImGui::BeginChild("##content", ImVec2(0, 0), ImGuiChildFlags_AlwaysUseWindowPadding, ImGuiWindowFlags_NoBackground);
-    switch (app.screen) {
-        case Screen::Library: drawLibrary(app); break;
-        case Screen::Game: drawGame(app); break;
-        case Screen::AddGames: drawAddGames(app); break;
-        case Screen::Backends: drawBackends(app); break;
-        case Screen::Settings: drawSettings(app); break;
-        case Screen::About: drawAbout(app); break;
-        case Screen::Playing: break;
+
+    handlePadActions(app, popupWasOpen, itemWasActive);
+    popupWasOpen = ImGui::IsPopupOpen("", ImGuiPopupFlags_AnyPopupId | ImGuiPopupFlags_AnyPopupLevel);
+    itemWasActive = ImGui::IsAnyItemActive();
+    // With no popup and no edit to cancel, B (Circle) is only Marathon's Back: keep ImGui from also
+    // clearing the focus with it on the next frame.
+    if (!popupWasOpen && !itemWasActive) {
+        const ImGuiKey cancel = ImGui::GetIO().ConfigNavSwapGamepadButtons ? ImGuiKey_GamepadFaceDown : ImGuiKey_GamepadFaceRight;
+        ImGui::SetKeyOwner(cancel, ImHashStr("##marathon-pad-back"));
     }
-    ImGui::EndChild();
-    ImGui::PopStyleVar();
-    ImGui::End();
-    drawOverlays(app);
+    takeFocusRequest();  // a request no item took this frame expires
 }
 
 }  // namespace ui

@@ -456,6 +456,7 @@ bool Host::Impl::environment(unsigned cmd, void* data) {
         return true;
     }
     case RETRO_ENVIRONMENT_GET_RUMBLE_INTERFACE:
+        if (!input.config().rumble) return false;  // vibration is off in Marathon's controller settings
         static_cast<retro_rumble_interface*>(data)->set_rumble_state = rumbleCb;
         return true;
     case RETRO_ENVIRONMENT_GET_LED_INTERFACE:
@@ -642,10 +643,26 @@ void Host::Impl::onControllerInfo(const retro_controller_info* info) {
     }
 }
 
-// The default RetroPad, unless coreOptions["rrm_portN_device"] picks a core-declared
-// controller by libretro id or by (part of) its name, e.g. "NeGcon" or "Analog".
+// Marathon's own keys in HostConfig::coreOptions, set from the controller settings by
+// backends/LibretroControls.cpp (cores ignore them). Values are strings; an absent key means the default.
+//   key                               value                                                  default
+//   rrm_port<N>_device (N 0..3)       a core-declared controller, by libretro id or by       "" (RetroPad)
+//                                     (part of) its name, e.g. "negcon" or "dualshock"
+//   rrm_player<N> (N 1..4)            "" = the next free controller, "none", or an SDL GUID  ""
+//   rrm_input_deadzone                "0".."40": stick dead zone in percent, both sticks     "0"
+//   rrm_input_stick_to_dpad           "1": the left stick presses the d-pad past half travel "0"
+//   rrm_input_dpad_to_stick           "1": d-pad / arrow keys left-right steer at full lock  "0"
+//   rrm_input_r2_as, rrm_input_l2_as  b|a|y|x|l|r|l3|r3|select|start: the trigger presses    "" (R2 / L2)
+//                                     that button instead, its travel as the pressure
+//   rrm_input_analog_triggers         "0": analog L2/R2 read 0 (the digital bits stay)       "1"
+//   rrm_input_left_y                  "0": the left stick's Y axis reads 0                   "1"
+//   rrm_rumble                        "0": no vibration (no rumble interface for the core)   "1"
+//
+// Every port gets the RetroPad unless rrm_portN_device picks another controller. Cores that declare
+// fewer ports only hear about the first two.
 void Host::Impl::applyPortDevices() {
     if (!api.set_controller_port_device) return;
+    const size_t declared = std::max<size_t>(2, controllerTypes.size());
     for (unsigned port = 0; port < Input::kPorts; ++port) {
         unsigned device = RETRO_DEVICE_JOYPAD;
         const std::string want = options.peek("rrm_port" + std::to_string(port) + "_device");
@@ -663,7 +680,7 @@ void Host::Impl::applyPortDevices() {
             SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "[libretro] port %u device %u (%s)", port + 1, device,
                         want.c_str());
         }
-        api.set_controller_port_device(port, device);
+        if (port < declared) api.set_controller_port_device(port, device);
     }
 }
 
@@ -860,6 +877,18 @@ bool Host::Impl::start(SDL_Window* win, const HostConfig& config, std::string& e
 
     options.clear();
     options.setOverrides(cfg.coreOptions);
+    input.configure(inputConfigFromOptions(cfg.coreOptions));  // before the core asks for rumble
+    {
+        const InputConfig& ic = input.config();
+        std::string players;
+        for (const auto& p : ic.players)
+            players += (players.empty() ? "" : ",") + (p.controller.empty() ? std::string("auto") : p.controller);
+        SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION,
+                    "[libretro] input: players %s, dead zone %d, stick to d-pad %d, d-pad to stick %d, "
+                    "R2/L2 as %d/%d, analog triggers %d, left Y %d, rumble %d",
+                    players.c_str(), ic.deadzone, ic.stickToDpad, ic.dpadToStick, ic.r2As, ic.l2As,
+                    ic.analogTriggers, ic.leftY, ic.rumble);
+    }
     speedPercent = std::clamp(cfg.speedPercent, 5, 1000);
     turboPercent = std::clamp(cfg.turboPercent, 0, 5000);
     paused = turbo = false;
@@ -1431,6 +1460,12 @@ bool Host::handleEvent(const SDL_Event& e) {
 
 void Host::setVirtualPad(const PadState& pad) { impl_->input.setVirtualPad(pad); }
 
+int16_t Host::inputState(unsigned port, unsigned device, unsigned index, unsigned id) const {
+    return impl_->input.state(port, device, index, id);
+}
+
+SDL_JoystickID Host::portGamepad(unsigned port) const { return impl_->running ? impl_->input.padOn(port) : 0; }
+
 bool Host::runFrame() { return impl_->runFrame(); }
 
 void Host::render(int x, int y, int w, int h) { impl_->render(x, y, w, h); }
@@ -1449,6 +1484,8 @@ void Host::setPaused(bool paused) {
         d.input.stopRumble();
         d.input.clearKeys();
     } else {
+        // Pads plugged in or out and focus changes while the pause menu was open never reached handleEvent().
+        d.input.refresh(!d.window || (SDL_GetWindowFlags(d.window) & SDL_WINDOW_INPUT_FOCUS));
         if (!d.muted) d.audio.prefill(d.latency() * 0.75);
         d.resetPacing();
     }

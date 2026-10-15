@@ -15,6 +15,16 @@ public:
     bool save(const std::string& path) const;
     void set(const std::string& section, const std::string& key, const std::string& value);
     std::string get(const std::string& section, const std::string& key, const std::string& def = "") const;
+    // Keys that repeat, one value per line (PCSX2's bindings: "Cross = A" then "Cross = B").
+    // setList() removes every line of the key in the section and writes the values as
+    // consecutive lines where the first one was (else at the end of the section); an empty
+    // list just removes the key.
+    void setList(const std::string& section, const std::string& key, const std::vector<std::string>& values);
+    std::vector<std::string> getList(const std::string& section, const std::string& key) const;
+    // Makes the section hold exactly these "key = value" lines (comments in it are dropped;
+    // a repeated section header is merged into the first one).
+    void replaceSection(const std::string& section, const std::vector<std::pair<std::string, std::string>>& lines);
+    bool hasSection(const std::string& section) const;
     std::string text() const;
     void parse(const std::string& text);
 private:

@@ -16,11 +16,22 @@
 //   --link ID=PATH      link an existing install for backend ID (folder or executable)
 //   --install ID        run backend ID's real installer (downloads) before launching
 //   --set KEY=VALUE     a GameSettings field, e.g. --set aspect=32:9 --set resolution=4k (extra.KEY for extras)
+//   --controller KEY=VALUE  a controller setting (docs/CONTROLLERS.md): steering=stick|dpad,
+//                       pedals=triggers|buttons, vibration=true|false, deadzone=0..40, quitChord, quitHoldMs,
+//                       playerN="" | none | <GUID> (N = 1..4)
+//   --pad NAME[:GUID[:TYPE]]  a connected controller, repeatable, in connection order (players are
+//                       assigned as in Marathon); none by default
 //   --display WxH@HZ    display to pretend Marathon is on (default 3840x2160@144)
 //   --only GAME_ID      matrix: just this game
 //   --core-frames N     run: core frames to emulate (default 3600)
 //   --size WxH          run: window size (default 1280x720)
 //   --realtime          run: play at the configured speed with vsync instead of fast-forwarding
+//   --vpad              run: input test mode. An SDL virtual gamepad (Xbox ids) is plugged in before
+//                       the core starts and does the playing: Start and A (Cross) get past menus;
+//                       from core frame 2700 RT is held at 60 % and the left stick sweeps left and
+//                       right. The log goes to stderr ("[libretro] port 1 device ...", the pad's
+//                       port), and at the end the tool prints what the core reads from port 1 and
+//                       how often it asked the pad to vibrate.
 //   --eval-interp DIR   run: afterwards, step frame by frame and score frame interpolation: for
 //                       consecutive distinct frames F0 F1 F2, the midpoint generated from F0 and F2
 //                       is compared with the real F1 (PSNR), next to a plain blend and repeating F0.
@@ -29,6 +40,7 @@
 //                       SECONDS (to --png, macOS screencapture) and close them again
 #include <SDL3/SDL.h>
 
+#include <chrono>
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
@@ -41,10 +53,12 @@
 #include "backends/Backend.h"
 #include "backends/EmuCommon.h"
 #include "core/Catalog.h"
+#include "core/Controllers.h"
 #include "core/Library.h"
 #include "core/Platform.h"
 #include "core/Process.h"
 #include "core/Scanner.h"
+#include "libretro.h"
 #include "libretro/GlFunctions.h"
 #include "libretro/Host.h"
 #include "libretro/Interpolator.h"
@@ -71,11 +85,14 @@ struct Options {
     std::map<std::string, std::string> links;
     std::vector<std::string> installs;
     json settings = json::object();
+    json controllers = json::object();
+    std::vector<std::string> pads;
     DisplayInfo display{3840, 2160, 144, 1.0f};
     unsigned long long coreFrames = 3600;
     int width = 1280, height = 720;
     int spawnSeconds = 0;
     bool realtime = false;
+    bool vpad = false;
     std::string evalDir;
     int evalCount = 6;
 };
@@ -90,10 +107,47 @@ std::string readFile(const std::string& p) {
 int usage() {
     std::fprintf(stderr,
                  "usage: launch_tool matrix <games folder> [--catalog DIR] [--data DIR] [--cores DIR] [--link ID=PATH]...\n"
-                 "                   [--set KEY=VALUE]... [--display WxH@HZ] [--only GAME_ID]\n"
+                 "                   [--set KEY=VALUE]... [--controller KEY=VALUE]... [--pad NAME[:GUID[:TYPE]]]...\n"
+                 "                   [--display WxH@HZ] [--only GAME_ID]\n"
                  "       launch_tool run <games folder> <game id> <backend id> [same options] [--png out.png]\n"
-                 "                   [--core-frames N] [--size WxH]\n");
+                 "                   [--core-frames N] [--size WxH] [--vpad]\n");
     return 2;
+}
+
+// --controller KEY=VALUE into ControllerSettings JSON (fromJson validates it).
+void setControllerField(json& c, const std::string& k, const std::string& v) {
+    if (k.size() == 7 && k.rfind("player", 0) == 0 && k[6] >= '1' && k[6] <= '4') {
+        if (!c.contains("players")) c["players"] = json::array({json::object(), json::object(), json::object(), json::object()});
+        c["players"][static_cast<size_t>(k[6] - '1')]["controller"] = v;
+    } else if (v == "true" || v == "false") {
+        c[k] = v == "true";
+    } else if (!v.empty() && v.find_first_not_of("0123456789") == std::string::npos) {
+        c[k] = std::stoi(v);
+    } else {
+        c[k] = v;
+    }
+}
+
+// --pad NAME[:GUID[:TYPE]] specs as connected pads, numbered and given player slots like Marathon's.
+std::vector<ConnectedPad> padsFrom(const std::vector<std::string>& specs, const ControllerSettings& c) {
+    std::vector<ConnectedPad> pads;
+    for (auto& spec : specs) {
+        ConnectedPad p;
+        p.id = static_cast<uint32_t>(pads.size() + 1);
+        const size_t a = spec.find(':');
+        p.name = spec.substr(0, a);
+        if (a != std::string::npos) {
+            const size_t b = spec.find(':', a + 1);
+            p.guid = spec.substr(a + 1, b == std::string::npos ? std::string::npos : b - a - 1);
+            if (b != std::string::npos) p.type = spec.substr(b + 1);
+        }
+        if (p.type.empty()) p.type = "standard";
+        for (auto& q : pads)
+            if (q.name == p.name) ++p.nameIndex;
+        pads.push_back(p);
+    }
+    applyAssignment(pads, assignPlayers(pads, c.players));
+    return pads;
 }
 
 bool parseArgs(int argc, char** argv, Options& o) {
@@ -127,6 +181,7 @@ bool parseArgs(int argc, char** argv, Options& o) {
         else if (a == "--only") o.only = next();
         else if (a == "--spawn") o.spawnSeconds = std::atoi(next().c_str());
         else if (a == "--realtime") o.realtime = true;
+        else if (a == "--vpad") o.vpad = true;
         else if (a == "--eval-interp") o.evalDir = next();
         else if (a == "--eval-count") o.evalCount = std::max(1, std::atoi(next().c_str()));
         else if (a == "--core-frames") o.coreFrames = std::strtoull(next().c_str(), nullptr, 10);
@@ -134,6 +189,8 @@ bool parseArgs(int argc, char** argv, Options& o) {
         else if (a == "--display") std::sscanf(next().c_str(), "%dx%d@%d", &o.display.width, &o.display.height, &o.display.refreshHz);
         else if (a == "--link" && kv(next(), k, v)) o.links[k] = v;
         else if (a == "--install") o.installs.push_back(next());
+        else if (a == "--controller" && kv(next(), k, v)) setControllerField(o.controllers, k, v);
+        else if (a == "--pad") o.pads.push_back(next());
         else if (a == "--set" && kv(next(), k, v)) {
             // Numbers and booleans as JSON, everything else as a string.
             // "extra.<key>" goes into GameSettings::extra.
@@ -295,10 +352,65 @@ void evaluateInterpolation(const Options& o, lr::Host& host, int pw, int ph) {
     interp.shutdown();
 }
 
+// --vpad: the virtual gamepad and what it was asked to do.
+struct TestPad {
+    SDL_JoystickID id = 0;
+    SDL_Joystick* js = nullptr;
+    int rumbles = 0;
+    static bool SDLCALL onRumble(void* user, Uint16 low, Uint16 high) {
+        if (low || high) ++static_cast<TestPad*>(user)->rumbles;
+        return true;
+    }
+    bool attach() {
+        SDL_VirtualJoystickDesc desc;
+        SDL_INIT_INTERFACE(&desc);
+        desc.type = SDL_JOYSTICK_TYPE_GAMEPAD;
+        desc.naxes = SDL_GAMEPAD_AXIS_COUNT;
+        desc.nbuttons = SDL_GAMEPAD_BUTTON_COUNT;
+        desc.vendor_id = 0x045E;
+        desc.product_id = 0x0B12;
+        desc.name = "launch_tool virtual pad";
+        desc.userdata = this;
+        desc.Rumble = onRumble;
+        id = SDL_AttachVirtualJoystick(&desc);
+        js = id ? SDL_OpenJoystick(id) : nullptr;
+        return js != nullptr;
+    }
+    // Same script for every game: menus first, then throttle and steering.
+    void drive(unsigned long long f) {
+        const unsigned long long t = f % 150;
+        SDL_SetJoystickVirtualButton(js, SDL_GAMEPAD_BUTTON_START, f > 900 && t < 8);
+        SDL_SetJoystickVirtualButton(js, SDL_GAMEPAD_BUTTON_SOUTH, f > 900 && t >= 75 && t < 83);
+        const bool racing = f > 2700;
+        const int rt = racing ? static_cast<int>(0.6 * 32767) : 0;  // virtual triggers span the whole axis
+        SDL_SetJoystickVirtualAxis(js, SDL_GAMEPAD_AXIS_RIGHT_TRIGGER, static_cast<Sint16>(rt * 2 - 32768));
+        SDL_SetJoystickVirtualAxis(js, SDL_GAMEPAD_AXIS_LEFT_TRIGGER, -32768);
+        SDL_SetJoystickVirtualAxis(js, SDL_GAMEPAD_AXIS_LEFTX,
+                                   static_cast<Sint16>(racing ? 16000 * std::sin(static_cast<double>(f) / 120.0) : 0));
+        SDL_UpdateJoysticks();
+    }
+};
+
+void SDLCALL logToStderr(void*, int, SDL_LogPriority priority, const char* message) {
+    std::fprintf(stderr, "%s %s\n", priority >= SDL_LOG_PRIORITY_WARN ? "WARN" : "INFO", message);
+}
+
 int runCore(const Options& o, const LaunchResult& r, const GameSettings& s) {
     SDL_SetHint(SDL_HINT_VIDEO_ALLOW_SCREENSAVER, "1");
+    if (o.vpad) {
+        // As in Marathon: pads are read while the (here hidden) window has no focus.
+        SDL_SetHint(SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS, "1");
+        SDL_SetLogOutputFunction(logToStderr, nullptr);
+        SDL_SetLogPriority(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_INFO);
+        SDL_SetLogPriority(SDL_LOG_CATEGORY_INPUT, SDL_LOG_PRIORITY_INFO);
+    }
     if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_GAMEPAD)) {
         std::fprintf(stderr, "SDL_Init: %s\n", SDL_GetError());
+        return 1;
+    }
+    TestPad testPad;
+    if (o.vpad && !testPad.attach()) {
+        std::fprintf(stderr, "virtual gamepad: %s\n", SDL_GetError());
         return 1;
     }
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
@@ -343,8 +455,12 @@ int runCore(const Options& o, const LaunchResult& r, const GameSettings& s) {
         while (SDL_PollEvent(&e)) host.handleEvent(e);
         const unsigned long long f = host.stats().framesRun;
         lr::PadState pad;
-        if (f > 900 && (f % 150) < 8) pad.buttons |= 1u << 3;            // RETRO_DEVICE_ID_JOYPAD_START
-        if (f > 900 && (f % 150) >= 75 && (f % 150) < 83) pad.buttons |= 1u << 0;  // B = Cross
+        if (o.vpad) {
+            testPad.drive(f);
+        } else {
+            if (f > 900 && (f % 150) < 8) pad.buttons |= 1u << 3;            // RETRO_DEVICE_ID_JOYPAD_START
+            if (f > 900 && (f % 150) >= 75 && (f % 150) < 83) pad.buttons |= 1u << 0;  // B = Cross
+        }
         host.setVirtualPad(pad);
         if (!host.runFrame()) break;
         host.render(0, 0, pw, ph);
@@ -352,6 +468,15 @@ int runCore(const Options& o, const LaunchResult& r, const GameSettings& s) {
         ++presented;
     }
     if (!o.evalDir.empty()) evaluateInterpolation(o, host, pw, ph);
+    if (o.vpad) {
+        auto in = [&](unsigned device, unsigned index, unsigned id) { return host.inputState(0, device, index, id); };
+        const int r2 = in(RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_BUTTON, RETRO_DEVICE_ID_JOYPAD_R2);
+        const int b = in(RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_BUTTON, RETRO_DEVICE_ID_JOYPAD_B);
+        std::printf("port 1 reads: left X %d, analog R2 %d (%.0f%%), analog B %d (%.0f%%), buttons 0x%04x; "
+                    "vibration requests: %d\n",
+                    in(RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_LEFT, RETRO_DEVICE_ID_ANALOG_X), r2, 100.0 * r2 / 32767,
+                    b, 100.0 * b / 32767, in(RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_MASK) & 0xFFFF, testPad.rumbles);
+    }
     lr::HostStats st = host.stats();
     std::printf("core: %s %s | %dx%d | aspect %.3f | %llu core frames, %llu presented\n", st.coreName.c_str(),
                 st.coreVersion.c_str(), st.baseWidth, st.baseHeight, host.displayAspect(),
@@ -365,6 +490,10 @@ int runCore(const Options& o, const LaunchResult& r, const GameSettings& s) {
             std::fprintf(stderr, "could not capture a frame\n");
     }
     host.stop();
+    if (testPad.js) {
+        SDL_CloseJoystick(testPad.js);
+        SDL_DetachVirtualJoystick(testPad.id);
+    }
     SDL_GL_DestroyContext(ctx);
     SDL_DestroyWindow(win);
     SDL_Quit();
@@ -378,7 +507,9 @@ int main(int argc, char** argv) {
     if (!parseArgs(argc, argv, o)) return usage();
 
     if (o.dataDir.empty()) {
-        fs::path tmp = fs::temp_directory_path() / ("rrm-launch-" + std::to_string(SDL_GetTicksNS()));
+        // (SDL's tick counter only starts with SDL_Init, so the wall clock names the folder.)
+        fs::path tmp = fs::temp_directory_path() /
+                       ("rrm-launch-" + std::to_string(std::chrono::system_clock::now().time_since_epoch().count()));
         o.dataDir = pathToUtf8(tmp);
     }
     initPaths(o.dataDir.c_str());
@@ -426,8 +557,14 @@ int main(int argc, char** argv) {
         std::printf("installed %s -> %s\n", id.c_str(), b->installedExecutable(lib).c_str());
     }
     GameSettings settings = GameSettings::fromJson(o.settings);
+    const ControllerSettings controllers = ControllerSettings::fromJson(o.controllers);
+    const std::vector<ConnectedPad> pads = padsFrom(o.pads, controllers);
 
     std::printf("data folder: %s\nplatform: %s\n", o.dataDir.c_str(), currentPlatformKey().c_str());
+    std::printf("controllers: %s\n", controllers.withOverrides(settings.extra).toJson().dump().c_str());
+    for (auto& p : pads)
+        std::printf("pad: %s %d (%s, %s) -> %s\n", p.name.c_str(), p.nameIndex, p.guid.empty() ? "no GUID" : p.guid.c_str(),
+                    p.type.c_str(), p.player < 0 ? "no player" : ("Player " + std::to_string(p.player + 1)).c_str());
     int failures = 0;
     for (auto& g : catalog.games()) {
         if (o.mode == "run" && g.id != o.gameId) continue;
@@ -451,6 +588,8 @@ int main(int argc, char** argv) {
             req.library = &lib;
             req.settings = settings;
             req.display = o.display;
+            req.controllers = controllers.withOverrides(settings.extra);
+            req.pads = pads;
             InstallState st = b->installState(lib);
             std::printf("  -- %s [%s, priority %d]\n", def->id.c_str(), stateName(st), opt->priority);
             if (st != InstallState::Installed && st != InstallState::UserProvided) continue;
@@ -466,7 +605,11 @@ int main(int argc, char** argv) {
                     shot.argv = {"/usr/sbin/screencapture", "-x", o.png};
                     std::printf("     screenshot %s: exit %d\n", o.png.c_str(), runProcess(shot));
                 }
+                // terminateProcess() forces the end on a background thread after 3 s; wait for it, since
+                // the tool may exit next (a program that ignores SIGTERM, such as RPCS3, outlived it).
                 terminateProcess(r.pid);
+                for (int i = 0; i < 60 && processRunning(r.pid); ++i) SDL_Delay(100);
+                if (processRunning(r.pid)) std::printf("     still running after it was stopped (pid %lld)\n", (long long)r.pid);
             }
             if (o.mode == "run") {
                 if (!r.ok || r.mode != LaunchResult::Mode::InProcessCore) return 1;

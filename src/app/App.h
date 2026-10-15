@@ -4,6 +4,7 @@
 
 #include <SDL3/SDL.h>
 
+#include <array>
 #include <functional>
 #include <map>
 #include <memory>
@@ -15,6 +16,7 @@
 
 #include "backends/Backend.h"
 #include "core/Catalog.h"
+#include "core/Gamepads.h"
 #include "core/Library.h"
 #include "core/Scanner.h"
 #include "core/Settings.h"
@@ -23,6 +25,10 @@
 struct ImFont;
 
 namespace rrm {
+
+namespace ui {
+enum class PadAction : uint8_t;  // Ui.h
+}
 
 enum class Screen { Library, Game, AddGames, Backends, Settings, About, Playing };
 
@@ -33,6 +39,8 @@ struct RunningGame {
     int64_t startedAt = 0;
     std::string logFile;
     std::vector<std::string> commandLine;
+    double quitRequestedAt = 0;  // App::now() when Marathon asked it to close (0 = not asked)
+    bool forced = false;         // stopped because it did not close in time
 };
 
 // A background job with a progress bar (install, scan, verify, link...).
@@ -45,6 +53,7 @@ struct Job {
     bool ok = false;
     std::shared_ptr<Library> scratch;  // install jobs: worker-side library copy, merged on completion
     std::string backendId;             // install jobs
+    std::shared_ptr<std::vector<std::string>> importedBackends;  // offline bundle: successful imports
 };
 
 // Result of an asynchronous file dialog, delivered to the main thread.
@@ -93,7 +102,7 @@ public:
     std::string statusText(const GameDef& g) const;
 
     void play(const std::string& gameId);
-    void stopRunning();
+    void stopRunning();                         // asks the running program to close (requestQuitRunning)
     const RunningGame* running() const { return running_ ? &*running_ : nullptr; }
     bool playingInProcess() const { return screen == Screen::Playing; }
     lr::Host& host() { return host_; }
@@ -107,6 +116,7 @@ public:
     // Backends available here that Marathon can download and that are not installed yet.
     std::vector<Backend*> missingDownloadableBackends();
     void installAllBackends();  // installBackend() for each of them
+    void installBundledBackends();  // first-run offline setup from the Complete package
     void scanFolder(const std::string& folder);
     void verifyGame(const std::string& gameId);
     std::vector<ScanHit> lastScanHits;  // guarded by scanMutex
@@ -132,6 +142,26 @@ public:
     SDL_Window* window() const { return window_; }
     double now() const;
     void saveAll();
+    // Saves the next frame as a PNG (tests and documentation screenshots).
+    void requestScreenshot(const std::string& path) { screenshotPath_ = path; }
+
+    // ---- controllers (docs/CONTROLLERS.md) ---------------------------------------------
+    GamepadMonitor& gamepads() { return pads_; }
+    // Effective controller settings for a game: the global ones with the game's extra.controllers.
+    ControllerSettings controllersFor(const std::string& gameId) const;
+    std::vector<ConnectedPad> padSnapshot() const { return pads_.pads(); }
+    enum class SettingsPage { General, Controllers } settingsPage = SettingsPage::General;
+    std::string focusedGame;            // library card under the pad's focus (or the mouse)
+    bool focusSettingsRequest = false;  // game page: move the focus to its settings
+    bool padTestActive = false;         // Controllers page test: the pad does not drive the UI
+    uint32_t padTestId = 0;
+    bool lastInputPad = false;          // the newest input came from a gamepad
+    bool assumeFocus = false;           // tests: route the pads as if the window had the input focus
+    std::vector<ui::PadAction> padActions;  // gamepad buttons meant for the UI, consumed by ui::draw
+    void raiseWindow();                 // brings Marathon's window to the front
+    // Asks the running external program to close (Stop button or quit chord); pollRunning()
+    // stops it if it is still there 6 seconds later.
+    void requestQuitRunning(bool fromChord);
 
 private:
     void applyStyle();
@@ -142,6 +172,9 @@ private:
     void handleDialogResults();
     void drawFrame();
     void startInProcess(const LaunchResult& r, const GameSettings& s, const std::string& gameId);
+    void handlePads();
+    void updatePadRouting();
+    void padButtonEvent(const SDL_Event& e);
 
     SDL_Window* window_ = nullptr;
     SDL_GLContext gl_ = nullptr;
@@ -155,6 +188,13 @@ private:
     int64_t playStart_ = 0;
     bool quit_ = false;
     std::string glslVersion_;
+    GamepadMonitor pads_;
+    bool padUi_ = false;                // the UI owns the gamepads (ImGui navigation, padActions)
+    bool padModeSet_ = false;
+    bool startClean_ = false;           // Start went down with neither Guide nor Back held
+    std::map<uint32_t, std::array<bool, 2>> triggerDown_;  // LT / RT read as buttons
+    bool slowLoop_ = false;             // 30 Hz while an external game has the focus
+    std::string screenshotPath_;
 };
 
 App& app();

@@ -27,6 +27,12 @@
 // on Windows `[display] refresh_rate` switches the display to a multiple of
 // 60 Hz in fullscreen and `vrr` uses FreeSync/G-Sync; macOS (Metal present
 // pacing) and Linux (Vulkan FIFO) keep the desktop's rate.
+//
+// Controllers. Fukami presents the first two controllers as DualShock 2 pads with a fixed layout
+// (no remapping yet): the left stick steers, A (Cross) accelerates, X (Square) brakes, LB / RB
+// shift, and LT / RT are the game's L2 / R2 (rear view), so the triggers cannot be the pedals.
+// Marathon sets [input] analog = true with stick steering (false would make the game ignore the
+// stick) and [input] rumble from the vibration setting.
 #include <cmath>
 #include <cstring>
 #include <set>
@@ -37,6 +43,7 @@
 #endif
 
 #include "backends/Adapters.h"
+#include "backends/ControllerConfigs.h"
 #include "backends/EmuCommon.h"
 #include "core/ConfigFiles.h"
 
@@ -127,7 +134,7 @@ std::set<std::string> knownKeys(const std::string& defaultsText) {
     }
     if (keys.count("ratio") && keys.count("scale")) return keys;
     return {"ratio", "hud", "aspect", "window", "fullscreen", "integer_scaling", "present_pacing",
-            "render_mode", "scale", "aa1", "fxaa", "cas", "aniso", "mipmap"};
+            "render_mode", "scale", "aa1", "fxaa", "cas", "aniso", "mipmap", "analog", "rumble"};
 }
 
 // [display] ratio for the unified aspect ("" = leave Fukami's choice). Fukami has 4:3,
@@ -174,6 +181,17 @@ int macosMajorVersion() {
 class Fukami : public Backend {
 public:
     using Backend::Backend;
+
+    ControlsInfo controls(const LaunchRequest&) const override {
+        ControlsInfo info;
+        info.vibration = true;
+        info.players = 2;
+        info.layout = {"Left stick: steer (analog)", "A (Cross): accelerate, X (Square): brake", "LB / RB: shift down / up",
+                       "LT / RT are the PS2's L2 / R2 (rear view) in this game"};
+        info.note = "Fukami has no button remapping yet: the triggers cannot accelerate or brake.";
+        info.menu = "Guide, Esc or F1: Fukami's menu > Quit";
+        return info;
+    }
 
     // The macOS app is built for macOS 27 and later (LSMinimumSystemVersion 27.0).
     bool availableHere() const override {
@@ -266,6 +284,16 @@ public:
                             (currentOs() == Os::Windows
                                  ? "in fullscreen the display is switched to a multiple of 60 Hz (or uses VRR)"
                                  : "every frame is shown for the same time at the desktop's refresh rate"));
+
+        // Controllers ([input]); the advanced keys below still win.
+        std::string input;
+        for (auto& k : ctl::fukamiInputKeys(req.controllers)) {
+            if (!known.count(k.key)) continue;  // this version has no such key
+            put(k.section, k.key, k.value);
+            input += (input.empty() ? "" : ", ") + k.section + "." + k.key + " = " + k.value;
+        }
+        notes.push_back(ctl::noteLine(req.controllers, (input.empty() ? std::string("left to Fukami") : "fukami.ini " + input) +
+                                                           " (Fukami's own fixed layout)"));
 
         // Advanced: settings.extra.ini {"section.key": "value"} for keys Marathon does not map
         // (hud, draw_distance, car_lod, logging ...). Only keys this version knows are written.

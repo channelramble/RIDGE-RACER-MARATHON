@@ -57,5 +57,32 @@ void drawOverlays(App& app);  // running-game banner, modal, toasts
 
 // Player (UiPlayer.cpp)
 void drawPlayer(App& app);
+void closePlayerMenu(App& app);
+
+// ---- gamepads (UiControllers.cpp, docs/CONTROLLERS.md) ---------------------------------------
+// Buttons the UI acts on itself; moving and confirming are ImGui's own navigation.
+enum class PadAction : uint8_t { Confirm, Back, TabPrev, TabNext, PagePrev, PageNext, Play, GameSettings };
+enum class PadGlyph { Confirm, Back, North /*Y/Triangle*/, LB, RB, LT, RT, Start, Guide, BackButton };
+// Draws a button the way the pad's family labels it (family from padFamily()).
+void drawPadGlyph(ImDrawList*, ImVec2 center, float size, PadGlyph, const std::string& family);
+float padGlyphWidth(PadGlyph glyph, float size, const std::string& family);
+void drawPadHints(App&, const std::vector<std::pair<PadGlyph, const char*>>& hints);  // footer; nullptr text joins glyphs
+std::vector<std::pair<PadGlyph, const char*>> padHintsFor(App&);                     // the current screen's hints
+void drawControllersPage(App&);
+bool padHintsVisible(App&);   // a gamepad is connected (and not touch-only)
+std::string padFamilyNow(App&);  // family of the pad used last ("generic" without one)
+void drawGameControls(App&, const GameDef& g, Backend* backend, const GameBackendOption* option);  // game page panel
+// Applies app.padActions after the screen is drawn. popupWasOpen / itemWasActive describe the end
+// of the previous frame, before ImGui's own navigation reacted to the same press.
+void handlePadActions(App&, bool popupWasOpen, bool itemWasActive);
+// Focus for gamepad users: after a screen change driven by the pad, the first caller gets true once
+// and should call ImGui::SetKeyboardFocusHere() before its item.
+bool takeFocusRequest();
+void requestFocus();
+bool navCursorVisible();
+void focusOutline(float rounding = 0.0f);  // 3 px yellow outline around the last item while it has the pad's focus
+// "(?)" after a widget the backend cannot use, reachable with the pad (shown while the pad's
+// focus is visible). text may end in "##id" to keep markers apart.
+void unsupportedMarker(const char* text);
 
 }  // namespace rrm::ui

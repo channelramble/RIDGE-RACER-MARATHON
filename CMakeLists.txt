@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.24)
 
-project(RidgeRacerMarathon VERSION 0.1.0 LANGUAGES C CXX)
+project(RidgeRacerMarathon VERSION 0.2.0 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -228,12 +228,27 @@ endif()
 
 # ---- developer tools ---------------------------------------------------------------------------
 if(RRM_BUILD_TESTS AND NOT ANDROID AND NOT IOS)
+    include(CTest)
     file(GLOB RRM_TEST_SOURCES CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp)
     foreach(_t ${RRM_TEST_SOURCES})
         get_filename_component(_name ${_t} NAME_WE)
         add_executable(${_name} ${_t})
         target_link_libraries(${_name} PRIVATE rrm_core rrm_libretro ${RRM_SDL_TARGET} ${RRM_GL_LIBS})
     endforeach()
+    # Drives the real UI with virtual gamepads (tests/ui_pad_tool.cpp).
+    if(TARGET ui_pad_tool)
+        target_sources(ui_pad_tool PRIVATE ${RRM_APP_SOURCES})
+        target_link_libraries(ui_pad_tool PRIVATE rrm_imgui)
+    endif()
+    if(BUILD_TESTING)
+        find_package(Python3 REQUIRED COMPONENTS Interpreter)
+        add_test(NAME controller_settings COMMAND controllers_test)
+        add_test(NAME controller_configs COMMAND controller_configs_test --catalog ${CMAKE_CURRENT_SOURCE_DIR}/catalog)
+        add_test(NAME libretro_input COMMAND lr_input_test --catalog ${CMAKE_CURRENT_SOURCE_DIR}/catalog)
+        add_test(NAME backend_bundle COMMAND ${Python3_EXECUTABLE}
+            ${CMAKE_CURRENT_SOURCE_DIR}/tests/backend_bundle_test.py $<TARGET_FILE:bundle_tool>
+            ${CMAKE_CURRENT_SOURCE_DIR}/catalog)
+    endif()
     if(APPLE)
         # Offline quality and GPU-time check of the Metal frame generation (tools/framegrab/fg_eval.mm).
         add_executable(fg_eval ${CMAKE_CURRENT_SOURCE_DIR}/tools/framegrab/fg_eval.mm

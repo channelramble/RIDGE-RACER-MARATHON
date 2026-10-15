@@ -24,10 +24,16 @@
 // ultrawide is real (more track at the sides) in fullscreen on an ultrawide
 // screen. Windowed, widescreen opens a 16:9 window. The game always runs at
 // 59.906 Hz: `frame_rate` above 60 shows frames again, it does not interpolate.
+//
+// Controllers: every SDL controller drives the car (left stick the analog steering, RT / LT the
+// analog pedals, A / B full gas / brake, LB / RB shift, Y view, Back inserts a coin). The pad_*
+// button keys belong to the player and the game's Controls page; Marathon sets only pad_deadzone
+// (stick units) in the folders it owns.
 #include <cmath>
 #include <map>
 
 #include "backends/Adapters.h"
+#include "backends/ControllerConfigs.h"
 #include "backends/EmuCommon.h"
 #include "core/ConfigFiles.h"
 
@@ -137,6 +143,19 @@ class RaveRacerNative : public Backend {
 public:
     using Backend::Backend;
 
+    ControlsInfo controls(const LaunchRequest& req) const override {
+        ControlsInfo info;
+        const BackendInstall* bi = req.library ? req.library->install(def_.id) : nullptr;
+        if (bi && !bi->executable.empty() && !layoutFor(bi->executable, bi->userProvided, dataDir(def_.id)).owned)
+            info.note = "This linked Rave Racer keeps its own controller settings (the game's Controls page).";
+        else
+            info.deadzone = true;
+        info.layout = {"Left stick: steer (analog); d-pad full lock", "RT / LT: gas / brake (analog); A / B: full",
+                       "LB / RB: shift", "Y: view", "Back: insert coin"};
+        info.menu = "Start, R3 or Esc: the game's menu (Esc twice exits)";
+        return info;
+    }
+
     std::vector<std::string> missingRequirements(const LaunchRequest& req) const override {
         std::vector<std::string> out = Backend::missingRequirements(req);
         const BackendInstall* bi = req.library ? req.library->install(def_.id) : nullptr;
@@ -149,7 +168,7 @@ public:
                               pathToUtf8(l.data / "roms") +
                               ": Marathon does not write into it. Put raverace.zip and namcoc74.zip there.");
             out.push_back(std::string(kWarningPrefix) + "Marathon passes only fullscreen, frame rate and vsync to this "
-                          "linked install; resolution and widescreen stay as set in the game's own menu (F1).");
+                          "linked install; resolution and widescreen stay as set in the game's own menu (Esc, or Start on a controller).");
         }
         return out;
     }
@@ -182,6 +201,8 @@ public:
             spec.env["ENG_FPS"] = std::to_string(fps);
             notes.push_back("linked install with its own folder " + pathToUtf8(l.data) +
                             ": resolution and widescreen are left to the game's menu");
+            notes.push_back(ctl::noteLine(req.controllers, "left to Rave Racer"));
+            notes.push_back(ctl::linkedNote("Rave Racer"));
         } else {
             // ROMs: MAME 0.271+ names, rebuilt from the user's files by CRC (the game matches by name).
             std::error_code ec;
@@ -243,6 +264,14 @@ public:
             const bool sharp = s.filter == "nearest" && (lines == 0 || lines <= req.display.height);
             put("scaling", sharp ? "sharp" : "smooth");
             put("frame_rate", std::to_string(fps));
+
+            // Controllers: only the stick dead zone (the pad_* buttons are the player's).
+            std::string pad;
+            for (auto& [k, v] : ctl::raveCfgKeys(req.controllers)) {
+                put(k, v);
+                pad += (pad.empty() ? "" : ", ") + k + " = " + v;
+            }
+            notes.push_back(ctl::noteLine(req.controllers, pathToUtf8(cfgPath) + " " + pad));
 
             // Advanced: settings.extra.cfg {"key": "value"} (draw_distance, wide_hud, free_play ...).
             if (auto it = s.extra.find("cfg"); it != s.extra.end() && it->is_object())

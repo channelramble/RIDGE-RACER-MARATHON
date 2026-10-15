@@ -16,6 +16,20 @@
 // waits for its socket, starts the companion and ties their lifetimes together
 // on a small supervisor thread (see SceneSession), like upstream's
 // launcher/native_scene.py and launcher/windows/Launch.ps1.
+//
+// Controllers. A PSXRecomp runtime routes each player's seat to one device, settings.toml
+// [controller] pN_device, and release builds default Player 1 to the keyboard: with
+// --no-launcher a controller did nothing unless upstream's launcher had once saved one. Marathon
+// sets p1_device (and for R4 p2_device) to the controller chosen for that player (its SDL GUID),
+// to "none" for Nobody, and for Automatic to "gamepad" (the first free controller) when the key is
+// missing, says "keyboard" (Player 1) or still holds what Marathon wrote last time; a device the
+// player picked in the game's own launcher stays. What Marathon wrote is remembered in its own
+// data folder (controller-devices.json). R4 also gets p1_mode / p2_mode (digital with d-pad
+// steering, else analog) and the "R4 Controls" mod: Modern (RT / LT analog gas and brake, stick
+// steering) with stick steering and trigger pedals, else Classic, plus its rumble switch and stick
+// dead zone. Ridge Racer locks its pad to digital and keeps its own button map. The button maps
+// themselves (input.ini, keybinds.ini) are the player's and never written; the native-scene
+// companion gets copies of them.
 #include <algorithm>
 #include <atomic>
 #include <chrono>
@@ -39,6 +53,7 @@
 #include "toml.hpp"
 
 #include "backends/Adapters.h"
+#include "backends/ControllerConfigs.h"
 #include "core/ConfigFiles.h"
 #include "core/Platform.h"
 #include "core/Process.h"
@@ -332,6 +347,70 @@ bool applyModState(const fs::path& modsDir, const std::vector<ModChange>& change
     return true;
 }
 
+// ---- controller devices -----------------------------------------------------------------------
+
+// What Marathon last wrote to a build's [controller] pN_device keys, per settings.toml, kept in
+// Marathon's own data folder: only those values give way when a player goes back to Automatic.
+struct DeviceMemory {
+    std::string p1, p2;
+};
+
+fs::path deviceMemoryFile(const std::string& backendId) {
+    return paths().config / utf8ToPath(backendId) / "controller-devices.json";
+}
+
+DeviceMemory loadDeviceMemory(const std::string& backendId, const fs::path& settingsFile) {
+    json all;
+    if (!readJsonFile(deviceMemoryFile(backendId), all) || !all.is_object()) return {};
+    const json entry = all.value(pathToUtf8(settingsFile), json::object());
+    return {jget<std::string>(entry, "p1_device", ""), jget<std::string>(entry, "p2_device", "")};
+}
+
+void saveDeviceMemory(const std::string& backendId, const fs::path& settingsFile, const DeviceMemory& m) {
+    json all;
+    if (!readJsonFile(deviceMemoryFile(backendId), all) || !all.is_object()) all = json::object();
+    json entry = {{"p1_device", m.p1}};
+    if (!m.p2.empty()) entry["p2_device"] = m.p2;
+    all[pathToUtf8(settingsFile)] = entry;
+    writeJsonFile(deviceMemoryFile(backendId), all);
+}
+
+std::optional<std::string> controllerDevice(const std::optional<toml::table>& settings, const char* key) {
+    if (!settings) return std::nullopt;
+    return (*settings)["controller"][key].value<std::string>();
+}
+
+// Unquotes the TOML strings psxControllerKeys() returns (plain device names).
+std::string tomlText(const std::string& value) {
+    return value.size() >= 2 && value.front() == '"' && value.back() == '"' ? value.substr(1, value.size() - 2) : value;
+}
+
+// The [controller] keys for one settings.toml, given what it holds now and what Marathon wrote last.
+std::vector<std::pair<std::string, std::string>> controllerKeys(const LaunchRequest& req, bool r4,
+                                                                const std::string& backendId, const fs::path& file,
+                                                                const std::optional<toml::table>& current) {
+    const DeviceMemory last = loadDeviceMemory(backendId, file);
+    return ctl::psxControllerKeys(req.controllers, r4, controllerDevice(current, "p1_device"),
+                                  controllerDevice(current, "p2_device"), last.p1, last.p2);
+}
+
+void rememberDevices(const std::string& backendId, const fs::path& file,
+                     const std::vector<std::pair<std::string, std::string>>& kv) {
+    DeviceMemory m;
+    for (auto& [k, v] : kv) {
+        if (k == "controller.p1_device") m.p1 = tomlText(v);
+        if (k == "controller.p2_device") m.p2 = tomlText(v);
+    }
+    saveDeviceMemory(backendId, file, m);
+}
+
+std::string describeKeys(const std::vector<std::pair<std::string, std::string>>& kv, const std::string& prefix) {
+    std::string out;
+    for (auto& [k, v] : kv)
+        if (k.rfind(prefix, 0) == 0) out += (out.empty() ? "" : ", ") + k + "=" + v;
+    return out;
+}
+
 // ---- layout of an installed / linked build -----------------------------------------
 
 enum class Flavor { Rr1, R4 };
@@ -558,6 +637,40 @@ public:
         return true;
     }
 
+    ControlsInfo controls(const LaunchRequest& req) const override {
+        const ControllerSettings& c = req.controllers;
+        ControlsInfo info;
+        info.playerChoice = true;
+        if (flavor_ == Flavor::Rr1) {
+            info.layout = {"D-pad or left stick: steer (digital: this game rejects analog)",
+                           "A (Cross): accelerate, X (Square): brake", "LB/RB and LT/RT: shift down / up"};
+            info.note = "The Ridge Racer recomp keeps its own button map; Steering and pedals settings do not apply.";
+            info.menu = "Close the window (Esc in the redraw)";
+            return info;
+        }
+        info.players = 2;
+        info.steering = true;  // p1_mode / p2_mode
+        info.menu = "Guide or Start + Select: R4's menus (close the window to quit)";
+        const std::string steer = c.steering == "dpad" ? "D-pad or left stick: steer (digital)" : "Left stick: steer (analog)";
+        const BackendInstall* bi = req.library ? req.library->install(def_.id) : nullptr;
+        const auto layout = bi ? resolveLayout(flavor_, *bi) : std::nullopt;
+        if (layout && layout->appImage) {
+            info.layout = {steer, "A / X (Cross / Square): accelerate / brake", "LB / LT: shift down, RB / RT: shift up"};
+            info.note = "This older R4 build has no Modern controls: A / X accelerate / brake.";
+            return info;
+        }
+        info.pedals = true;  // the Modern or Classic scheme
+        if (c.steering == "stick" && c.pedals == "triggers") {
+            info.vibration = info.deadzone = true;  // the Modern scheme's rumble and stick tuning
+            info.layout = {"Left stick: steer (analog)", "RT / LT: accelerate / brake (analog)",
+                           "X / B (Square / Circle): shift down / up", "RB: camera", "Y: Rewind (when on)"};
+        } else {
+            info.layout = {steer, "A / X (Cross / Square): accelerate / brake", "LB / LT: shift down, RB / RT: shift up",
+                           "Select + Y: Rewind (when on)"};
+        }
+        return info;
+    }
+
     std::vector<std::string> missingRequirements(const LaunchRequest& req) const override {
         std::vector<std::string> out = Backend::missingRequirements(req);
         const BackendInstall* bi = req.library ? req.library->install(def_.id) : nullptr;
@@ -745,14 +858,22 @@ private:
             kv.emplace_back("ridge_native_scene.aspect", tomlStr(wide ? "16:9" : "4:3"));
             kv.emplace_back("ridge_native_scene.perspective", tomlBool(s.precision));
         }
+        const auto controller = controllerKeys(req, flavor_ == Flavor::R4, def_.id, file, current);
+        kv.insert(kv.end(), controller.begin(), controller.end());
         std::string error;
         if (!dryRun() && !cfg::tomlSet(pathToUtf8(file), kv, &error)) {
             notes.push_back("settings.toml not updated: " + error);
+            notes.push_back(ctl::noteLine(req.controllers, "not applied (settings.toml could not be written)"));
             return;
         }
+        if (!dryRun()) rememberDevices(def_.id, file, controller);
         std::string summary;
         for (auto& [k, v] : kv) summary += (summary.empty() ? "" : ", ") + k + "=" + v;
         notes.push_back("settings.toml: " + summary);
+        notes.push_back(ctl::noteLine(req.controllers,
+                                      "settings.toml " + describeKeys(controller, "controller.") +
+                                          (flavor_ == Flavor::Rr1 ? " (Ridge Racer keeps its own digital button map)"
+                                                                  : "")));
     }
 
     // "auto" keeps the aspect the build is currently set to.
@@ -824,6 +945,7 @@ private:
                 changes.push_back(wide);
             }
             changes.push_back(ModChange{"psx.enhancement.pgxp", "pgxp", s.precision, {}});
+            for (auto& m : ctl::r4ControllerMods(req.controllers)) changes.push_back(ModChange{m.package, m.feature, m.enabled, m.values});
         }
         applyModState(mods, changes, notes);
     }
@@ -862,11 +984,19 @@ private:
             {"memcard.card1", tomlStr(pathToUtf8(cards / "card1.mcd"))},
             {"memcard.card2", tomlStr(pathToUtf8(cards / "card2.mcd"))},
         };
+        const fs::path file = l.buildDir / "settings.toml";
+        const auto controller = controllerKeys(req, true, def_.id, file, readToml(file));
+        kv.insert(kv.end(), controller.begin(), controller.end());
         std::string error;
-        if (!dryRun() && !cfg::tomlSet(pathToUtf8(l.buildDir / "settings.toml"), kv, &error))
+        if (!dryRun() && !cfg::tomlSet(pathToUtf8(file), kv, &error)) {
             notes.push_back("settings.toml not updated: " + error);
-        else
-            notes.push_back("settings.toml beside the AppImage updated (resolution, filtering, window, cards)");
+            notes.push_back(ctl::noteLine(req.controllers, "not applied (settings.toml could not be written)"));
+        } else {
+            if (!dryRun()) rememberDevices(def_.id, file, controller);
+            notes.push_back("settings.toml beside the AppImage updated (resolution, filtering, window, cards, controllers)");
+            notes.push_back(ctl::noteLine(req.controllers, "settings.toml " + describeKeys(controller, "controller.") +
+                                                               " (this build has no Modern controls)"));
+        }
         ProcessSpec spec;
         spec.argv = {pathToUtf8(l.exe), "--disc", disc};
         // Older runtimes resolve the cue's relative track names against the working directory.
@@ -955,6 +1085,10 @@ private:
                 fs::copy(l.buildDir / "mods", session->stage / "mods", fs::copy_options::recursive, ec);
             fs::copy_file(l.buildDir / "settings.toml", session->stage / "settings.toml",
                           fs::copy_options::overwrite_existing, ec);
+            // The player's button maps: without them the companion would write fresh defaults.
+            for (const char* name : {"input.ini", "keybinds.ini"})
+                if (isFile(l.buildDir / name))
+                    fs::copy_file(l.buildDir / name, session->stage / name, fs::copy_options::overwrite_existing, ec);
             cfg::tomlSet(pathToUtf8(session->stage / "settings.toml"),
                          {{"video.fullscreen", "0"},
                           {"video.window_width", "640"},

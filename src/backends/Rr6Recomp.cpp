@@ -28,6 +28,14 @@
 // flag and never edits the file: key bindings and language stay the user's. The game runs
 // at 60 fps: `vsync` is the guest's 60 Hz vertical-blank timer its speed hangs on and always
 // stays on; Marathon's vsync choice goes to the presenter instead.
+//
+// Controllers: the game reads SDL controllers as Xbox 360 pads (left stick steers, RT / LT analog
+// gas and brake, rumble as the game's own option), with no remapping and one player, so Marathon's
+// controller settings do not apply. Marathon passes --hid_mappings_file with the package's own
+// gamecontrollerdb.txt (Windows: the package root, Linux: bin/, the macOS development build: the
+// repository root; the macOS app passes it itself), so the database no longer depends on the folder
+// the game starts in. Key bindings (keybind_*, mnk_*) stay the player's. settings.extra.logInput =
+// true adds --rr6_log_input=true (player 1's pad state in rr6-recomp-game.log).
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
@@ -35,6 +43,7 @@
 #include <system_error>
 
 #include "backends/Adapters.h"
+#include "backends/ControllerConfigs.h"
 #include "backends/EmuCommon.h"
 
 namespace rrm {
@@ -205,6 +214,7 @@ std::vector<std::string> settingFlags(const LaunchRequest& req, Layout layout, s
         set("window_high_pixel_density", "true");  // a Retina back buffer, so the extra detail shows
 
     set("log_file", pathToUtf8(paths().logs / "rr6-recomp-game.log"));
+    for (auto& flag : ctl::rr6ControllerFlags("", jget(s.extra, "logInput", false))) f.push_back(flag);
 
     notes.push_back("render " + std::to_string(1280 * pic.scaleX) + "x" + std::to_string(720 * pic.scaleY) +
                     (widen ? ", 3D view widened to " + emu::fmtNumber(pic.ratio) + ":1" : ", 16:9"));
@@ -298,9 +308,38 @@ fs::path systemFolder() {
 }
 #endif
 
+// The source folder of a macOS development build (holds rr6_recomp_manifest.toml), or empty.
+fs::path devRepo(const Install& in) {
+    for (fs::path p = in.root.parent_path(); !p.empty() && p != p.root_path(); p = p.parent_path())
+        if (pathExists(p / "rr6_recomp_manifest.toml")) return p;
+    return {};
+}
+
+// The package's controller database, or empty when it has none (or passes it itself).
+fs::path mappingsFile(const Install& in) {
+    fs::path p;
+    switch (in.layout) {
+        case Layout::WindowsZip: p = in.root / "gamecontrollerdb.txt"; break;
+        case Layout::LinuxTarball: p = in.root / "bin" / "gamecontrollerdb.txt"; break;
+        case Layout::MacDevBuild:
+            if (const fs::path repo = devRepo(in); !repo.empty()) p = repo / "gamecontrollerdb.txt";
+            break;
+        case Layout::MacApp: return {};  // rr6-launcher passes Contents/Resources/gamecontrollerdb.txt
+    }
+    std::error_code ec;
+    return !p.empty() && fs::is_regular_file(p, ec) ? p : fs::path();
+}
+
 class Rr6Recomp : public Backend {
 public:
     using Backend::Backend;
+
+    ControlsInfo controls(const LaunchRequest&) const override {
+        ControlsInfo info;  // the game's own controls: none of Marathon's settings apply
+        info.layout = {"Left stick: steer (analog)", "RT / LT: accelerate / brake (analog)", "B / Y: nitrous", "Start: pause"};
+        info.menu = "Back + Start held 1 s, or Esc: 'Quit Ridge Racer 6?' (A confirms)";
+        return info;
+    }
 
     bool linkExisting(Library& lib, const std::string& path, std::string& error) override {
         if (Backend::linkExisting(lib, path, error)) return true;
@@ -352,6 +391,10 @@ public:
         const fs::path iso = folder.empty() ? utf8ToPath(req.entry->files.path) : fs::path();
         std::vector<std::string> notes;
         const std::vector<std::string> flags = settingFlags(req, in.layout, notes);
+        const fs::path mappings = mappingsFile(in);
+        notes.push_back(ctl::noteLine(req.controllers, "left to Ridge Racer 6 (its own controls)" +
+                                                           (mappings.empty() ? std::string()
+                                                                             : "; controller database " + pathToUtf8(mappings))));
 
         req_ = &req;  // for frame generation in the macOS launches
         switch (in.layout) {
@@ -376,6 +419,7 @@ private:
 
         std::vector<std::string> gameArgs = {pathToUtf8(in.program), "--game_data_root=" + pathToUtf8(game),
                                              "--gpu_plugin=xenos"};
+        for (auto& flag : ctl::rr6ControllerFlags(pathToUtf8(mappingsFile(in)), false)) gameArgs.push_back(flag);
         gameArgs.insert(gameArgs.end(), flags.begin(), flags.end());
         ProcessSpec spec;
         // gamecontrollerdb.txt is found in the folder the game starts in: the package root on
@@ -483,12 +527,7 @@ private:
     // The development build (build-macos.sh), started the way run-macos.sh does.
     LaunchResult launchMacDev(const Install& in, const fs::path& folder, const std::vector<std::string>& flags,
                               std::vector<std::string>& notes) {
-        fs::path repo;
-        for (fs::path p = in.root.parent_path(); !p.empty() && p != p.root_path(); p = p.parent_path())
-            if (pathExists(p / "rr6_recomp_manifest.toml")) {
-                repo = p;
-                break;
-            }
+        const fs::path repo = devRepo(in);
         const fs::path ownCopy = emu::dataDir(def_.id) / "game";
         fs::path game = folder;
         if (game.empty() && !repo.empty() && gameReady(repo.parent_path() / "game", false)) game = repo.parent_path() / "game";
@@ -504,6 +543,7 @@ private:
             spec.argv.push_back("--rr6_dlc_folder=" + pathToUtf8(repo / "out" / "DLC"));
             spec.workingDir = pathToUtf8(repo);
         }
+        for (auto& flag : ctl::rr6ControllerFlags(pathToUtf8(mappingsFile(in)), false)) spec.argv.push_back(flag);
         spec.argv.insert(spec.argv.end(), flags.begin(), flags.end());
         frameGeneration(spec, notes);
         return spawn(def_.id, spec, notes);

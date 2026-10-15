@@ -27,6 +27,17 @@
 // which RPCS3 then stretches to the screen ("Stretch To Display Area"): so ultrawide is for
 // full screen on a screen wider than 16:9, and the 2D HUD is stretched with it.
 // Above 60 fps on macOS comes from frame generation (EmuCommon.h).
+//
+// Controllers: RPCS3 reads pad settings from input_configs/ beside config.yml. Without a file
+// player 1 is the keyboard, so a controller did nothing. Marathon writes the whole
+// input_configs/global/Default.yml before every launch (ControllerConfigs.cpp): Player 1 and 2 are
+// the pads holding Marathon's player slots on RPCS3's SDL handler, named "<SDL name> <n>" as RPCS3
+// numbers pads of the same name; Ridge Racer 7 has two players (cellPadInit max_connect=2). The
+// triggers reach the game as Cross / Square pressure (analog pedals), the stick or the d-pad steers,
+// Guide or Start + Back opens RPCS3's Home menu (config.yml "Pause Emulation During Home Menu").
+// Player 7 is the keyboard as Player 1's copilot, so the keyboard keeps working next to the pad.
+// Per-game files made in RPCS3's own pad dialog (input_configs/<title id>/) win over it; a linked
+// RPCS3 in portable mode keeps its own input_configs and nothing is written there.
 #include <chrono>
 #include <cmath>
 #include <cstdint>
@@ -35,6 +46,7 @@
 #include <sstream>
 
 #include "backends/Adapters.h"
+#include "backends/ControllerConfigs.h"
 #include "backends/EmuCommon.h"
 #include "core/ConfigFiles.h"
 
@@ -202,6 +214,58 @@ bool writeAspectPatch(const Rpcs3Dirs& dirs, const json& spec, double ratio, std
     return true;
 }
 
+// The keyboard as Player 1's copilot (Player 7, Device Class Type 0xa004): checked in a real run
+// (RPCS3.log "Pad 6: device='Keyboard', handler=Keyboard, ... class_type=0xa004").
+constexpr bool kKeyboardCopilot = true;
+
+// Title ids RPCS3 may keep a per-game pad file under: the catalog serial and the disc's own.
+std::vector<std::string> titleIds(const LaunchRequest& req) {
+    std::vector<std::string> ids;
+    auto add = [&](std::string id) {
+        id.erase(std::remove(id.begin(), id.end(), '-'), id.end());
+        if (!id.empty() && std::find(ids.begin(), ids.end(), id) == ids.end()) ids.push_back(id);
+    };
+    if (req.game) add(req.game->serial);
+    if (req.entry && req.entry->files.detectedBy.rfind("title id ", 0) == 0) add(req.entry->files.detectedBy.substr(9));
+    return ids;
+}
+
+// input_configs/global/Default.yml from Marathon's controller settings (see the header).
+void writeControllers(const LaunchRequest& req, const Rpcs3Dirs& dirs, std::vector<std::string>& notes) {
+    const ControllerSettings& c = req.controllers;
+    if (dirs.linkedPortable) {
+        notes.push_back(ctl::noteLine(c, "left to RPCS3"));
+        notes.push_back(ctl::linkedNote("RPCS3"));
+        return;
+    }
+    const fs::path inputDir = dirs.configYml.parent_path() / "input_configs";
+    const fs::path file = inputDir / "global" / "Default.yml";
+    if (!writeText(file, ctl::rpcs3InputConfig(c, req.pads, kKeyboardCopilot))) {
+        notes.push_back(ctl::noteLine(c, "could not write " + pathToUtf8(file)));
+        return;
+    }
+    std::string players;
+    bool anyPad = false;
+    for (int i = 0; i < 2; ++i) {
+        const ConnectedPad* pad = nullptr;
+        for (auto& p : req.pads)
+            if (p.player == i && !pad) pad = &p;
+        anyPad = anyPad || pad;
+        players += std::string(i ? ", " : "") + "Player " + std::to_string(i + 1) + " " +
+                   (pad ? "SDL '" + ctl::rpcs3DeviceName(*pad) + "'" : i == 0 ? "keyboard" : "nobody");
+    }
+    notes.push_back(ctl::noteLine(c, pathToUtf8(file) + " (" + players + ")"));
+    std::error_code ec;
+    for (auto& id : titleIds(req))
+        if (fs::exists(inputDir / utf8ToPath(id) / "Default.yml", ec))
+            notes.push_back("controllers: RPCS3's own pad settings for this game win over Marathon's (" +
+                            pathToUtf8(inputDir / utf8ToPath(id)) + ")");
+    if (fs::exists(inputDir / "active_input_configurations.yml", ec))
+        notes.push_back("controllers: RPCS3's own pad settings for this game win over Marathon's "
+                        "(active_input_configurations.yml from RPCS3's pad dialog)");
+    if (!anyPad) notes.push_back("controllers: connect the controller before starting: RPCS3 picks it at start");
+}
+
 void appendNotes(const std::string& backendId, const std::vector<std::string>& notes) {
     if (notes.empty()) return;
     std::ofstream out(paths().logs / utf8ToPath(backendId + ".log"), std::ios::binary | std::ios::app);
@@ -211,6 +275,34 @@ void appendNotes(const std::string& backendId, const std::vector<std::string>& n
 class Rpcs3 : public Backend {
 public:
     using Backend::Backend;
+
+    ControlsInfo controls(const LaunchRequest& req) const override {
+        const ControllerSettings& c = req.controllers;
+        ControlsInfo info;
+        info.menu = "Guide, or Start + Back: RPCS3's Home menu > Exit Game";
+        const std::string exe = req.library ? installedExecutable(*req.library) : std::string();
+        if (!exe.empty() && rpcs3Dirs(def_.id, exe).linkedPortable) {
+            info.note = "Your linked RPCS3 is in portable mode: it keeps its own controller settings (RPCS3's "
+                        "Pads dialog), so Marathon's are not applied.";
+            return info;
+        }
+        info.steering = info.pedals = info.deadzone = info.playerChoice = true;  // Ridge Racer 7 has no vibration
+        info.players = 2;
+        info.layout.push_back(c.steering == "dpad" ? "D-pad or left stick: steer (digital, full lock)"
+                                                   : "Left stick: steer (analog)");
+        if (c.pedals == "triggers") {
+            info.layout.push_back("RT / LT: accelerate / brake (analog through Cross / Square pressure)");
+            info.layout.push_back("RB / LB: nitrous / double nitrous (both: triple)");
+            info.layout.push_back("Stick clicks: shift up / down (manual)");
+        } else {
+            info.layout.push_back("A / X (Cross / Square): accelerate / brake");
+            info.layout.push_back("RT / LT: nitrous / double nitrous (both: triple)");
+            info.layout.push_back("RB / LB: shift up / down (manual)");
+        }
+        info.layout.push_back("Start: pause");
+        info.note = "Connect your controllers before starting the game.";
+        return info;
+    }
 
     bool install(Library& lib, TaskProgress& progress) override {
         const BackendSource* src = def_.sourceFor(currentPlatformKey());
@@ -349,6 +441,8 @@ public:
         // Defaults to true in RPCS3, so windowed play has to say so.
         yml.set({"Miscellaneous", "Start games in fullscreen mode"}, boolStr(s.fullscreen));
         yml.set({"Miscellaneous", "Exit RPCS3 when process finishes"}, "true");
+        // The Home menu (Guide, or Start + Back) pauses the game while it is open.
+        yml.set({"Miscellaneous", "Pause Emulation During Home Menu"}, "true");
         // Per-game keys from the catalog (option params "rpcs3Config"), then the user's own.
         for (const json* src : {req.option ? &req.option->params : nullptr, &s.extra}) {
             if (!src || !src->is_object()) continue;
@@ -378,6 +472,8 @@ public:
         if (wide)
             notes.push_back("ultrawide: view aspect " + fmtNumber(ratio) +
                             " (Hor+), the 16:9 image stretched to the screen; 2D HUD stretched");
+
+        writeControllers(req, dirs, notes);
 
         if (resolveFps(s) != 0 && currentOs() != Os::MacOS)
             notes.push_back(req.game->title + " is locked to 60 fps (no RPCS3 patch); use VSync/VRR on high refresh displays");

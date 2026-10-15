@@ -1,5 +1,6 @@
 // Rage Racer PC (khasinski/rage-racer-pc): native source port of Rage Racer.
-// The official release stops at 16:9 (video.aspect 4:3 or 16:9) and has no fullscreen mode.
+// The official release stops at 16:9 (video.aspect 4:3 or 16:9) and opens in a window (F4 in
+// the game switches to full screen; there is no launch option for it).
 // params.ultrawide (default false): pass 21:9, 32:9 and the screen's shape through as
 // video.aspect instead of stopping at 16:9, and set RAGE_FULLSCREEN=1 when fullscreen is on.
 //
@@ -12,6 +13,11 @@
 // ini is never modified. Saves and the remembered disc live in the port's own
 // user folder (~/Library/Application Support/Rage Racer, %APPDATA%\Rage Racer,
 // $XDG_STATE_HOME/rage-racer), outside the install, so they survive updates.
+//
+// Controllers: with input.analog on (its default), the port presents the most recently used
+// controller to the game as a neGcon: left stick twist, RT / LT analog gas and brake, A / X full,
+// the d-pad at full lock. Marathon passes --set input.analog (off for d-pad steering: a digital
+// pad) and input.steering_deadzone. Vibration needs a release after 0.6.8 (input.force_feedback).
 #include <algorithm>
 #include <chrono>
 #include <cmath>
@@ -22,6 +28,7 @@
 #include <system_error>
 
 #include "backends/Adapters.h"
+#include "backends/ControllerConfigs.h"
 #include "core/Platform.h"
 #include "core/Process.h"
 
@@ -112,6 +119,15 @@ class RageRacerPc : public Backend {
 public:
     using Backend::Backend;
 
+    ControlsInfo controls(const LaunchRequest&) const override {
+        ControlsInfo info;
+        info.steering = info.deadzone = true;
+        info.layout = {"Left stick: steer (analog neGcon twist); d-pad full lock", "RT / LT: gas / brake (analog); A / X: full",
+                       "LB / RB: shift down / up", "B: handbrake, Y: camera", "Start: pause"};
+        info.menu = "Esc quits at once (keyboard); no quit from the pad";
+        return info;
+    }
+
     LaunchResult launch(const LaunchRequest& req) override {
         LaunchResult r;
         const std::string exe = req.library ? installedExecutable(*req.library) : std::string();
@@ -183,6 +199,15 @@ public:
 
         // The port moves stderr into its own log file; point it at Marathon's log.
         sets.push_back("diagnostics.log=" + logFile);
+
+        // Controllers (before the advanced --set values, which win).
+        const std::vector<std::string> input = ctl::rageInputSets(req.controllers);
+        sets.insert(sets.end(), input.begin(), input.end());
+        std::string inputText;
+        for (auto& kv : input) inputText += (inputText.empty() ? "--set " : ", --set ") + kv;
+        notes.push_back(ctl::noteLine(req.controllers, inputText));
+        if (req.controllers.vibration)
+            notes.push_back("controllers: vibration is not applied: Rage Racer PC 0.6.8 has no rumble yet");
         // Advanced: settings.extra.set passes further port settings, as {"key": "value"} or "k=v;k=v".
         if (auto it = s.extra.find("set"); it != s.extra.end()) {
             if (it->is_object()) {
@@ -213,7 +238,7 @@ public:
         spec.workingDir = installedRoot(*req.library);
         spec.logFile = logFile;
         if (s.fullscreen && ultrawide) spec.env["RAGE_FULLSCREEN"] = "1";  // params.ultrawide
-        else if (s.fullscreen) notes.push_back("the official port has no fullscreen mode; use the window's green button");
+        else if (s.fullscreen) notes.push_back("the port opens in a window; F4 switches to full screen");
         if (!s.vsync && fps < 0) notes.push_back("video.fps=vsync always follows the display refresh");
         return spawnLogged(spec, notes);
     }

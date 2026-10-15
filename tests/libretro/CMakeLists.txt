@@ -15,7 +15,9 @@ get_filename_component(RRM_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/../.. ABSOLUTE)
 find_package(SDL3 CONFIG REQUIRED)
 
 file(GLOB RRM_LR_SOURCES CONFIGURE_DEPENDS ${RRM_ROOT}/src/libretro/*.cpp)
-add_executable(lr_smoke ${RRM_ROOT}/tests/lr_smoke.cpp ${RRM_LR_SOURCES} ${RRM_ROOT}/src/core/Json.cpp)
+# Input.cpp uses the shared gamepad logic (player slots, dead zones) from src/core.
+add_executable(lr_smoke ${RRM_ROOT}/tests/lr_smoke.cpp ${RRM_LR_SOURCES} ${RRM_ROOT}/src/core/Json.cpp
+    ${RRM_ROOT}/src/core/Controllers.cpp ${RRM_ROOT}/src/core/Gamepads.cpp)
 target_include_directories(lr_smoke PRIVATE ${RRM_ROOT}/src ${RRM_ROOT}/third_party ${RRM_ROOT}/third_party/libretro)
 target_link_libraries(lr_smoke PRIVATE SDL3::SDL3)
 if(MSVC)

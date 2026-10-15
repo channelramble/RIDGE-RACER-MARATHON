@@ -6,6 +6,7 @@
 #include <ctime>
 
 #include "app/Ui.h"
+#include "core/BackendBundle.h"
 #include "core/Net.h"
 #include "core/Platform.h"
 #include "core/Process.h"
@@ -46,10 +47,11 @@ fs::path settingsPath() { return paths().data / "settings.json"; }
 struct Options {
     std::string screenshot;   // save a PNG after `frames` frames and quit
     int frames = 90;
+    bool waitForSetup = false;  // package smoke test waits for the offline import
     std::string scan;         // scan this folder at start-up
     std::string openGame;     // open a game page
     std::string playGame;     // launch a game
-    std::string screen;       // library|add|backends|settings|about
+    std::string screen;       // library|add|backends|settings|controllers|about
     int width = 1280, height = 800;
 } g_opts;
 
@@ -70,6 +72,7 @@ bool App::init(int argc, char** argv) {
         if (a == "--data") dataDir = next();
         else if (a == "--screenshot") g_opts.screenshot = next();
         else if (a == "--frames") g_opts.frames = std::max(2, std::atoi(next().c_str()));
+        else if (a == "--wait-for-setup") g_opts.waitForSetup = true;
         else if (a == "--scan") g_opts.scan = next();
         else if (a == "--game") g_opts.openGame = next();
         else if (a == "--play") g_opts.playGame = next();
@@ -82,6 +85,10 @@ bool App::init(int argc, char** argv) {
 
     SDL_SetAppMetadata("Ridge Racer Marathon", RRM_VERSION, "io.github.ridgeracermarathon");
     SDL_SetHint(SDL_HINT_IOS_HIDE_HOME_INDICATOR, "2");
+    // The quit chord must work while another program has focus (docs/CONTROLLERS.md).
+    SDL_SetHint(SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS, "1");
+    // PlayStation pads keep the report mode the running game expects unless Marathon itself rumbles them.
+    SDL_SetHint(SDL_HINT_JOYSTICK_ENHANCED_REPORTS, "auto");
     if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD | SDL_INIT_AUDIO)) {
         SDL_Log("SDL_Init failed: %s", SDL_GetError());
         return false;
@@ -156,6 +163,12 @@ bool App::init(int argc, char** argv) {
     applyStyle();
     ImGui_ImplSDL3_InitForOpenGL(window_, gl_);
     ImGui_ImplOpenGL3_Init(glslVersion_.c_str());
+    // Every pad drives the menus; updatePadRouting() hands them to games and back.
+    ImGui_ImplSDL3_SetGamepadMode(ImGui_ImplSDL3_GamepadMode_AutoAll);
+    padUi_ = padModeSet_ = true;
+    pads_.open();
+
+    installBundledBackends();
 
     if (!g_opts.scan.empty()) scanFolder(g_opts.scan);
     if (!g_opts.openGame.empty() && catalog.game(g_opts.openGame)) {
@@ -165,6 +178,10 @@ bool App::init(int argc, char** argv) {
     if (g_opts.screen == "add") screen = Screen::AddGames;
     else if (g_opts.screen == "backends") screen = Screen::Backends;
     else if (g_opts.screen == "settings") screen = Screen::Settings;
+    else if (g_opts.screen == "controllers") {
+        screen = Screen::Settings;
+        settingsPage = SettingsPage::Controllers;
+    }
     else if (g_opts.screen == "about") screen = Screen::About;
     if (!g_opts.playGame.empty()) play(g_opts.playGame);
     SDL_Log("Ridge Racer Marathon %s on %s, data in %s", RRM_VERSION, currentPlatformKey().c_str(),
@@ -178,7 +195,10 @@ void App::shutdown() {
         if (j->progress) j->progress->cancel = true;
         if (j->thread.joinable()) j->thread.join();
     }
+    // Closing during first-run setup must still remember every completed import.
+    pollJobs();
     saveAll();
+    pads_.close();
     if (ImGui::GetCurrentContext()) {
         ImGui_ImplOpenGL3_Shutdown();
         ImGui_ImplSDL3_Shutdown();
@@ -218,6 +238,10 @@ GameSettings App::settingsFor(const std::string& gameId) const {
     GameSettings s = global.defaults;
     if (e) s.backend = e->settings.backend;  // backend choice is always per game
     return s;
+}
+
+ControllerSettings App::controllersFor(const std::string& gameId) const {
+    return global.controllers.withOverrides(settingsFor(gameId).extra);
 }
 
 void App::setGameSettings(const std::string& gameId, const GameSettings& s, bool custom) {
@@ -275,6 +299,7 @@ App::GameStatus App::statusOf(const GameDef& g) const {
     req.library = &library;
     req.settings = settingsFor(g.id);
     req.display = display;
+    req.controllers = controllersFor(g.id);
     for (auto& m : b->missingRequirements(req))
         if (!isRequirementWarning(m)) return GameStatus::NeedsSystemFiles;
     return GameStatus::Ready;
@@ -295,6 +320,10 @@ std::string App::statusText(const GameDef& g) const {
 // ---- launching -----------------------------------------------------------------------------
 
 void App::play(const std::string& gameId) {
+    if (Job* setup = job("bundle"); setup && !setup->finished) {
+        toast("Setting up the included backends. Please wait for setup to finish.");
+        return;
+    }
     const GameDef* g = catalog.game(gameId);
     if (!g) return;
     if (running_ || host_.running()) {
@@ -316,6 +345,8 @@ void App::play(const std::string& gameId) {
     req.library = &library;
     req.settings = settingsFor(gameId);
     req.display = display;
+    req.controllers = controllersFor(gameId);
+    req.pads = padSnapshot();
     auto missing = b->missingRequirements(req);
     auto st = b->installState(library);
     if (st != InstallState::Installed && st != InstallState::UserProvided)
@@ -327,6 +358,8 @@ void App::play(const std::string& gameId) {
         for (auto& m : missing) modalText += "- " + m + "\n";
         return;
     }
+    // A quit chord still held from the last game must not close this one.
+    pads_.resetChord();
     LaunchResult r = b->launch(req);
     for (auto& m : missing) {  // only warnings remain here
         const size_t text = m.find_first_not_of(' ', m.find(':') + 1);
@@ -408,19 +441,46 @@ void App::exitPlayer() {
     playingGame_.clear();
 }
 
-void App::stopRunning() {
-    if (running_) terminateProcess(running_->pid);
+void App::stopRunning() { requestQuitRunning(false); }
+
+void App::requestQuitRunning(bool fromChord) {
+    if (!running_) return;
+    const GameDef* g = catalog.game(running_->gameId);
+    const std::string title = g ? g->title : running_->gameId;
+    // As the window's close button would; asking again (a second Stop) is harmless.
+    const bool asked = requestProcessExit(running_->pid);
+    SDL_Log("[app] closing %s (%s)%s", title.c_str(), fromChord ? "quit chord" : "Stop", asked ? "" : ": no window to ask yet");
+    if (running_->quitRequestedAt > 0) return;
+    running_->quitRequestedAt = now();
+    toast("Closing " + title + "...");
+}
+
+void App::raiseWindow() {
+    if (!window_) return;
+    if (SDL_GetWindowFlags(window_) & SDL_WINDOW_MINIMIZED) SDL_RestoreWindow(window_);
+    SDL_SetHint(SDL_HINT_FORCE_RAISEWINDOW, "1");
+    SDL_RaiseWindow(window_);
+    SDL_SetHint(SDL_HINT_FORCE_RAISEWINDOW, "0");
 }
 
 void App::pollRunning() {
     if (!running_) return;
     int code = 0;
-    if (processRunning(running_->pid, &code)) return;
+    if (processRunning(running_->pid, &code)) {
+        if (running_->quitRequestedAt > 0 && now() - running_->quitRequestedAt > 6.0 && !running_->forced) {
+            killProcess(running_->pid);
+            running_->forced = true;
+            const GameDef* g = catalog.game(running_->gameId);
+            toast((g ? g->title : running_->gameId) + " did not close in time, so Marathon stopped it.");
+        }
+        return;
+    }
+    raiseWindow();
     LibraryEntry& e = library.entry(running_->gameId);
     e.playSeconds += std::max<int64_t>(0, unixNow() - running_->startedAt);
     library.save();
     const GameDef* g = catalog.game(running_->gameId);
-    if (code != 0 && unixNow() - running_->startedAt < 5) {
+    if (code != 0 && unixNow() - running_->startedAt < 5 && running_->quitRequestedAt <= 0) {
         modalTitle = (g ? g->title : running_->gameId) + " stopped right away";
         modalText = "Exit code " + std::to_string(code) + ". The backend log is at:\n" + running_->logFile;
     } else {
@@ -478,10 +538,27 @@ void App::pollJobs() {
         }
         if (j->ok) toast(j->title + " - done");
         else toast(j->title + " failed: " + err, true);
-        if (j->scratch && j->ok) {
+        if (j->scratch && j->ok && !j->backendId.empty()) {
             if (const BackendInstall* bi = j->scratch->install(j->backendId)) library.setInstall(*bi);
             // Some backends also register system files (e.g. installed firmware).
             library.save();
+        }
+        if (j->scratch && j->importedBackends) {
+            // A cancelled or partially failed import still preserves completed backends.
+            for (const auto& id : *j->importedBackends) {
+                // A scan or Link existing action may have supplied an installation
+                // after the worker took its snapshot. Preserve that newer choice.
+                std::error_code ec;
+                if (const auto* current = library.install(id); current &&
+                    (current->userProvided || (!current->executable.empty() && fs::is_regular_file(utf8ToPath(current->executable), ec))))
+                    continue;
+                if (const auto* installed = j->scratch->install(id)) library.setInstall(*installed);
+            }
+            library.save();
+            if (!j->ok && !err.empty()) {
+                modalTitle = "Complete package setup needs attention";
+                modalText = err + "\n\nCompleted backends are ready. Restart Marathon to retry, or use Backends > Install all.";
+            }
         }
     }
 }
@@ -499,10 +576,33 @@ std::vector<Backend*> App::missingDownloadableBackends() {
 }
 
 void App::installAllBackends() {
+    if (Job* setup = job("bundle"); setup && !setup->finished) {
+        toast("Setting up the included backends. Please wait for setup to finish.");
+        return;
+    }
     for (Backend* b : missingDownloadableBackends()) installBackend(b->def().id);
 }
 
+void App::installBundledBackends() {
+    const auto directory = backendBundleDirectory();
+    if (directory.empty() || !fs::exists(directory / "manifest.json")) return;
+    auto scratch = std::make_shared<Library>(library);
+    auto imported = std::make_shared<std::vector<std::string>>();
+    Job* j = startJob("bundle", "Setting up included backends",
+                      [this, scratch, imported, directory](TaskProgress& p) {
+        auto report = importBackendBundle(catalog, *scratch, p, false, directory);
+        *imported = std::move(report.imported);
+        return report.ok();
+    });
+    j->scratch = scratch;
+    j->importedBackends = imported;
+}
+
 void App::installBackend(const std::string& backendId) {
+    if (Job* setup = job("bundle"); setup && !setup->finished) {
+        toast("Setting up the included backends. Please wait for setup to finish.");
+        return;
+    }
     Backend* b = backend(backendId);
     if (!b) return;
     if (Job* running = job("install:" + backendId); running && !running->finished) return;
@@ -636,9 +736,117 @@ void App::toast(const std::string& text, bool error) {
     if (toasts.size() > 5) toasts.erase(toasts.begin());
 }
 
+// ---- controllers ---------------------------------------------------------------------------------
+
+void App::handlePads() {
+    for (const PadEvent& ev : pads_.update(SDL_GetTicks(), global.controllers)) {
+        switch (ev.kind) {
+            case PadEvent::Kind::Connected:
+                toast("Controller connected: " + ev.pad.name +
+                      (ev.pad.player >= 0 ? " (Player " + std::to_string(ev.pad.player + 1) + ")" : std::string()));
+                break;
+            case PadEvent::Kind::Disconnected: toast("Controller disconnected: " + ev.pad.name); break;
+            case PadEvent::Kind::QuitChord:
+                if (running_) requestQuitRunning(true);
+                else if (screen == Screen::Playing) exitPlayer();
+                break;
+        }
+    }
+    updatePadRouting();
+    // "The button labelled A confirms": Nintendo pads have B at the bottom.
+    if (uint32_t id = pads_.lastUsed())
+        ImGui::GetIO().ConfigNavSwapGamepadButtons =
+            SDL_GetGamepadButtonLabelForType(SDL_GetGamepadTypeForID(id), SDL_GAMEPAD_BUTTON_SOUTH) == SDL_GAMEPAD_BUTTON_LABEL_B;
+    // While an external game has the focus Marathon only watches the pads: on macOS the swap of a
+    // hidden window does not block, so without this it would draw as fast as it can.
+    const bool focused = (SDL_GetWindowFlags(window_) & SDL_WINDOW_INPUT_FOCUS) != 0;
+    const bool slow = running_ && !focused;
+    if (slow != slowLoop_) {
+        SDL_SetHint(SDL_HINT_MAIN_CALLBACK_RATE, slow ? "30" : "0");
+        slowLoop_ = slow;
+    }
+}
+
+// The menus own the pads while Marathon's window has the focus and no game uses them
+// (an external game, the in-app player without its pause menu, the Controllers page test).
+void App::updatePadRouting() {
+    const bool focused = assumeFocus || (SDL_GetWindowFlags(window_) & SDL_WINDOW_INPUT_FOCUS) != 0;
+    const bool ui = focused && !running_ && !padTestActive && (screen != Screen::Playing || ui::playerMenuOpen());
+    if (ui == padUi_ && padModeSet_) return;
+    if (ui) ImGui_ImplSDL3_SetGamepadMode(ImGui_ImplSDL3_GamepadMode_AutoAll);
+    else ImGui_ImplSDL3_SetGamepadMode(ImGui_ImplSDL3_GamepadMode_Manual, nullptr, 0);
+    padUi_ = ui;
+    padModeSet_ = true;
+    startClean_ = false;
+    triggerDown_.clear();
+}
+
+// Gamepad buttons the UI acts on itself (ImGui handles moving and confirming). docs/CONTROLLERS.md
+void App::padButtonEvent(const SDL_Event& e) {
+    using ui::PadAction;
+    if (e.type == SDL_EVENT_GAMEPAD_AXIS_MOTION) {
+        // LT / RT as buttons: pressed past 50 %, released below 25 %.
+        if (e.gaxis.axis != SDL_GAMEPAD_AXIS_LEFT_TRIGGER && e.gaxis.axis != SDL_GAMEPAD_AXIS_RIGHT_TRIGGER) return;
+        const bool right = e.gaxis.axis == SDL_GAMEPAD_AXIS_RIGHT_TRIGGER;
+        bool& down = triggerDown_[e.gaxis.which][right ? 1 : 0];
+        if (!down && e.gaxis.value > 16384) {
+            down = true;
+            padActions.push_back(right ? PadAction::PageNext : PadAction::PagePrev);
+        } else if (down && e.gaxis.value < 8192) {
+            down = false;
+        }
+        return;
+    }
+    if (e.type != SDL_EVENT_GAMEPAD_BUTTON_DOWN && e.type != SDL_EVENT_GAMEPAD_BUTTON_UP) return;
+    SDL_Gamepad* pad = SDL_GetGamepadFromID(e.gbutton.which);
+    const auto button = static_cast<SDL_GamepadButton>(e.gbutton.button);
+    const bool down = e.type == SDL_EVENT_GAMEPAD_BUTTON_DOWN;
+    auto held = [pad](SDL_GamepadButton b) { return pad && SDL_GetGamepadButton(pad, b); };
+    // Start alone (released without Guide or Back): Guide + Start is the quit chord.
+    if (button == SDL_GAMEPAD_BUTTON_START) {
+        if (down) startClean_ = !held(SDL_GAMEPAD_BUTTON_GUIDE) && !held(SDL_GAMEPAD_BUTTON_BACK);
+        else if (startClean_) padActions.push_back(PadAction::Play);
+        if (!down) startClean_ = false;
+        return;
+    }
+    if (!down) return;
+    if (button == SDL_GAMEPAD_BUTTON_GUIDE || button == SDL_GAMEPAD_BUTTON_BACK) {
+        startClean_ = false;
+        return;
+    }
+    if (button == SDL_GAMEPAD_BUTTON_LEFT_SHOULDER) padActions.push_back(PadAction::TabPrev);
+    else if (button == SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER) padActions.push_back(PadAction::TabNext);
+    else {
+        // By label: B / Circle goes back, Y / Triangle opens a game's settings (on Nintendo pads
+        // those are the bottom and left buttons).
+        const SDL_GamepadButtonLabel label = pad ? SDL_GetGamepadButtonLabel(pad, button) : SDL_GAMEPAD_BUTTON_LABEL_UNKNOWN;
+        const bool unknown = label == SDL_GAMEPAD_BUTTON_LABEL_UNKNOWN;
+        if (label == SDL_GAMEPAD_BUTTON_LABEL_B || label == SDL_GAMEPAD_BUTTON_LABEL_CIRCLE ||
+            (unknown && button == SDL_GAMEPAD_BUTTON_EAST))
+            padActions.push_back(PadAction::Back);
+        else if (label == SDL_GAMEPAD_BUTTON_LABEL_Y || label == SDL_GAMEPAD_BUTTON_LABEL_TRIANGLE ||
+                 (unknown && button == SDL_GAMEPAD_BUTTON_NORTH))
+            padActions.push_back(PadAction::GameSettings);
+    }
+}
+
 // ---- main loop -----------------------------------------------------------------------------------
 
 bool App::handleEvent(const SDL_Event& e) {
+    pads_.handleEvent(e);
+    switch (e.type) {
+        case SDL_EVENT_GAMEPAD_BUTTON_DOWN: lastInputPad = true; break;
+        case SDL_EVENT_GAMEPAD_AXIS_MOTION:
+            if (e.gaxis.value > 16384 || e.gaxis.value < -16384) lastInputPad = true;
+            break;
+        case SDL_EVENT_MOUSE_MOTION:
+        case SDL_EVENT_MOUSE_BUTTON_DOWN:
+        case SDL_EVENT_MOUSE_WHEEL:
+        case SDL_EVENT_KEY_DOWN:
+        case SDL_EVENT_FINGER_DOWN: lastInputPad = false; break;
+        default: break;
+    }
+    if (padUi_) padButtonEvent(e);
     if (e.type == SDL_EVENT_QUIT) return false;
     if (e.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED && e.window.windowID == SDL_GetWindowID(window_)) return false;
     if (e.type == SDL_EVENT_WINDOW_DISPLAY_CHANGED || e.type == SDL_EVENT_DISPLAY_CURRENT_MODE_CHANGED ||
@@ -673,6 +881,7 @@ bool App::iterate() {
     pollRunning();
     pollJobs();
     handleDialogResults();
+    handlePads();
     {
         // Verification results come back through lastScanHits as well.
         std::lock_guard<std::mutex> lock(scanMutex);
@@ -705,18 +914,27 @@ bool App::iterate() {
     if (playing) ui::drawGameView(*this, w, h);
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-    static int frameCount = 0;
-    ++frameCount;
-    if (!g_opts.screenshot.empty() && frameCount == g_opts.frames) {
+    auto savePng = [&](const std::string& path) {
         std::vector<uint8_t> pixels((size_t)w * h * 4);
         gl.ReadPixels(0, 0, w, h, GL_RGBA_, GL_UNSIGNED_BYTE_, pixels.data());
         SDL_Surface* s = SDL_CreateSurface(w, h, SDL_PIXELFORMAT_ABGR8888);
         if (s) {
             for (int y = 0; y < h; ++y)
                 std::memcpy((uint8_t*)s->pixels + (size_t)y * s->pitch, pixels.data() + (size_t)(h - 1 - y) * w * 4, (size_t)w * 4);
-            if (!SDL_SavePNG(s, g_opts.screenshot.c_str())) SDL_Log("screenshot failed: %s", SDL_GetError());
+            if (!SDL_SavePNG(s, path.c_str())) SDL_Log("screenshot failed: %s", SDL_GetError());
             SDL_DestroySurface(s);
         }
+    };
+    if (!screenshotPath_.empty()) {
+        savePng(screenshotPath_);
+        screenshotPath_.clear();
+    }
+    static int frameCount = 0;
+    ++frameCount;
+    const Job* setup = job("bundle");
+    const bool setupReady = !g_opts.waitForSetup || !setup || setup->finished;
+    if (!g_opts.screenshot.empty() && frameCount >= g_opts.frames && setupReady) {
+        savePng(g_opts.screenshot);
         SDL_GL_SwapWindow(window_);
         return false;
     }

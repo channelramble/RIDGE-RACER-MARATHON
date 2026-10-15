@@ -270,6 +270,126 @@ void Ini::set(const std::string& section, const std::string& key, const std::str
     lines_.push_back(newLine);
 }
 
+bool Ini::hasSection(const std::string& section) const {
+    for (size_t i = 0; i < lines_.size(); ++i) {
+        IniLine l = classifyIni(lines_[i], i == 0);
+        if (l.kind == IniKind::Section && ieq(l.name, section)) return true;
+    }
+    return section.empty();
+}
+
+std::vector<std::string> Ini::getList(const std::string& section, const std::string& key) const {
+    std::vector<std::string> out;
+    bool inTarget = section.empty();
+    for (size_t i = 0; i < lines_.size(); ++i) {
+        IniLine l = classifyIni(lines_[i], i == 0);
+        if (l.kind == IniKind::Section) {
+            inTarget = !section.empty() && ieq(l.name, section);
+            continue;
+        }
+        if (inTarget && l.kind == IniKind::KeyValue && ieq(l.name, key)) out.emplace_back(l.value);
+    }
+    return out;
+}
+
+void Ini::setList(const std::string& section, const std::string& key, const std::vector<std::string>& values) {
+    const std::string eol = usesCrlf(lines_) ? "\r" : "";
+    const std::string eq = spacedEquals_ ? " = " : "=";
+    std::string spelling = key;  // the file's own spelling of the key, when it has one
+    long firstAt = -1;           // where the first removed line was
+    long sectionEnd = -1;        // after the last non-blank line of the first matching section
+    bool inTarget = section.empty(), seenTarget = section.empty(), firstOccurrence = section.empty();
+    std::vector<std::string> kept;
+    kept.reserve(lines_.size());
+    for (size_t i = 0; i < lines_.size(); ++i) {
+        IniLine l = classifyIni(lines_[i], i == 0);
+        if (l.kind == IniKind::Section) {
+            const bool match = !section.empty() && ieq(l.name, section);
+            if (inTarget && firstOccurrence) firstOccurrence = false;
+            inTarget = match;
+            if (match && !seenTarget) {
+                seenTarget = firstOccurrence = true;
+                sectionEnd = static_cast<long>(kept.size()) + 1;
+            }
+            kept.push_back(lines_[i]);
+            continue;
+        }
+        if (inTarget && l.kind == IniKind::KeyValue && ieq(l.name, key)) {
+            if (firstAt < 0) {
+                firstAt = static_cast<long>(kept.size());
+                spelling = std::string(l.name);
+            }
+            continue;
+        }
+        kept.push_back(lines_[i]);
+        if (inTarget && firstOccurrence && l.kind != IniKind::Blank) sectionEnd = static_cast<long>(kept.size());
+    }
+    lines_ = std::move(kept);
+    if (values.empty()) return;
+    std::vector<std::string> add;
+    for (auto& v : values) add.push_back(spelling + eq + v + eol);
+    if (firstAt >= 0) {
+        lines_.insert(lines_.begin() + firstAt, add.begin(), add.end());
+        return;
+    }
+    if (section.empty()) {
+        // Global keys go before the first section header.
+        long pos = -1;
+        for (size_t i = 0; i < lines_.size(); ++i) {
+            IniLine l = classifyIni(lines_[i], i == 0);
+            if (l.kind == IniKind::Section) break;
+            if (l.kind != IniKind::Blank) pos = static_cast<long>(i);
+        }
+        lines_.insert(lines_.begin() + (pos + 1), add.begin(), add.end());
+        return;
+    }
+    if (sectionEnd >= 0) {
+        lines_.insert(lines_.begin() + sectionEnd, add.begin(), add.end());
+        return;
+    }
+    if (!lines_.empty() && classifyIni(lines_.back(), lines_.size() == 1).kind != IniKind::Blank) lines_.push_back(eol);
+    lines_.push_back("[" + section + "]" + eol);
+    lines_.insert(lines_.end(), add.begin(), add.end());
+}
+
+void Ini::replaceSection(const std::string& section, const std::vector<std::pair<std::string, std::string>>& lines) {
+    if (section.empty()) return;  // the global part has no header to keep
+    const std::string eol = usesCrlf(lines_) ? "\r" : "";
+    const std::string eq = spacedEquals_ ? " = " : "=";
+    std::vector<std::string> body;
+    for (auto& [k, v] : lines) body.push_back(k + eq + v + eol);
+    std::vector<std::string> out;
+    out.reserve(lines_.size() + body.size());
+    auto blankAtEnd = [&] { return !out.empty() && classifyIni(out.back(), out.size() == 1).kind == IniKind::Blank; };
+    bool inTarget = false, done = false;
+    for (size_t i = 0; i < lines_.size(); ++i) {
+        IniLine l = classifyIni(lines_[i], i == 0);
+        if (l.kind == IniKind::Section) {
+            const bool match = ieq(l.name, section);
+            if (match && done) {  // a repeated header: it goes, with its lines
+                inTarget = true;
+                continue;
+            }
+            if (inTarget && !blankAtEnd()) out.push_back(eol);  // a blank line before the next section
+            inTarget = match;
+            out.push_back(lines_[i]);
+            if (match) {
+                out.insert(out.end(), body.begin(), body.end());
+                done = true;
+            }
+            continue;
+        }
+        if (!inTarget) out.push_back(lines_[i]);
+    }
+    // A blank line left behind by a dropped repeat at the very end is not needed.
+    while (inTarget && blankAtEnd()) out.pop_back();
+    lines_ = std::move(out);
+    if (done) return;
+    if (!lines_.empty() && classifyIni(lines_.back(), lines_.size() == 1).kind != IniKind::Blank) lines_.push_back(eol);
+    lines_.push_back("[" + section + "]" + eol);
+    lines_.insert(lines_.end(), body.begin(), body.end());
+}
+
 // ---- YAML (indentation-based maps of scalars) ----------------------------------------------------
 
 namespace {

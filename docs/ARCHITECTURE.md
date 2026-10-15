@@ -10,11 +10,14 @@ src/app/                UI and application glue
   App.*                 window, GL context, jobs, launching, persistence
   UiCommon.cpp          theme, widgets, the unified settings editor, dialogs
   UiScreens.cpp         library, game page, add games, backends, settings, about
+  UiControllers.cpp     gamepad navigation, button hints, the Controllers page, game CONTROLS panel
   UiPlayer.cpp          in-app player: game view, pause menu, hotkeys, touch pad
 src/core/               no UI
   Catalog.*             catalog/games.json + backends.json + recomps.json, plus extra files in <data dir>/catalog (docs/CATALOG.md)
   Library.*             the user's files, installs, system files, per-game settings
-  Settings.*            unified enhancement settings (resolution, fps, speed, redraw...)
+  Settings.*            unified enhancement and controller settings (resolution, fps, speed, steering...)
+  Controllers.*         player slots, stick dead zone, pad families, the quit chord (pure logic)
+  Gamepads.*            connected pads through SDL; GamepadMonitor (hot-plug, quit chord)
   Scanner.* formats/    recognise dumps by content (SYSTEM.CNF, PARAM.SFO, XEX, MAME CRCs)
   RomSet.*              rebuild MAME sets from loose/old-named ROMs by CRC
   Process.* Net.*       child processes, downloads, GitHub releases, archive extraction
@@ -23,7 +26,7 @@ src/backends/           one adapter per backend (see Adapters.h)
 src/libretro/           in-process libretro host (PS1, PSP and arcade cores)
 tools/framegrab/        macOS present library: frame generation and frame capture for
                         external backends (librrm_present.dylib), fg_eval
-tests/                  developer tools (launch_tool, scan_tool, lr_smoke, recomp_tool), unit tests
+tests/                  developer tools (launch_tool, scan_tool, lr_smoke, recomp_tool, ui_pad_tool), unit tests
 catalog/                data: games, backends, recomps
 platform/               per-OS packaging (Info.plist, rc, manifest, desktop file, icons)
 ```
@@ -55,6 +58,21 @@ to another installed emulator app with an Intent.
 Every adapter translates the unified `GameSettings` into the backend's own
 configuration and advertises what it honours through `capabilities`. The UI
 disables settings a backend can't apply, so nothing silently does nothing.
+
+## Controllers
+
+`GamepadMonitor` (`src/core/Gamepads.*`) keeps every gamepad open for as long as Marathon
+runs, and SDL delivers their input also while another program has the focus. It assigns
+the player slots (`assignPlayers` in `Controllers.*`), reports controllers being plugged in
+and out, and watches for the quit chord, after which the app asks the running program to
+close (`requestProcessExit`: `WM_CLOSE` to its windows on Windows, where every program runs
+in its own Job object, `SIGTERM` to its process group elsewhere) and stops it 6 seconds
+later if needed. The menus get the pads only while Marathon's window has the focus and no
+game uses them. Each launch gets the effective `ControllerSettings` (the global ones plus
+the game's `extra.controllers`) in `LaunchRequest::controllers` and the connected pads with
+their player slots in `LaunchRequest::pads`; adapters turn them into the backend's own
+configuration (in-app cores: `rrm_*` core options) and describe the result through
+`Backend::controls()`, which the game page shows. See [CONTROLLERS.md](CONTROLLERS.md).
 
 ## Threads
 

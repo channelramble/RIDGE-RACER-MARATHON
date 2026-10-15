@@ -4,7 +4,7 @@
 //   recomp_tool --data <dir> --game <gameId> --backend <id> --file <path>
 //               [--install] [--link <path>] [--dry-run] [--set key=value ...]
 //               [--wait <seconds>] [--catalog <dir>] [--display WxH]
-//               [--home <dir>]
+//               [--home <dir>] [--controller key=value ...] [--pad NAME[:GUID[:TYPE]] ...]
 //
 // --data     Marathon data directory to use (backends/, saves/, logs/ ...); extra catalog
 //            files in its catalog/ folder are merged as in Marathon (docs/CATALOG.md).
@@ -17,6 +17,10 @@
 // --wait     seconds to let the game run before terminating it (default 20).
 // --home     runs the backend with HOME (and CFFIXED_USER_HOME / XDG_*) pointed at
 //            this folder, so ports that keep data in the user's home stay isolated.
+// --controller  a controller setting (docs/CONTROLLERS.md): steering=stick|dpad,
+//            pedals=triggers|buttons, vibration=true|false, deadzone=0..40, playerN="" | none | <GUID>
+// --pad      a connected controller, repeatable, in connection order (players assigned as in
+//            Marathon); none by default.
 #include <atomic>
 #include <chrono>
 #include <cstdio>
@@ -32,6 +36,7 @@
 
 #include "backends/Backend.h"
 #include "core/Catalog.h"
+#include "core/Controllers.h"
 #include "core/Library.h"
 #include "core/Platform.h"
 #include "core/Process.h"
@@ -122,8 +127,45 @@ int usage() {
     std::fprintf(stderr,
                  "usage: recomp_tool --data <dir> --game <gameId> --backend <id> --file <path>\n"
                  "                   [--install] [--link <path>] [--dry-run] [--set key=value ...]\n"
-                 "                   [--wait <seconds>] [--catalog <dir>] [--display WxH] [--home <dir>]\n");
+                 "                   [--wait <seconds>] [--catalog <dir>] [--display WxH] [--home <dir>]\n"
+                 "                   [--controller key=value ...] [--pad NAME[:GUID[:TYPE]] ...]\n");
     return 2;
+}
+
+// --controller key=value into ControllerSettings JSON (fromJson validates it).
+void setControllerField(json& c, const std::string& k, const std::string& v) {
+    if (k.size() == 7 && k.rfind("player", 0) == 0 && k[6] >= '1' && k[6] <= '4') {
+        if (!c.contains("players")) c["players"] = json::array({json::object(), json::object(), json::object(), json::object()});
+        c["players"][static_cast<size_t>(k[6] - '1')]["controller"] = v;
+    } else if (v == "true" || v == "false") {
+        c[k] = v == "true";
+    } else if (!v.empty() && v.find_first_not_of("0123456789") == std::string::npos) {
+        c[k] = std::stoi(v);
+    } else {
+        c[k] = v;
+    }
+}
+
+// --pad NAME[:GUID[:TYPE]] specs as connected pads, numbered and given player slots like Marathon's.
+std::vector<ConnectedPad> padsFrom(const std::vector<std::string>& specs, const ControllerSettings& c) {
+    std::vector<ConnectedPad> pads;
+    for (auto& spec : specs) {
+        ConnectedPad p;
+        p.id = static_cast<uint32_t>(pads.size() + 1);
+        const size_t a = spec.find(':');
+        p.name = spec.substr(0, a);
+        if (a != std::string::npos) {
+            const size_t b = spec.find(':', a + 1);
+            p.guid = spec.substr(a + 1, b == std::string::npos ? std::string::npos : b - a - 1);
+            if (b != std::string::npos) p.type = spec.substr(b + 1);
+        }
+        if (p.type.empty()) p.type = "standard";
+        for (auto& q : pads)
+            if (q.name == p.name) ++p.nameIndex;
+        pads.push_back(p);
+    }
+    applyAssignment(pads, assignPlayers(pads, c.players));
+    return pads;
 }
 
 }  // namespace
@@ -135,6 +177,8 @@ int main(int argc, char** argv) {
     int waitSeconds = 20;
     int dispW = 0, dispH = 0;
     std::vector<std::pair<std::string, std::string>> sets;
+    json controllerJson = json::object();
+    std::vector<std::string> padSpecs;
     for (int i = 1; i < argc; ++i) {
         std::string a = argv[i];
         auto next = [&](std::string& out) {
@@ -158,6 +202,12 @@ int main(int argc, char** argv) {
             size_t eq = v.find('=');
             if (eq == std::string::npos) return usage();
             sets.emplace_back(v.substr(0, eq), v.substr(eq + 1));
+        } else if (a == "--controller" && next(v)) {
+            size_t eq = v.find('=');
+            if (eq == std::string::npos) return usage();
+            setControllerField(controllerJson, v.substr(0, eq), v.substr(eq + 1));
+        } else if (a == "--pad" && next(v)) {
+            padSpecs.push_back(v);
         } else if (a == "--help" || a == "-h") {
             return usage();
         } else {
@@ -288,6 +338,13 @@ int main(int argc, char** argv) {
     req.settings = settings;
     req.display = display;
     req.library = &lib;
+    const ControllerSettings controllers = ControllerSettings::fromJson(controllerJson);
+    req.controllers = controllers.withOverrides(settings.extra);
+    req.pads = padsFrom(padSpecs, controllers);
+    std::printf("controllers: %s\n", req.controllers.toJson().dump().c_str());
+    for (auto& p : req.pads)
+        std::printf("pad: %s %d (%s) -> %s\n", p.name.c_str(), p.nameIndex, p.guid.empty() ? "no GUID" : p.guid.c_str(),
+                    p.player < 0 ? "no player" : ("Player " + std::to_string(p.player + 1)).c_str());
 
     std::printf("available here: %s, install state: %s\n", backend->availableHere() ? "yes" : "no",
                 stateName(backend->installState(lib)));

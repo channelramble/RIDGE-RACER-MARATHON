@@ -2,6 +2,7 @@
 // configuration (INI/TOML/YAML/CLI flags/core options). See docs/SETTINGS.md.
 #pragma once
 
+#include <array>
 #include <string>
 
 #include "core/Json.h"
@@ -39,12 +40,41 @@ struct GameSettings {
     static GameSettings fromJson(const json& j);
 };
 
+// One player slot: which controller plays it.
+struct PlayerChoice {
+    std::string controller;   // "" = automatic (the next free controller), "none" = nobody, else an SDL GUID (32 lowercase hex)
+    std::string name;         // the controller's name when it was chosen (shown while it is unplugged)
+    bool operator==(const PlayerChoice&) const = default;
+};
+
+// Gamepad settings shared by every game (docs/CONTROLLERS.md). Backends apply what they can.
+struct ControllerSettings {
+    std::string steering = "stick";        // stick (left stick, analog) | dpad (digital, full lock)
+    std::string pedals = "triggers";       // triggers (RT gas, LT brake) | buttons (the game's own layout)
+    bool vibration = true;
+    int deadzone = 8;                      // stick dead zone, percent of travel, 0..40
+    std::array<PlayerChoice, 4> players;   // players[0] = Player 1
+    std::string quitChord = "guide-start"; // guide-start | back-start | off
+    int quitHoldMs = 1000;                 // 500..3000
+    json toJson() const;
+    static ControllerSettings fromJson(const json& j);
+    // GameSettings::extra["controllers"] may override steering, pedals, vibration and deadzone
+    // (players and the quit chord stay global).
+    ControllerSettings withOverrides(const json& extra) const;
+    bool operator==(const ControllerSettings&) const = default;
+};
+
 struct GlobalSettings {
+    // Format of settings.json: 1 = before controller settings (no "version" key), 2 = now.
+    // fromJson() records the version that was read; toJson() always writes the current one.
+    static constexpr int kVersion = 2;
+    int version = kVersion;
     GameSettings defaults;             // applied to games without their own settings
     float uiScale = 0.0f;              // 0 = automatic from display DPI
     bool showUnsupported = true;       // show games that cannot run on this device
     bool confirmDownloads = true;
     std::string lastScanFolder;
+    ControllerSettings controllers;
     json toJson() const;
     static GlobalSettings fromJson(const json& j);
 };

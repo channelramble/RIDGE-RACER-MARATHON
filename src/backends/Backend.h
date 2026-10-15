@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "core/Catalog.h"
+#include "core/Controllers.h"
 #include "core/Library.h"
 #include "core/Settings.h"
 
@@ -44,6 +45,18 @@ struct LaunchRequest {
     GameSettings settings;                        // effective settings
     DisplayInfo display;
     const Library* library = nullptr;             // for BIOS / firmware lookups
+    ControllerSettings controllers;               // effective: global.controllers.withOverrides(settings.extra)
+    std::vector<ConnectedPad> pads;               // connected gamepads, connection order, player slots set (may be empty)
+};
+
+// How a backend uses a standard gamepad for one game (the game page "CONTROLS" panel, docs).
+struct ControlsInfo {
+    bool steering = false, pedals = false, vibration = false, deadzone = false;  // settings applied here
+    bool playerChoice = false;  // Marathon's Player 1/2 choice is passed on (else the program numbers pads itself)
+    int players = 1;            // local players with their own controller
+    std::vector<std::string> layout;  // e.g. "Left stick: steer (analog)"
+    std::string menu;           // the program's own menu / quit, pad and keyboard
+    std::string note;           // a one-time action for the player, if any
 };
 
 // Result of a launch. External backends hand back a running process;
@@ -98,6 +111,9 @@ public:
     // Which unified settings this backend honours for a game (see docs/SETTINGS.md).
     // Merges backend capabilities with the game option's overrides.
     json capabilities(const GameBackendOption* option) const;
+
+    // How the game is played with a gamepad through this backend (docs/CONTROLLERS.md).
+    virtual ControlsInfo controls(const LaunchRequest&) const { return {}; }
 
 protected:
     const BackendDef& def_;

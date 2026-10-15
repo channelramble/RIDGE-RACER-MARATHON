@@ -11,6 +11,9 @@
 // then follows the aspect ratio the core reports. On PSP the European discs'
 // widescreen code (PspCommon.h) widens the projection and the player presents at
 // that ratio.
+//
+// Controller settings become Marathon's rrm_* input options and the cores' own input
+// options (LibretroControls.cpp): e.g. the PS1 racers get an analog neGcon.
 #include <cmath>
 #include <utility>
 
@@ -18,6 +21,7 @@
 
 #include "backends/Adapters.h"
 #include "backends/EmuCommon.h"
+#include "backends/LibretroControls.h"
 #include "backends/PspCommon.h"
 
 namespace rrm {
@@ -259,6 +263,10 @@ public:
         return out;
     }
 
+    ControlsInfo controls(const LaunchRequest& req) const override {
+        return libretroControls(def_.core, req.game ? req.game->id : std::string(), req.controllers);
+    }
+
     bool uninstall(Library& lib) override {
         if (const BackendInstall* bi = lib.install(def_.id); bi && !bi->userProvided && !bi->executable.empty()) {
             std::error_code ec;
@@ -303,6 +311,8 @@ public:
             if (r.contentPath.empty()) return fail(error);
             if (!prepareMameDevices(req, setDir, error)) return fail(error);
         }
+        const json pad = libretroControllerOptions(core, req.game->id, req.controllers);
+        for (auto& [k, v] : pad.items()) o[k] = v;
         // Advanced: settings.extra.coreOptions {"key": "value"} wins over Marathon's mapping.
         if (auto it = req.settings.extra.find("coreOptions"); it != req.settings.extra.end() && it->is_object())
             for (auto& [k, v] : it->items())

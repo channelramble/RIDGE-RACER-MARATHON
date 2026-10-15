@@ -1,5 +1,6 @@
 #include "core/Process.h"
 
+#include <algorithm>
 #include <cerrno>
 #include <chrono>
 #include <cstdlib>
@@ -87,6 +88,9 @@ std::wstring quoteArg(const std::wstring& arg) {
 
 std::mutex g_mutex;
 std::map<int64_t, HANDLE> g_handles;
+// One Job object per started program, so the programs it starts in turn can be asked to close
+// and stopped with it. No kill-on-close: games keep running when Marathon quits.
+std::map<int64_t, HANDLE> g_jobs;
 
 std::vector<wchar_t> buildEnvBlock(const std::map<std::string, std::string>& extra) {
     std::map<std::wstring, std::wstring, std::less<>> vars;
@@ -152,16 +156,31 @@ int64_t spawnProcess(const ProcessSpec& spec, std::string& error) {
     PROCESS_INFORMATION pi{};
     auto env = buildEnvBlock(spec.env);
     std::wstring wd = widen(spec.workingDir);
+    // Started suspended so it is inside its Job before it can start anything itself.
     BOOL ok = CreateProcessW(widen(spec.argv[0]).c_str(), cmd.data(), nullptr, nullptr, log != INVALID_HANDLE_VALUE,
-                             CREATE_UNICODE_ENVIRONMENT, env.data(), wd.empty() ? nullptr : wd.c_str(), &si, &pi);
+                             CREATE_UNICODE_ENVIRONMENT | CREATE_SUSPENDED, env.data(), wd.empty() ? nullptr : wd.c_str(),
+                             &si, &pi);
     if (log != INVALID_HANDLE_VALUE) CloseHandle(log);
     if (!ok) {
         error = "CreateProcess failed (" + std::to_string(GetLastError()) + ") for " + spec.argv[0];
         return 0;
     }
+    HANDLE job = CreateJobObjectW(nullptr, nullptr);
+    if (job) {
+        // Programs that start others outside their Job on purpose may still do so.
+        JOBOBJECT_EXTENDED_LIMIT_INFORMATION limits{};
+        limits.BasicLimitInformation.LimitFlags = JOB_OBJECT_LIMIT_BREAKAWAY_OK;
+        SetInformationJobObject(job, JobObjectExtendedLimitInformation, &limits, sizeof(limits));
+    }
+    if (job && !AssignProcessToJobObject(job, pi.hProcess)) {
+        CloseHandle(job);  // (Marathon itself runs in a Job that forbids nesting: manage the process alone)
+        job = nullptr;
+    }
+    ResumeThread(pi.hThread);
     CloseHandle(pi.hThread);
     std::lock_guard<std::mutex> lock(g_mutex);
     g_handles[(int64_t)pi.dwProcessId] = pi.hProcess;
+    if (job) g_jobs[(int64_t)pi.dwProcessId] = job;
     return (int64_t)pi.dwProcessId;
 }
 
@@ -180,13 +199,66 @@ bool processRunning(int64_t pid, int* exitCode) {
     std::lock_guard<std::mutex> lock(g_mutex);
     CloseHandle(h);
     g_handles.erase(pid);
+    if (auto j = g_jobs.find(pid); j != g_jobs.end()) {
+        CloseHandle(j->second);
+        g_jobs.erase(j);
+    }
     return false;
 }
 
-void terminateProcess(int64_t pid) {
+namespace {
+
+struct CloseRequest {
+    std::vector<DWORD> pids;
+    int posted = 0;
+};
+
+BOOL CALLBACK closeWindowsOf(HWND hwnd, LPARAM param) {
+    auto* req = reinterpret_cast<CloseRequest*>(param);
+    DWORD owner = 0;
+    GetWindowThreadProcessId(hwnd, &owner);
+    if (std::find(req->pids.begin(), req->pids.end(), owner) == req->pids.end()) return TRUE;
+    if (!IsWindowVisible(hwnd) || GetWindow(hwnd, GW_OWNER)) return TRUE;  // visible top-level windows only
+    if (PostMessageW(hwnd, WM_CLOSE, 0, 0)) ++req->posted;
+    return TRUE;
+}
+
+}  // namespace
+
+bool requestProcessExit(int64_t pid) {
+    if (!processRunning(pid)) return false;
+    CloseRequest req;
+    {
+        std::lock_guard<std::mutex> lock(g_mutex);
+        if (auto j = g_jobs.find(pid); j != g_jobs.end()) {
+            // Every process in the Job: the program and whatever it started.
+            std::vector<unsigned char> buf(sizeof(JOBOBJECT_BASIC_PROCESS_ID_LIST) + 1024 * sizeof(ULONG_PTR));
+            auto* list = reinterpret_cast<JOBOBJECT_BASIC_PROCESS_ID_LIST*>(buf.data());
+            if (QueryInformationJobObject(j->second, JobObjectBasicProcessIdList, list, (DWORD)buf.size(), nullptr))
+                for (DWORD i = 0; i < list->NumberOfProcessIdsInList; ++i) req.pids.push_back((DWORD)list->ProcessIdList[i]);
+        }
+    }
+    if (std::find(req.pids.begin(), req.pids.end(), (DWORD)pid) == req.pids.end()) req.pids.push_back((DWORD)pid);
+    EnumWindows(closeWindowsOf, reinterpret_cast<LPARAM>(&req));
+    return req.posted > 0;
+}
+
+void killProcess(int64_t pid) {
     std::lock_guard<std::mutex> lock(g_mutex);
-    auto it = g_handles.find(pid);
-    if (it != g_handles.end()) TerminateProcess(it->second, 1);
+    if (auto j = g_jobs.find(pid); j != g_jobs.end()) TerminateJobObject(j->second, 1);
+    if (auto it = g_handles.find(pid); it != g_handles.end()) TerminateProcess(it->second, 1);
+}
+
+void terminateProcess(int64_t pid) {
+    if (!processRunning(pid)) return;
+    requestProcessExit(pid);
+    std::thread([pid] {
+        for (int i = 0; i < 30; ++i) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            if (!processRunning(pid)) return;
+        }
+        killProcess(pid);
+    }).detach();
 }
 
 int runProcess(const ProcessSpec& spec, std::string* output, const std::function<bool()>& keepWaiting) {
@@ -336,17 +408,29 @@ bool processRunning(int64_t pid, int* exitCode) {
     return false;
 }
 
-void terminateProcess(int64_t pid) {
+// The child called setsid(), so -pid is its process group: the program and what it started.
+// processRunning() first, so a reaped (possibly reused) pid is never signalled.
+bool requestProcessExit(int64_t pid) {
+    if (pid <= 0 || !processRunning(pid)) return false;
+    const bool group = kill(-(pid_t)pid, SIGTERM) == 0;
+    const bool self = kill((pid_t)pid, SIGTERM) == 0;
+    return group || self;
+}
+
+void killProcess(int64_t pid) {
     if (pid <= 0 || !processRunning(pid)) return;
-    kill(-(pid_t)pid, SIGTERM);
-    kill((pid_t)pid, SIGTERM);
+    kill(-(pid_t)pid, SIGKILL);
+    kill((pid_t)pid, SIGKILL);
+}
+
+void terminateProcess(int64_t pid) {
+    if (!requestProcessExit(pid)) return;
     std::thread([pid] {
         for (int i = 0; i < 30; ++i) {
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
             if (!processRunning(pid)) return;
         }
-        kill(-(pid_t)pid, SIGKILL);
-        kill((pid_t)pid, SIGKILL);
+        killProcess(pid);
     }).detach();
 }
 

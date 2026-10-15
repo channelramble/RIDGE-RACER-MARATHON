@@ -25,6 +25,7 @@ set(RRM_CORE
     ${RRM_ROOT}/src/core/Json.cpp
     ${RRM_ROOT}/src/core/Library.cpp
     ${RRM_ROOT}/src/core/Settings.cpp
+    ${RRM_ROOT}/src/core/Controllers.cpp
     ${RRM_ROOT}/src/core/Platform.cpp
     ${RRM_ROOT}/src/core/Process.cpp
     ${RRM_ROOT}/src/core/Net.cpp
@@ -37,6 +38,7 @@ set(RRM_MINE
     ${RRM_ROOT}/src/backends/RaveRacerNative.cpp
     ${RRM_ROOT}/src/backends/Fukami.cpp
     ${RRM_ROOT}/src/backends/Rr6Recomp.cpp
+    ${RRM_ROOT}/src/backends/ControllerConfigs.cpp
     ${RRM_ROOT}/tests/recomp_tool.cpp)
 
 set(RRM_EXTRA ${CMAKE_CURRENT_SOURCE_DIR}/stubs.cpp)
