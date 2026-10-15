@@ -21,6 +21,40 @@ spec.loader.exec_module(bundle)
 
 
 class BundleTest(unittest.TestCase):
+    @unittest.skipIf(os.name == 'nt' or sys.version_info < (3, 12),
+                     'POSIX source mirrors use the Linux release runner')
+    def test_source_colon_filename_preserved_without_weakening_runtime_paths(self):
+        with tempfile.TemporaryDirectory() as temp:
+            base = Path(temp)
+            notice = base / 'fixture'
+            notice.write_bytes(b'upstream source fixture\n')
+            member = 'pipewire/samples/USB Device 0x46d:0x9a4--USB Mixer'
+            archive = base / 'source.tar'
+            with tarfile.open(archive, 'w') as t:
+                t.add(notice, arcname=member)
+            with self.assertRaises(ValueError):
+                bundle.extract(archive, 'tar', base / 'runtime')
+            bundle.extract(archive, 'tar', base / 'source', source=True)
+            self.assertEqual((base / 'source' / member).read_bytes(), notice.read_bytes())
+            for unsafe in ('../outside', '/absolute', 'C:/absolute'):
+                with tarfile.open(archive, 'w') as t:
+                    t.add(notice, arcname=unsafe)
+                # tarfile strips the initial slash from arcname; force the
+                # absolute member explicitly to exercise our input validation.
+                if unsafe.startswith('/'):
+                    with tarfile.open(archive, 'w') as t:
+                        entry = tarfile.TarInfo(unsafe)
+                        t.addfile(entry)
+                with self.assertRaises(ValueError):
+                    bundle.extract(archive, 'tar', base / 'unsafe', source=True)
+            with tarfile.open(archive, 'w') as t:
+                link = tarfile.TarInfo('source/escaping-link')
+                link.type = tarfile.SYMTYPE
+                link.linkname = '../../outside'
+                t.addfile(link)
+            with self.assertRaises(ValueError):
+                bundle.extract(archive, 'tar', base / 'unsafe-link', source=True)
+
     def test_local_source_patch_requires_exact_hash_and_stays_in_repository(self):
         with tempfile.TemporaryDirectory() as temp:
             base = Path(temp)

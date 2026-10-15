@@ -24,6 +24,10 @@ If a Windows emulator reports missing VCRUNTIME or MSVCP files, double-click
 Install Windows Runtime.cmd beside Marathon. It downloads the official x64
 runtime from Microsoft, verifies it, then opens the installer for you to review.
 Internet is required for this optional step. Nothing installs automatically.
+Linux: install your graphics driver and desktop OpenGL runtime. If PCSX2 or
+RPCS3 reports missing libOpenGL.so.0 on Ubuntu/Debian, run:
+  sudo apt install libopengl0
+Other distributions provide this through their libglvnd/OpenGL package.
 Some external backends also need a newer operating system.
 
 Controllers: hold Guide + Start to return to Marathon (Back + Start on systems

@@ -29,7 +29,10 @@ optional step requires internet access; the installer is not redistributed.
 Microsoft's [redistribution terms](https://learn.microsoft.com/en-us/cpp/windows/redistributing-visual-cpp-files)
 reserve redistribution rights to licensed Visual Studio users. macOS PCSX2 needs
 Rosetta 2. A graphics driver remains an operating-system
-requirement.
+requirement. Linux PCSX2 and RPCS3 also use the desktop OpenGL dispatcher
+`libOpenGL.so.0`. On Ubuntu/Debian, install it with `sudo apt install libopengl0`
+if missing; other distributions provide it through their libglvnd/OpenGL package.
+The release keeps GPU drivers under the operating system's package management.
 
 The package preserves upstream applications, their support files and their
 licenses. Linux AppImages are extracted during release packaging and launched

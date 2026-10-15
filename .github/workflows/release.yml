@@ -302,3 +302,11 @@ jobs:
           fail_on_unmatched_files: true
           preserve_order: true
           files: dist/*
+      - name: Set the existing draft to the tested release commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_COMMIT: ${{ github.sha }}
+        run: >-
+          gh release edit "$RELEASE_TAG" --draft=true --target "$RELEASE_COMMIT"
+          --title "RIDGE RACER MARATHON $RELEASE_TAG — Complete"
+          --notes-file packaging/RELEASE_NOTES.md

@@ -45,9 +45,10 @@ def write_json(path, obj):
     Path(path).write_text(json.dumps(obj, indent=2) + '\n', encoding='utf-8')
 
 
-def relative(value):
+def relative(value, *, posix_names=False):
     p = PurePosixPath(value)
-    if not value or '\\' in value or p.is_absolute() or '..' in p.parts or ':' in value:
+    if (not value or '\\' in value or p.is_absolute() or '..' in p.parts or
+            (':' in value and not posix_names) or re.match(r'^[A-Za-z]:', value)):
         raise ValueError(f'Unsafe relative path: {value!r}')
     return p
 
@@ -120,10 +121,10 @@ def validate_tree(root):
             raise ValueError(f'Unsupported archive member: {path}')
 
 
-def extract_zip(archive, dest):
+def extract_zip(archive, dest, *, source=False):
     with zipfile.ZipFile(archive) as z:
         for info in z.infolist():
-            rel = relative(info.filename.rstrip('/'))
+            rel = relative(info.filename.rstrip('/'), posix_names=source)
             path = dest / str(rel)
             mode = info.external_attr >> 16
             if info.is_dir():
@@ -164,10 +165,10 @@ def flatten_appimage_tree(dest):
         tree.unlink()
 
 
-def extract(archive, fmt, dest):
+def extract(archive, fmt, dest, *, source=False):
     dest.mkdir(parents=True, exist_ok=True)
     if fmt == 'zip':
-        extract_zip(archive, dest)
+        extract_zip(archive, dest, source=source)
     elif fmt == 'appimage':
         if sys.platform != 'linux':
             raise RuntimeError('Normalize Linux AppImages on the Linux source/bundle runner')
@@ -185,12 +186,12 @@ def extract(archive, fmt, dest):
             unpacked = Path(temp) / 'source.tar'
             with unpacked.open('wb') as out:
                 subprocess.run([exe, '-d', '-q', '-c', str(archive)], stdout=out, check=True)
-            extract(unpacked, 'tar', dest)
+            extract(unpacked, 'tar', dest, source=source)
     elif fmt.startswith('tar') or fmt in ('tgz', 'tbz2', 'txz'):
         with tarfile.open(archive) as tar:
             members = tar.getmembers()
             for member in members:
-                relative(member.name.rstrip('/'))
+                relative(member.name.rstrip('/'), posix_names=source)
                 if member.isdev() or member.isfifo():
                     raise ValueError('Unsupported tar member')
                 if member.issym() or member.islnk():
@@ -206,7 +207,7 @@ def extract(archive, fmt, dest):
         listing = subprocess.check_output([exe, 'l', '-slt', str(archive)], text=True)
         # First Path is the input archive; later Paths are archive members.
         for value in re.findall(r'^Path = (.+)$', listing, re.MULTILINE)[1:]:
-            relative(value.rstrip('/'))
+            relative(value.rstrip('/'), posix_names=source)
         run(exe, 'x', '-y', '-bd', '-o' + str(dest.resolve()), archive)
     else:
         raise ValueError(f'Unsupported archive format: {fmt}')
@@ -369,7 +370,7 @@ def build_sources(args, lock):
                     tree.mkdir()
                     shutil.copyfile(original, tree / Path(filename).name)
                 else:
-                    extract(original, fmt, tree)
+                    extract(original, fmt, tree, source=True)
             n = collect_licenses(tree, output / 'licenses' / sid)
             if source.get('runtime_assets'):
                 assets = tree / source['runtime_assets']
