@@ -441,7 +441,7 @@
           ],
           "priority": 100,
           "status": "recommended",
-          "note": "Native decompiled port (namco22-decompile): renders up to 8K, widescreen in the screen's own shape (fullscreen), 24-240 pictures a second (frames repeated above 60). Uses the MAME 0.271+ raverace + namcoc74 sets, rebuilt from your ROMs. macOS: local build only.",
+          "note": "Native decompiled port (namco22-decompile): renders up to 8K, widescreen in the screen's own shape (fullscreen), 24-240 pictures a second (frames repeated above 60). Uses the MAME 0.271+ raverace + namcoc74 sets, rebuilt from your ROMs. Included on Windows, Linux and Apple Silicon (macOS 14+).",
           "params": {
             "nativeHeight": 480,
             "devices": [

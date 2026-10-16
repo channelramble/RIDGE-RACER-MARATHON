@@ -40,7 +40,7 @@ HUD placed correctly; "hack" means a widened field of view with the 2D HUD stret
 | Game | Best way to run it | 4K+ | Ultrawide | Above 60 Hz |
 |---|---|---|---|---|
 | Ridge Racer (PS1) | RR1 recomp (your local build) with the native redraw | yes | **native** 21:9, 32:9 or screen shape with the redraw on; the original renderer stops at 16:9 | redraw draws real frames up to 360 fps or the display rate |
-| Rave Racer (arcade) | namco22 native port (Windows/Linux; macOS local build) | up to 8K | **native**, the screen's own shape in fullscreen | the game runs at 59.9 Hz; higher rates repeat frames |
+| Rave Racer (arcade) | namco22 native port (all desktops) | up to 8K | **native**, the screen's own shape in fullscreen | the game runs at 59.9 Hz; higher rates repeat frames |
 | Rage Racer (PS1) | Rage Racer PC | yes (scale 9 = 2160 lines) | the port stops at 16:9 (4:3 on 4:3-ish screens) and runs in a window; 21:9 / 32:9 via SwanStation (hack) | interpolated up to 1000 fps |
 | R4 (PS1) | R4 recomp | up to 8K | **native** Fit, 21:9, 32:9 (races; menus stay 4:3) | interpolated to the display rate |
 | Ridge Racer V (PS2) | Fukami (all desktops); PCSX2 | up to 3584 lines | Fukami **native** 21:9 (bars beyond); PCSX2: 16:9 patch, plus 21:9 / 32:9 / screen shape derived from it (experimental, HUD stretched) | 60 fps; VRR or a 120/240 Hz display mode keeps it even |

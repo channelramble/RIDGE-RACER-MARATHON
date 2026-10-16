@@ -1,19 +1,20 @@
 # Recompilations, ports and emulators
 
 Marathon prefers a native recompilation or source port when one exists and falls back
-to an emulator. None of these projects is bundled: Marathon downloads official releases
-on your machine, or links a build you made yourself when upstream ships source only.
+to an emulator. Complete desktop packages include the redistributable backends and
+install them automatically, offline. See [the platform inventory](BUNDLED_BACKENDS.md)
+for included backends and the remaining upstream-download or source-build options.
 
 | Game | Project | Licence | How Marathon gets it |
 |---|---|---|---|
 | Ridge Racer (PS1) | [RobGreenUK/Ridge-Racer-PS1-Recomp](https://github.com/RobGreenUK/Ridge-Racer-PS1-Recomp) | MIT + PolyForm Noncommercial (PSXRecomp) | source only: build it with your disc, then Link existing |
-| R4 (PS1) | [tetrisgm/RidgeRacerType4Recomp](https://github.com/tetrisgm/RidgeRacerType4Recomp) (macOS, Windows); [omegakatana92/RidgeRacer4Recomp](https://github.com/omegakatana92/RidgeRacer4Recomp) (Linux) | MIT + PolyForm Noncommercial; Linux build unlicensed | release download (first start compiles from your disc) |
+| R4 (PS1) | [tetrisgm/RidgeRacerType4Recomp](https://github.com/tetrisgm/RidgeRacerType4Recomp) (macOS, Windows); [omegakatana92/RidgeRacer4Recomp](https://github.com/omegakatana92/RidgeRacer4Recomp) (Linux) | MIT + PolyForm Noncommercial; Linux build unlicensed | included setup kit on macOS/Windows (first start compiles from your disc); upstream download on Linux |
 | Rage Racer (PS1) | [khasinski/rage-racer-pc](https://github.com/khasinski/rage-racer-pc) | none published | release download |
-| Rave Racer (arcade) | [spacestate1/namco22-decompile](https://github.com/spacestate1/namco22-decompile) | MIT (generated code derives from the ROMs) | release download (Windows, Linux); macOS: local build, see below |
-| Ridge Racer V (PS2) | [danisandoval/fukami](https://github.com/danisandoval/fukami) | GPL-3.0 | release download |
-| Ridge Racer 6 (X360) | [Sirhalo23/RidgeRacer6-Recompilation](https://github.com/Sirhalo23/RidgeRacer6-Recompilation) | BSD-3-Clause | release download (Windows, Linux test build); macOS: local build |
-| PS1 / PSP / arcade | SwanStation, PCSX-ReARMed, PPSSPP, MAME libretro cores | GPL | libretro buildbot (desktop, Android); bundled on iOS |
-| PS2 / PS3 / X360 / PSP / arcade | PCSX2, RPCS3, Xenia Canary, PPSSPP, MAME | GPL / BSD | official releases (MAME: Windows only) |
+| Rave Racer (arcade) | [spacestate1/namco22-decompile](https://github.com/spacestate1/namco22-decompile) | MIT (generated code derives from the ROMs) | included on all desktop platforms; Apple Silicon needs macOS 14+ |
+| Ridge Racer V (PS2) | [danisandoval/fukami](https://github.com/danisandoval/fukami) | GPL-3.0 | included on all desktop platforms |
+| Ridge Racer 6 (X360) | [Sirhalo23/RidgeRacer6-Recompilation](https://github.com/Sirhalo23/RidgeRacer6-Recompilation) | BSD-3-Clause | included on all desktop platforms; Apple Silicon needs macOS 14+ |
+| PS1 / PSP / arcade | SwanStation, PCSX-ReARMed, PPSSPP, MAME libretro cores | GPL | included on desktop/iOS; libretro buildbot on Android |
+| PS2 / PS3 / X360 / PSP / arcade | PCSX2, RPCS3, Xenia Canary, PPSSPP, MAME | GPL / BSD | included where supported; see the platform inventory |
 
 ## Marathon's own additions
 
@@ -37,20 +38,14 @@ Where upstream stops short of ultrawide or high frame rates, Marathon adds what 
 - **Ridge Racer 6 and 7 on macOS:** frame generation for the RR6 recomp and RPCS3
   (see [SETTINGS.md](SETTINGS.md)).
 
-## Building Rave Racer for macOS
+## Rave Racer on macOS
 
-The namco22 port has no macOS release, and its build generates code from your ROMs, so
-the result is yours alone and must not be shared. From the project's source:
+The Complete package includes a native Apple Silicon runtime for macOS 14 or newer.
+Marathon installs it automatically and prepares its ROM sets from your own files.
+No Homebrew, compiler, separate SDL installation or manual linking is needed.
+Backends > Install can also download the same checksum-verified runtime.
 
-```sh
-brew install gcc cmake pkgconf sdl2
-cd raverace && python3 tools/setup_roms.py raverace.zip namcoc74.zip
-# OpenGL header shim: a folder with GL/gl.h containing
-#   #define GL_SILENCE_DEPRECATION 1 / #include <OpenGL/gl.h> / #ifndef APIENTRY #define APIENTRY #endif
-cmake -S . -B build -DCMAKE_C_COMPILER=gcc-16 -DCMAKE_BUILD_TYPE=RelWithDebInfo \
-      -DCMAKE_C_FLAGS="-I<shim folder>" -DCMAKE_EXE_LINKER_FLAGS="-L/opt/homebrew/lib"
-cmake --build build --target rr
-```
-
-Then choose `raverace/build/rr` with **Link existing** on Rave Racer's page. Marathon
-builds `raverace.zip` and `namcoc74.zip` from your ROMs (MAME 0.271+ names) for it.
+Rebuilding is optional. Developers can use `scripts/build-rave-macos.sh` with their
+own `raverace.zip` and `namcoc74.zip`; see [the build instructions](BUNDLED_BACKENDS.md#reproducible-release-inputs).
+The Mac portability patch and matching sources are included with the release.
+Game ROMs and extracted game assets are not distributed.
