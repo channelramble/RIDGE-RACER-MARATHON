@@ -180,15 +180,16 @@ Picture picture(const LaunchRequest& req) {
     p.scaleY = emu::renderScale(req, kNativeHeight, kMaxScaleY);
     p.scaleX = p.scaleY;
     const double r = aspectRatio(req.settings.aspect, req.display.width, req.display.height);
+    const double screen = req.display.height > 0 ? double(req.display.width) / req.display.height : kOriginalAspect;
     // Like upstream's launcher: only a full screen wider than 16:9 is filled; anything else
     // keeps the original 16:9 picture with bars (4:3 would only squeeze the 3D view). A
     // window stays 16:9: this SDK also takes a non-default window_width/height as the
     // guest's video mode (BUILDING.md: "Startup window size is deliberately not exposed").
-    if (r > kOriginalAspect + 0.01 && req.settings.fullscreen) {
-        p.ratio = r;
+    if (r > kOriginalAspect + 0.01 && screen > kOriginalAspect + 0.01 && req.settings.fullscreen) {
+        p.ratio = screen;  // presentation fills the display: projection must use the SAME ratio
         // The frame stays 16:9 and is stretched sideways, so its width gets proportionally
         // more pixels (the launcher's own rule).
-        p.scaleX = std::clamp(static_cast<int>(std::ceil(p.scaleY * r / kOriginalAspect - 0.01)), p.scaleY, kMaxScaleAxis);
+        p.scaleX = std::clamp(static_cast<int>(std::ceil(p.scaleY * screen / kOriginalAspect - 0.01)), p.scaleY, kMaxScaleAxis);
     }
     return p;
 }
@@ -232,6 +233,11 @@ std::vector<std::string> settingFlags(const LaunchRequest& req, Layout layout, s
     notes.push_back("render " + std::to_string(1280 * pic.scaleX) + "x" + std::to_string(720 * pic.scaleY) +
                     (widen ? ", 3D view widened to " + emu::fmtNumber(pic.ratio) + ":1" : ", 16:9"));
     if (s.aspect == "4:3") notes.push_back("4:3 is not offered by the recomp: original 16:9");
+    const double requestedAspect = aspectRatio(s.aspect, req.display.width, req.display.height);
+    if (s.fullscreen && requestedAspect > kOriginalAspect + 0.01 &&
+        std::fabs(requestedAspect - (widen ? pic.ratio : kOriginalAspect)) > 0.02)
+        notes.push_back("fullscreen uses the screen's shape to preserve proportions; " + s.aspect +
+                        " needs a display with that shape");
     if (!widen && !s.fullscreen && aspectRatio(s.aspect, req.display.width, req.display.height) > kOriginalAspect + 0.01)
         notes.push_back("a wider picture needs full screen: the window stays 16:9");
     if (resolveFps(s) != 0 && layout != Layout::MacApp && layout != Layout::MacDevBuild)

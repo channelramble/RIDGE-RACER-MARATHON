@@ -27,6 +27,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <filesystem>
+#include <fstream>
 #include <string>
 #include <vector>
 
@@ -35,6 +36,7 @@
 #include "core/Platform.h"
 #include "core/Scanner.h"
 #include "imgui.h"
+#include "imgui_internal.h"
 #include "imgui_impl_opengl3.h"
 #include "imgui_impl_sdl3.h"
 
@@ -164,6 +166,113 @@ void setEnv(const char* key, const std::string& value) {
 #endif
 }
 
+void key(SDL_Keycode code, SDL_Scancode scan, bool down) {
+    SDL_Event event{};
+    event.type = down ? SDL_EVENT_KEY_DOWN : SDL_EVENT_KEY_UP;
+    event.key.key = code;
+    event.key.scancode = scan;
+    event.key.down = down;
+    event.key.windowID = SDL_GetWindowID(app().window());
+    app().handleEvent(event);
+}
+
+void activatePauseItem(const char* label) {
+    auto* window = ImGui::FindWindowByName("##pause");
+    CHECK(window);
+    if (!window) return;
+    ImGui::FocusWindow(window);
+    ImGui::SetNavID(window->GetID(label), ImGuiNavLayer_Main, window->NavRootFocusScopeId, ImRect());
+    ImGui::ActivateItemByID(window->GetID(label));
+    frame();
+}
+
+void checkPlaybackControls(App& a) {
+    CHECK(ui::playerMenuOpen());
+    activatePauseItem("Fast-forward (toggle)");
+    CHECK(a.host().turbo());
+    ui::closePlayerMenu(a);
+    runFor(500);
+    CHECK(a.host().turbo());
+    key(SDLK_ESCAPE, SDL_SCANCODE_ESCAPE, true);
+    key(SDLK_ESCAPE, SDL_SCANCODE_ESCAPE, false);
+    frame();
+    activatePauseItem("Fast-forward (toggle)");
+    CHECK(!a.host().turbo());
+    runFor(100);
+    CHECK(!a.host().turbo());
+
+    // Measure actual emulation after each transition: toggling off must restore
+    // normal pacing, rather than just clearing the UI indicator.
+    ui::closePlayerMenu(a);
+    auto rate = [&]() {
+        const auto frames = a.host().stats().framesRun;
+        const auto start = SDL_GetTicks();
+        runFor(800);
+        return 1000.0 * (a.host().stats().framesRun - frames) / (SDL_GetTicks() - start);
+    };
+    const double normal = rate();
+    a.host().setTurbo(true);
+    const double fast = rate();
+    a.host().setTurbo(false);
+    const double restored = rate();
+    a.host().setSpeedPercent(200);
+    const double doubled = rate();
+    a.host().setSpeedPercent(100);
+    const double restoredSpeed = rate();
+    std::printf("  emulated fps normal %.1f, turbo %.1f, off %.1f, 200%% %.1f, 100%% %.1f\n",
+                normal, fast, restored, doubled, restoredSpeed);
+    CHECK(normal > 40 && normal < 80);
+    CHECK(fast > normal * 1.5);
+    CHECK(restored > normal * 0.8 && restored < normal * 1.2);
+    CHECK(doubled > normal * 1.5);
+    CHECK(restoredSpeed > normal * 0.8 && restoredSpeed < normal * 1.2);
+    key(SDLK_ESCAPE, SDL_SCANCODE_ESCAPE, true);
+    key(SDLK_ESCAPE, SDL_SCANCODE_ESCAPE, false);
+    frame();
+
+    // Edit the actual pause-menu slider over several frames, then deactivate it.
+    const int before = a.settingsFor(a.selectedGame).speed;
+    activatePauseItem("Game speed");
+    key(SDLK_RIGHT, SDL_SCANCODE_RIGHT, true);
+    runFor(150);
+    key(SDLK_RIGHT, SDL_SCANCODE_RIGHT, false);
+    frame();
+    activatePauseItem("Game speed");
+    runFor(100);
+    const int after = a.settingsFor(a.selectedGame).speed;
+    std::printf("  speed slider persisted: %d -> %d\n", before, after);
+    CHECK(after > before);
+    CHECK(a.library.find(a.selectedGame)->customSettings);
+    // Restore through the same control, not a direct edit of the library.
+    activatePauseItem("Game speed");
+    key(SDLK_LEFT, SDL_SCANCODE_LEFT, true);
+    runFor(150);
+    key(SDLK_LEFT, SDL_SCANCODE_LEFT, false);
+    frame();
+    activatePauseItem("Game speed");
+    runFor(100);
+    CHECK(a.settingsFor(a.selectedGame).speed == before);
+
+    // Tab navigates the pause menu instead of silently engaging fast-forward.
+    key(SDLK_TAB, SDL_SCANCODE_TAB, true);
+    frame();
+    key(SDLK_TAB, SDL_SCANCODE_TAB, false);
+    frame();
+    CHECK(!a.host().turbo());
+    ui::closePlayerMenu(a);
+    key(SDLK_TAB, SDL_SCANCODE_TAB, true);
+    CHECK(a.host().turbo());
+    SDL_Event focus{};
+    focus.type = SDL_EVENT_WINDOW_FOCUS_LOST;
+    a.handleEvent(focus);
+    CHECK(!a.host().turbo());
+    key(SDLK_TAB, SDL_SCANCODE_TAB, false);
+    key(SDLK_ESCAPE, SDL_SCANCODE_ESCAPE, true);
+    key(SDLK_ESCAPE, SDL_SCANCODE_ESCAPE, false);
+    frame();
+    CHECK(ui::playerMenuOpen());
+}
+
 void checkTextInputLifecycle(App& a) {
     // Gameplay/menu keys must never opt into macOS's press-and-hold accent UI.
     CHECK(!SDL_TextInputActive(a.window()));
@@ -198,6 +307,54 @@ void checkTextInputLifecycle(App& a) {
     textFrame(false, false);
     CHECK(!SDL_TextInputActive(a.window()));
     std::printf("text input: inactive on menus, active for a field, UTF-8 entered, inactive after leaving\n");
+}
+
+void checkLibrarySetup(App& a) {
+    const fs::path root = paths().data / "scan-fixture";
+    const fs::path bios = root / "a/b/c/d/e/f/g/renamed-bios";
+    fs::create_directories(bios.parent_path());
+    std::string bytes(512 * 1024, '\0');
+    bytes.replace(0x108, 4, "CEX-");
+    std::ofstream(bios, std::ios::binary) << bytes;
+    a.scanFolder(pathToUtf8(root));
+    runFor(500);
+    CHECK(a.library.systemFile("ps1-bios") == pathToUtf8(bios));
+    const fs::path selected = paths().data / "manual-bios.bin";
+    std::ofstream(selected, std::ios::binary) << bytes;
+    a.library.setSystemFile("ps1-bios", pathToUtf8(selected));
+    a.scanFolder(pathToUtf8(root));
+    runFor(500);
+    CHECK(a.library.systemFile("ps1-bios") == pathToUtf8(selected));
+    fs::remove(selected);
+    a.scanFolder(pathToUtf8(root));
+    runFor(500);
+    CHECK(a.library.systemFile("ps1-bios") == pathToUtf8(bios));
+    a.library.setSystemFile("ps1-bios", ""); // synthetic kernel must never be given to a real core
+
+    const fs::path exe = root / "r4-runtime";
+    std::ofstream(exe) << "fixture";
+    std::ofstream(root / "README-SETUP.txt") << "fixture setup kit";
+    std::ofstream(root / "r4.cue") << "fixture disc";
+    a.library.setInstall({"r4-recomp", "test", pathToUtf8(root), pathToUtf8(exe), false});
+    auto& entry = a.library.entry("r4");
+    entry.files.path = pathToUtf8(root / "r4.cue");
+    entry.settings.backend = "r4-recomp";
+    CHECK(a.statusOf(*a.catalog.game("r4")) == App::GameStatus::Ready);
+    a.library.removeInstall("r4-recomp");
+    entry = LibraryEntry{};
+    entry.gameId = "r4";
+
+    for (const char* id : {"ridge-racer", "rage-racer", "r4", "ridge-racer-v"}) {
+        auto& e = a.library.entry(id);
+        e.customSettings = true;
+        e.settings.aspect = "31:9";
+        const auto* option = a.chosenOption(*a.catalog.game(id));
+        CHECK(option && option->backend == (std::string(id) == "ridge-racer-v" ? "pcsx2" : "lr-swanstation"));
+        e = LibraryEntry{};
+        e.gameId = id;
+    }
+    a.library.save();
+    std::printf("library: deep BIOS discovery, valid selection preserved, stale path repaired, R4 wizard ready, 31:9 Auto routing\n");
 }
 
 }  // namespace
@@ -246,6 +403,7 @@ int main(int argc, char** argv) {
         return 1;
     }
     App& a = app();
+    checkLibrarySetup(a);
     CHECK(!SDL_TextInputActive(a.window()));  // also catches an untracked startup request
     VirtualPad pad = attach("Marathon UI Test Pad", 0x045E, 0x0B12);  // Xbox Series X ids
     SDL_RaiseWindow(a.window());
@@ -443,6 +601,7 @@ int main(int argc, char** argv) {
             press(pad, SDL_GAMEPAD_BUTTON_GUIDE, 300);  // (SDL reports a Guide release 250 ms after the press at the earliest)
             std::printf("  Guide alone: pause menu %s\n", ui::playerMenuOpen() ? "open ok" : "CLOSED");
             CHECK(ui::playerMenuOpen());
+            checkPlaybackControls(a);
             screenshot("-pause");
             press(pad, SDL_GAMEPAD_BUTTON_EAST);
             std::printf("  B: pause menu %s\n", ui::playerMenuOpen() ? "STILL OPEN" : "closed ok");

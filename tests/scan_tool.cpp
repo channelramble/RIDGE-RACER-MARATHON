@@ -123,7 +123,9 @@ int main(int argc, char** argv) {
     fs::path root = fs::absolute(utf8ToPath(folder), ec).lexically_normal();
     ScanProgress progress;
     const auto t0 = std::chrono::steady_clock::now();
-    std::vector<ScanHit> hits = scanFolder(catalog, folder, &progress, depth);
+    std::vector<SystemFileHit> firmware;
+    std::vector<ScanHit> hits = scanFolder(catalog, folder, &progress, depth, &firmware);
+    for (const auto& f : firmware) std::printf("system %-14s %s\n", f.kind.c_str(), f.path.c_str());
     std::printf("scanned %s\n  %d files, %zu hits in %.3f s\n\n", folder.c_str(), progress.filesSeen.load(),
                 hits.size(), secondsSince(t0));
     std::printf("%-18s %-11s %-24s %-30s %s\n", "game", "format", "detected by", "verified", "path");

@@ -238,7 +238,7 @@ public:
             if (a == "4:3") {
                 wide = false;
                 put("aspect", "4:3");
-            } else if (a == "16:9" || a == "21:9" || a == "32:9" || a == "fit") {
+            } else if (a == "16:9" || a == "21:9" || a == "31:9" || a == "32:9" || a == "fit") {
                 wide = true;
             }
             if (a != "auto") put("widescreen", wide ? "1" : "0");

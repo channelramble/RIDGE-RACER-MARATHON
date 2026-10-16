@@ -7,10 +7,33 @@ the UI disables what a backend can't do instead of silently ignoring it.
 | Setting | Values | Meaning |
 |---|---|---|
 | Resolution | native, 2x-10x, 720p-8k, display | Internal rendering height. Backends round to the steps they support. |
-| Aspect ratio | auto, 4:3, 16:9, 21:9, 32:9, Match my screen | Wider than 4:3 shows more of the scene where the backend can (see below). "Match my screen" uses the display's own shape, e.g. 43:18 on a 3440x1440 monitor. |
+| Aspect ratio | auto, 4:3, 16:9, 21:9, 31:9, 32:9, Match my screen | Wider than 4:3 shows more of the scene where the backend can (see below). "Match my screen" uses the display's own shape, e.g. 43:18 on a 3440x1440 monitor. |
 | Frame rate | original, match display, 60-360, custom | Presentation rate. Above the game's own rate the extra images are real frames (native redraws), motion-interpolated in-between images (in-app cores; on macOS also Ridge Racer 6 and 7 through frame generation) or a crossfade; game speed and physics never change. |
 | Smoothing method | interpolate, blend | Interpolate: in-between images built from the motion between two game frames. Blend: a crossfade between game frames (some ghosting, no extra motion detail). |
 | Game speed / fast-forward | 50-300 %, hold-to-fast-forward | Where the backend supports it. |
+
+For **31:9**, select Auto as the game backend. PS1 titles use SwanStation’s
+projection correction, and Ridge Racer V uses PCSX2’s derived camera patch
+because Fukami stops at 21:9. A manually selected RR1 recomp uses its prepared
+native scene renderer automatically for ultrawide. R4’s native port does not
+expose an exact 31:9 preset; use Auto for that ratio. Rave Racer, RR6 and RR7
+need fullscreen on an ultrawide display and follow that display’s shape.
+These modes widen the 3D view rather than simply stretching the original scene.
+The SwanStation, PPSSPP, PCSX2 and RR7 patches can still stretch 2D HUD/menu
+artwork; the RR6 native backend includes HUD correction. Unsupported PSP regions
+keep their native aspect instead of stretching.
+
+The in-app pause menu keeps fast-forward toggled until it is turned off. Tab and
+right-stick click are separate hold controls; pausing, losing focus or unplugging
+a controller clears held input. Changing the game-speed slider applies immediately
+and saves the final value when released. Turning fast-forward off returns to that
+base speed (100% unless you changed it).
+
+Folder scans also register BIOS/firmware automatically, up to 32 levels deep.
+They use file content rather than names, preserve a valid selected BIOS and repair
+missing selections. PS2 DVD-player images and recomp OpenBIOS outputs are not
+automatically selected as console BIOS dumps. Recomp setup notes are informational;
+“Setup required” is reserved for actual missing requirements.
 
 ## Controllers
 
@@ -39,13 +62,13 @@ HUD placed correctly; "hack" means a widened field of view with the 2D HUD stret
 
 | Game | Best way to run it | 4K+ | Ultrawide | Above 60 Hz |
 |---|---|---|---|---|
-| Ridge Racer (PS1) | RR1 recomp (your local build) with the native redraw | yes | **native** 21:9, 32:9 or screen shape with the redraw on; the original renderer stops at 16:9 | redraw draws real frames up to 360 fps or the display rate |
+| Ridge Racer (PS1) | RR1 recomp (your local build) with the native redraw | yes | **native** 21:9, 31:9, 32:9 or screen shape with the redraw on; the original renderer stops at 16:9 | redraw draws real frames up to 360 fps or the display rate |
 | Rave Racer (arcade) | namco22 native port (all desktops) | up to 8K | **native**, the screen's own shape in fullscreen | the game runs at 59.9 Hz; higher rates repeat frames |
-| Rage Racer (PS1) | Rage Racer PC | yes (scale 9 = 2160 lines) | the port stops at 16:9 (4:3 on 4:3-ish screens) and runs in a window; 21:9 / 32:9 via SwanStation (hack) | interpolated up to 1000 fps |
-| R4 (PS1) | R4 recomp | up to 8K | **native** Fit, 21:9, 32:9 (races; menus stay 4:3) | interpolated to the display rate |
-| Ridge Racer V (PS2) | Fukami (all desktops); PCSX2 | up to 3584 lines | Fukami **native** 21:9 (bars beyond); PCSX2: 16:9 patch, plus 21:9 / 32:9 / screen shape derived from it (experimental, HUD stretched) | 60 fps; VRR or a 120/240 Hz display mode keeps it even |
+| Rage Racer (PS1) | Rage Racer PC | yes (scale 9 = 2160 lines) | the port stops at 16:9 (4:3 on 4:3-ish screens) and runs in a window; 21:9 / 31:9 / 32:9 via SwanStation (hack) | interpolated up to 1000 fps |
+| R4 (PS1) | R4 recomp | up to 8K | **native** Fit, 21:9, 32:9 on compatible builds; exact 31:9 through Auto/SwanStation (hack) | interpolated to the display rate |
+| Ridge Racer V (PS2) | Fukami (all desktops); PCSX2 | up to 3584 lines | Fukami **native** 21:9 (bars beyond); PCSX2: 16:9 patch, plus 21:9 / 31:9 / 32:9 / screen shape derived from it (experimental, HUD stretched) | 60 fps; VRR or a 120/240 Hz display mode keeps it even |
 | Ridge Racer (PSP), Ridge Racer 2 (PSP) | PPSSPP (in-app core or standalone) | up to 10x | European discs only: any ratio through a widescreen code (hack) | 60 fps; in-app frame blending |
-| Ridge Racer 6 (X360) | RR6 recomp (Windows/Linux; macOS local build); Xenia | up to 4x (2880 lines) | recomp **native** 21:9, 32:9, screen shape in fullscreen with the HUD kept in shape; Xenia: aspect patch (hack) | game speed is tied to 60 Hz; macOS: frame generation up to 360 fps (measured on an M4: menus at 60 fps, races at 28-58 fps at 720p, so slower than full speed) |
+| Ridge Racer 6 (X360) | RR6 recomp (bundled on Windows/Linux/macOS); Xenia | up to 4x (2880 lines) | recomp **native** 21:9, 31:9, 32:9, screen shape in fullscreen with the HUD kept in shape; Xenia: aspect patch (hack) | game speed is tied to 60 Hz; macOS: frame generation up to 360 fps (measured on an M4: menus at 60 fps, races at 28-58 fps at 720p, so slower than full speed) |
 | Ridge Racer 7 (PS3) | RPCS3 | Resolution Scale up to 8K | Marathon's own patch (USA disc BLUS30001): in full screen on a screen wider than 16:9, at the screen's shape; Hor+ race view, the 16:9 picture stretched to the screen, 2D HUD stretched | 60 fps; macOS: frame generation up to 360 fps |
 
 Every PS1 game also runs in-app through SwanStation with ultrawide (hack, any ratio)

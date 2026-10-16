@@ -27,12 +27,18 @@ struct ScanProgress {
     std::string current;     // last path looked at (informational, racy by design)
 };
 
+struct SystemFileHit {
+    std::string kind;
+    std::string path;
+};
+
 // Identify a single path (file or folder). Returns false if not a known game.
 bool identifyPath(const Catalog& catalog, const std::string& path, ScanHit& out);
 
 // Walk a folder recursively (bounded depth), returning every recognised game.
 std::vector<ScanHit> scanFolder(const Catalog& catalog, const std::string& folder,
-                                ScanProgress* progress = nullptr, int maxDepth = 6);
+                                ScanProgress* progress = nullptr, int maxDepth = 6,
+                                std::vector<SystemFileHit>* systemFiles = nullptr);
 
 // Full-hash verification of a hit against the catalog's known dumps.
 // Fills hit.files.verified with "match:<label>", "mismatch" or "partial".

@@ -280,7 +280,7 @@ const Choice kFps[] = {{"original", "Original"}, {"display", "Match display refr
 const Choice kMethods[] = {{"interpolate", "Interpolated (motion-compensated)"}, {"blend", "Frame blend (cheaper)"}};
 const Choice kAspects[] = {{"auto", "Game default"},   {"4:3", "4:3"},
                            {"16:9", "16:9 widescreen"}, {"21:9", "21:9 ultrawide"},
-                           {"32:9", "32:9 super ultrawide"}, {"fit", "Match my screen"}};
+                           {"31:9", "31:9 ultrawide"}, {"32:9", "32:9 super ultrawide"}, {"fit", "Match my screen"}};
 const Choice kFilters[] = {{"nearest", "Sharp (nearest)"}, {"linear", "Smooth (bilinear)"}, {"xbr", "xBR upscale"}};
 const Choice kAA[] = {{"off", "Off"}, {"fxaa", "FXAA"}, {"msaa", "MSAA"}, {"ssaa", "Supersampling"}};
 const int kTurbo[] = {150, 200, 300, 400, 0};
@@ -372,6 +372,9 @@ bool settingsEditor(App& app, GameSettings& s, const json* caps, const std::stri
     changed |= combo("Resolution", s.resolution, kResolutions, caps, "resolution", backendName);
     helpMarker("Internal rendering resolution. Higher values give crisper 3D at a GPU cost.");
     changed |= combo("Aspect ratio", s.aspect, kAspects, caps, "aspect", backendName);
+    helpMarker("Wider ratios widen the 3D camera where supported. Auto selects a compatible backend. "
+               "Some emulator patches still stretch 2D menus and HUD graphics. Rave Racer, RR6 and RR7 "
+               "follow the physical display's shape in fullscreen; their windows retain a narrower view.");
     changed |= combo("Texture filter", s.filter, kFilters, caps, "filter", backendName);
     changed |= combo("Anti-aliasing", s.antiAlias, kAA, caps, "antiAlias", backendName);
     changed |= checkbox("Geometry precision (PGXP)", s.precision, capFlag(caps, "precision"), backendName,

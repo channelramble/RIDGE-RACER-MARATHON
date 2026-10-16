@@ -487,6 +487,21 @@ void drawGame(App& app) {
     if (!custom) ImGui::TextDisabled("Using your global defaults (Settings tab). Tick the box to tune this game.");
     json caps = backend ? backend->capabilities(chosen) : json::object();
     GameSettings edit = app.settingsFor(g.id);
+    if (edit.backend == "auto") {
+        // The chosen backend changes with the requested aspect. Offer the union,
+        // otherwise a 21:9-only default port hides the 31:9 emulator fallback.
+        json aspects = json::array();
+        for (const auto* option : app.catalog.optionsFor(g, currentOs())) {
+            Backend* candidate = app.backend(option->backend);
+            if (!candidate || !candidate->availableHere()) continue;
+            const json c = candidate->capabilities(option);
+            if (auto it = c.find("aspect"); it != c.end() && it->is_array())
+                for (const auto& a : *it)
+                    if (std::find(aspects.begin(), aspects.end(), a) == aspects.end()) aspects.push_back(a);
+        }
+        caps["aspect"] = std::move(aspects);
+        ImGui::TextWrapped("Auto selects a compatible backend for wider aspect ratios.");
+    }
     ImGui::BeginDisabled(!custom);
     if (settingsEditor(app, edit, &caps, backend ? backend->def().name : std::string("this backend")))
         app.setGameSettings(g.id, edit, true);

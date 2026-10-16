@@ -260,6 +260,19 @@ const GameBackendOption* App::chosenOption(const GameDef& g) const {
     if (s.backend != "auto")
         for (auto* o : options)
             if (o->backend == s.backend) return o;
+    // Auto chooses an actual widened renderer, not a port which silently clamps
+    // to 16:9/21:9. Explicit backend choices still belong to the player.
+    const double aspect = aspectRatio(s.aspect, display.width, display.height);
+    std::string wideBackend;
+    if (aspect > 16.0 / 9.0 + 0.01 &&
+        (g.id == "ridge-racer" || g.id == "rage-racer" || g.id == "r4")) wideBackend = "lr-swanstation";
+    if (aspect > 21.0 / 9.0 + 0.01 && g.id == "ridge-racer-v") wideBackend = "pcsx2";
+    if (!wideBackend.empty())
+        for (auto* o : options)
+            if (o->backend == wideBackend) {
+                Backend* b = self->backend(o->backend);
+                if (b && b->availableHere()) return o;
+            }
     // Prefer an option that is ready; otherwise the best installable one.
     for (auto* o : options) {
         Backend* b = self->backend(o->backend);
@@ -312,7 +325,7 @@ std::string App::statusText(const GameDef& g) const {
         case GameStatus::Running: return "Running";
         case GameStatus::NeedsFiles: return "Add your game files";
         case GameStatus::NeedsBackend: return "Backend not installed";
-        case GameStatus::NeedsSystemFiles: return "Needs BIOS / firmware";
+        case GameStatus::NeedsSystemFiles: return "Setup required";
         case GameStatus::Unsupported: return "Not available on this device";
     }
     return "";
@@ -641,7 +654,8 @@ void App::scanFolder(const std::string& folder) {
     startJob("scan", "Scanning " + folder, [this, folder, patterns](TaskProgress& p) {
         p.setStage("Scanning " + folder);
         ScanProgress sp;
-        auto hits = rrm::scanFolder(catalog, folder, &sp);
+        std::vector<SystemFileHit> systemFiles;
+        auto hits = rrm::scanFolder(catalog, folder, &sp, 32, &systemFiles);
         std::vector<std::pair<std::string, std::string>> installs;
         for (auto& w : patterns) {
             if (p.cancel) break;
@@ -651,10 +665,12 @@ void App::scanFolder(const std::string& folder) {
             if (!exe.empty()) installs.push_back({w.id, exe});
         }
         p.setStage("Found " + std::to_string(hits.size()) + " game file(s)" +
+                   " and " + std::to_string(systemFiles.size()) + " BIOS / firmware file(s)" +
                    (installs.empty() ? std::string() : " and " + std::to_string(installs.size()) + " existing install(s)"));
         std::lock_guard<std::mutex> lock(scanMutex);
         lastScanHits = hits;
         foundInstalls = installs;
+        foundSystemFiles = std::move(systemFiles);
         return true;
     });
 }
@@ -886,6 +902,17 @@ bool App::iterate() {
     {
         // Verification results come back through lastScanHits as well.
         std::lock_guard<std::mutex> lock(scanMutex);
+        bool systemChanged = false;
+        for (const auto& h : foundSystemFiles) {
+            const std::string current = library.systemFile(h.kind);
+            // Keep a valid manual selection. Repair stale paths (e.g. moved external drives).
+            if (current.empty() || identifySystemFile(current) != h.kind) {
+                library.setSystemFile(h.kind, h.path);
+                systemChanged = true;
+            }
+        }
+        foundSystemFiles.clear();
+        if (systemChanged) library.save();
         for (auto& h : lastScanHits) {
             const LibraryEntry* e = library.find(h.gameId);
             if (e && e->files.path == h.files.path && !h.files.verified.empty() && e->files.verified != h.files.verified) {

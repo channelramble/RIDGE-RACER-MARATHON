@@ -14,7 +14,7 @@ struct GameSettings {
 
     // Rendering
     std::string resolution = "1080p";  // native|2x|3x|4x|5x|6x|8x|720p|1080p|1440p|4k|5k|8k|display
-    std::string aspect = "auto";       // auto (game default)|4:3|16:9|21:9|32:9|fit (the window/display shape)
+    std::string aspect = "auto";       // auto (game default)|4:3|16:9|21:9|31:9|32:9|fit (the window/display shape)
     std::string filter = "nearest";    // nearest|linear|xbr
     std::string antiAlias = "off";     // off|fxaa|msaa|ssaa
     bool precision = true;             // PGXP / sub-pixel geometry where available

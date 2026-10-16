@@ -15,8 +15,11 @@ namespace {
 struct PlayerState {
     bool menuOpen = false;
     bool showStats = false;
-    bool turboHeld = false;    // keyboard/gamepad hold
-    bool turboToggle = false;  // touch button / menu toggle
+    bool turboKey = false;
+    bool turboPad = false;
+    bool turboTouch = false;
+    bool turboToggle = false;  // persistent pause-menu toggle
+    int speed = 100;           // retain the slider edit across UI frames
     bool touchVisible = false;
     std::map<SDL_FingerID, ImVec2> fingers;  // normalised 0..1
     double lastTouch = -100;
@@ -34,10 +37,20 @@ std::string statePath(App& app, int slot) {
     return pathToUtf8(p);
 }
 
-void applyTurbo(App& app) { app.host().setTurbo(g_player.turboHeld || g_player.turboToggle); }
+void applyTurbo(App& app) {
+    app.host().setTurbo(g_player.turboKey || g_player.turboPad || g_player.turboTouch || g_player.turboToggle);
+}
+
+void releaseHeldTurbo(App& app) {
+    g_player.turboKey = g_player.turboPad = g_player.turboTouch = false;
+    g_player.fingers.clear();
+    app.host().setVirtualPad({});
+    applyTurbo(app);
+}
 
 void setMenu(App& app, bool open) {
     g_player.menuOpen = open;
+    if (open) releaseHeldTurbo(app);
     app.host().setPaused(open);
 }
 
@@ -109,8 +122,8 @@ void updateTouchPad(App& app) {
         if (inRect(p, t.turbo)) turbo = true;
     }
     app.host().setVirtualPad(pad);
-    if (turbo != g_player.turboToggle) {
-        g_player.turboToggle = turbo;
+    if (turbo != g_player.turboTouch) {
+        g_player.turboTouch = turbo;
         applyTurbo(app);
     }
 }
@@ -152,6 +165,7 @@ void drawTouchPad(App&) {
 
 void onPlayerStarted(App& app) {
     g_player = PlayerState();
+    g_player.speed = app.settingsFor(app.selectedGame).speed;
     g_player.touchVisible = app.touchUi;
     g_player.player1Pad = app.gamepads().playerPad(0);
 }
@@ -168,8 +182,8 @@ bool playerHandleEvent(App& app, const SDL_Event& e) {
                 setMenu(app, !g_player.menuOpen);
                 return true;
             }
-            if (e.key.key == SDLK_TAB) {
-                g_player.turboHeld = true;
+            if (e.key.key == SDLK_TAB && !g_player.menuOpen) {
+                g_player.turboKey = true;
                 applyTurbo(app);
                 return true;
             }
@@ -190,9 +204,9 @@ bool playerHandleEvent(App& app, const SDL_Event& e) {
             break;
         case SDL_EVENT_KEY_UP:
             if (e.key.key == SDLK_TAB) {
-                g_player.turboHeld = false;
+                g_player.turboKey = false;
                 applyTurbo(app);
-                return true;
+                return !g_player.menuOpen;
             }
             break;
         case SDL_EVENT_GAMEPAD_BUTTON_DOWN:
@@ -205,7 +219,7 @@ bool playerHandleEvent(App& app, const SDL_Event& e) {
             }
             if (g_player.guideDown) g_player.guideAlone = false;
             if (e.gbutton.button == SDL_GAMEPAD_BUTTON_RIGHT_STICK && !g_player.menuOpen) {
-                g_player.turboHeld = true;
+                g_player.turboPad = true;
                 applyTurbo(app);
                 return true;
             }
@@ -217,7 +231,7 @@ bool playerHandleEvent(App& app, const SDL_Event& e) {
                 return true;
             }
             if (e.gbutton.button == SDL_GAMEPAD_BUTTON_RIGHT_STICK) {
-                g_player.turboHeld = false;
+                g_player.turboPad = false;
                 applyTurbo(app);
                 return true;
             }
@@ -242,6 +256,10 @@ bool playerHandleEvent(App& app, const SDL_Event& e) {
         case SDL_EVENT_FINGER_CANCELED:
             g_player.fingers.erase(e.tfinger.fingerID);
             if (!g_player.menuOpen) return true;
+            break;
+        case SDL_EVENT_WINDOW_FOCUS_LOST:
+        case SDL_EVENT_GAMEPAD_REMOVED:
+            releaseHeldTurbo(app);
             break;
         default: break;
     }
@@ -344,11 +362,11 @@ void drawPlayer(App& app) {
         applyTurbo(app);
     }
     GameSettings s = app.settingsFor(app.selectedGame);
-    int speed = s.speed;
     ImGui::SetNextItemWidth(S(220));
-    if (ImGui::SliderInt("Game speed", &speed, 50, 300, "%d%%")) app.host().setSpeedPercent(speed);
+    if (ImGui::SliderInt("Game speed", &g_player.speed, 50, 300, "%d%%"))
+        app.host().setSpeedPercent(g_player.speed);
     if (ImGui::IsItemDeactivatedAfterEdit()) {
-        s.speed = speed;
+        s.speed = g_player.speed;
         app.setGameSettings(app.selectedGame, s, true);
     }
     ImGui::Checkbox("Show performance stats", &g_player.showStats);

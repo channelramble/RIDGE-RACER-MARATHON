@@ -739,7 +739,7 @@
           ],
           "priority": 100,
           "status": "recommended",
-          "note": "PCSX2: upscaling to 8K, PCSX2's 16:9 widescreen patch and, for the USA disc, a 21:9 / 32:9 / screen-shaped version Marathon derives from it (experimental). Base speed and fast-forward. 60 fps.",
+          "note": "PCSX2: upscaling to 8K, PCSX2's 16:9 widescreen patch and, for the USA disc, a 21:9 / 31:9 / 32:9 / screen-shaped version Marathon derives from it (experimental). Base speed and fast-forward. 60 fps.",
           "params": {
             "nativeHeight": 448
           },
@@ -748,6 +748,7 @@
               "4:3",
               "16:9",
               "21:9",
+              "31:9",
               "32:9",
               "fit"
             ]
@@ -825,7 +826,7 @@
           ],
           "priority": 40,
           "status": "supported",
-          "note": "Standalone PPSSPP: up to 10x, ultrawide (21:9/32:9/fit) on the European disc UCES-00002 through a widescreen code.",
+          "note": "Standalone PPSSPP: up to 10x, ultrawide (21:9/31:9/32:9/fit) on the European disc UCES-00002 through a widescreen code.",
           "params": {
             "nativeHeight": 272
           }
@@ -899,7 +900,7 @@
           ],
           "priority": 40,
           "status": "supported",
-          "note": "Standalone PPSSPP: up to 10x, ultrawide (21:9/32:9/fit) on the European disc UCES-00422 through a widescreen code, optional HD HUD texture pack (advanced: texturePack).",
+          "note": "Standalone PPSSPP: up to 10x, ultrawide (21:9/31:9/32:9/fit) on the European disc UCES-00422 through a widescreen code, optional HD HUD texture pack (advanced: texturePack).",
           "params": {
             "nativeHeight": 272
           }
@@ -999,6 +1000,7 @@
               "auto",
               "16:9",
               "21:9",
+              "31:9",
               "32:9",
               "fit"
             ]
@@ -1095,6 +1097,7 @@
             "aspect": [
               "16:9",
               "21:9",
+              "31:9",
               "32:9",
               "fit"
             ]
@@ -1135,6 +1138,7 @@
             "aspect": [
               "16:9",
               "21:9",
+              "31:9",
               "32:9",
               "fit"
             ]

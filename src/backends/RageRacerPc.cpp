@@ -156,7 +156,7 @@ public:
         const bool ultrawide = jget(def_.params, "ultrawide", false);
         if (s.aspect == "4:3" || s.aspect == "16:9") {
             sets.push_back("video.aspect=" + s.aspect);
-        } else if (ultrawide && (s.aspect == "21:9" || s.aspect == "32:9")) {
+        } else if (ultrawide && (s.aspect == "21:9" || s.aspect == "31:9" || s.aspect == "32:9")) {
             sets.push_back("video.aspect=" + s.aspect);
         } else if (ultrawide && s.aspect == "fit") {
             // The screen's own shape, as its pixel size.
@@ -164,7 +164,7 @@ public:
             if (ratio <= 4.0 / 3.0 + 0.01) sets.push_back("video.aspect=4:3");
             else if (ratio > 4.0) sets.push_back("video.aspect=4:1");
             else sets.push_back("video.aspect=" + std::to_string(req.display.width) + ":" + std::to_string(req.display.height));
-        } else if (s.aspect == "fit" || s.aspect == "21:9" || s.aspect == "32:9") {
+        } else if (s.aspect == "fit" || s.aspect == "21:9" || s.aspect == "31:9" || s.aspect == "32:9") {
             // The official port offers 4:3 and 16:9: the one that fills more of the wanted shape
             // (cutoff about 1.54, between 3:2 and 16:10: 4:3 on 5:4, 4:3 and 3:2 screens, 16:9 from 16:10 up).
             const double wanted = aspectRatio(s.aspect, req.display.width, req.display.height);

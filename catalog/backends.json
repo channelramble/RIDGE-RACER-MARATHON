@@ -8,7 +8,7 @@
       "core": "swanstation",
       "license": "GPL-3.0",
       "homepage": "https://github.com/libretro/swanstation",
-      "description": "PlayStation emulation inside Marathon: up to 16x internal resolution, PGXP geometry precision and a widescreen hack that widens the 3D view to 16:9, 21:9, 32:9 or your screen's shape (2D HUD elements stretch).",
+      "description": "PlayStation emulation inside Marathon: up to 16x internal resolution, PGXP geometry precision and a widescreen hack that widens the 3D view to 16:9, 21:9, 31:9, 32:9 or your screen's shape (2D HUD elements stretch).",
       "capabilities": {
         "resolution": [
           "native",
@@ -44,6 +44,7 @@
           "4:3",
           "16:9",
           "21:9",
+          "31:9",
           "32:9",
           "fit"
         ],
@@ -125,7 +126,7 @@
       "core": "ppsspp",
       "license": "GPL-2.0-or-later",
       "homepage": "https://www.ppsspp.org",
-      "description": "PSP emulation inside Marathon with internal resolution up to 10x, ultrawide (21:9, 32:9, your screen's shape) on the European discs through a widescreen code (the 2D HUD stretches), and optional HD texture packs.",
+      "description": "PSP emulation inside Marathon with internal resolution up to 10x, ultrawide (21:9, 31:9, 32:9, your screen's shape) on the European discs through a widescreen code (the 2D HUD stretches), and optional HD texture packs.",
       "capabilities": {
         "resolution": [
           "native",
@@ -158,6 +159,7 @@
           "auto",
           "16:9",
           "21:9",
+          "31:9",
           "32:9",
           "fit"
         ],
@@ -274,7 +276,7 @@
       "kind": "external",
       "license": "GPL-2.0-or-later",
       "homepage": "https://www.ppsspp.org",
-      "description": "Official PPSSPP with its own Marathon memory stick (your PPSSPP is untouched). Up to 10x (4800x2720), ultrawide 21:9/32:9/fit on the European discs through a widescreen code, optional HD texture packs. 60 fps.",
+      "description": "Official PPSSPP with its own Marathon memory stick (your PPSSPP is untouched). Up to 10x (4800x2720), ultrawide 21:9/31:9/32:9/fit on the European discs through a widescreen code, optional HD texture packs. 60 fps.",
       "capabilities": {
         "resolution": [
           "native",
@@ -297,6 +299,7 @@
           "auto",
           "16:9",
           "21:9",
+          "31:9",
           "32:9",
           "fit"
         ],

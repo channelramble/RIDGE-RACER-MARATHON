@@ -986,6 +986,8 @@ void testSystemFiles() {
     std::string ps2(4 * 1024 * 1024, '\0');
     std::memcpy(&ps2[0x2700], "RESET\0\0\0\0\0", 10);
     std::memcpy(&ps2[0x2710], "ROMDIR\0\0\0\0", 10);
+    std::memcpy(&ps2[0x2720], "ROMVER\0\0\0\0", 10);
+    std::memcpy(&ps2[0x2730], "KERNEL\0\0\0\0", 10);
     writeFile("sys/SCPH-70012.BIN", ps2);
     writeFile("sys/other4m.bin", pattern(4 * 1024 * 1024, 4));
     writeFile("sys/PS3UPDAT.PUP", "SCEUF\0\0\0" + pattern(1000, 5));
@@ -998,6 +1000,38 @@ void testSystemFiles() {
     CHECK_EQ(identifySystemFile(tmpStr("sys/bad.pup")), std::string());
     CHECK_EQ(identifySystemFile(tmpStr("sys/missing.bin")), std::string());
     CHECK_EQ(identifySystemFile(tmpStr("sys")), std::string());
+    std::string dvd = ps2;
+    dvd.replace(0x2720, 10, "DVDID\0\0\0\0\0", 10);
+    dvd.replace(0x2730, 10, "DVDPLAYER\0", 10);
+    writeFile("sys/dvd-firmware.bin", dvd);
+    CHECK(identifySystemFile(tmpStr("sys/dvd-firmware.bin")).empty());
+    std::string openbios = ps1;
+    openbios.replace(0x78, 8, "OpenBIOS");
+    writeFile("sys/openbios.bin", openbios);
+    CHECK(identifySystemFile(tmpStr("sys/openbios.bin")).empty());
+
+    // Folder scans must discover firmware alongside games, including deeply nested,
+    // renamed dumps. Random ROMs of the same size must not become BIOS selections.
+    writeFile("sys/a/b/c/d/e/f/g/renamed-kernel", ps1);
+    Catalog cat;
+    std::string error;
+    CHECK(cat.loadFromStrings(R"({"games":[]})", R"({"backends":[]})", error));
+    std::vector<SystemFileHit> system;
+    CHECK(scanFolder(cat, tmpStr("sys"), nullptr, 32, &system).empty());
+    CHECK_EQ(system.size(), size_t(4));
+    auto has = [&](const std::string& kind, const std::string& path) {
+        return std::any_of(system.begin(), system.end(), [&](const SystemFileHit& h) {
+            return h.kind == kind && h.path == tmpStr(path);
+        });
+    };
+    CHECK(has("ps1-bios", "sys/a/b/c/d/e/f/g/renamed-kernel"));
+    CHECK(has("ps2-bios", "sys/SCPH-70012.BIN"));
+    CHECK(has("ps3-firmware", "sys/PS3UPDAT.PUP"));
+    system.clear();
+    ScanProgress cancelled;
+    cancelled.cancel = true;
+    scanFolder(cat, tmpStr("sys"), &cancelled, 32, &system);
+    CHECK(system.empty());
 }
 
 // Extra catalog files (docs/CATALOG.md): merge rules, and a broken file is skipped as a whole.

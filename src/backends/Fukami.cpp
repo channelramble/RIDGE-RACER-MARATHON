@@ -142,7 +142,7 @@ std::set<std::string> knownKeys(const std::string& defaultsText) {
 std::string ratioFor(const LaunchRequest& req, std::vector<std::string>& notes) {
     const std::string& a = req.settings.aspect;
     if (a == "4:3" || a == "16:9" || a == "21:9") return a;
-    if (a != "32:9" && a != "fit") return {};
+    if (a != "31:9" && a != "32:9" && a != "fit") return {};
     const double want = aspectRatio(a, req.display.width, req.display.height);
     if (want > 21.0 / 9.0 + 0.07) {
         notes.push_back("Fukami's widest view is 21:9; the " + fmtNumber(std::round(want * 100) / 100) +

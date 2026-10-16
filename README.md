@@ -10,7 +10,7 @@ them.
 
 ![Marathon's library: the nine games of the series, each waiting for your own game files](docs/images/library.png)
 
-**Status:** version 0.2.2, an early release. macOS on Apple Silicon is the most
+**Status:** version 0.2.3, an early release. macOS on Apple Silicon is the most
 tested; the Windows and Linux packages are built and checked by CI, but Marathon has
 not been played on Windows or Linux yet; Android and iOS are not buildable yet. See
 [Known limitations](#known-limitations).

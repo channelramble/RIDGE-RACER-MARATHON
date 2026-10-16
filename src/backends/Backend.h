@@ -78,8 +78,10 @@ struct LaunchResult {
 
 enum class InstallState { NotInstalled, Installed, Unavailable, UserProvided };
 
-// missingRequirements() entries that start with "Warning:" are advice, not blockers.
-inline bool isRequirementWarning(const std::string& s) { return s.rfind("Warning:", 0) == 0; }
+// missingRequirements() entries starting with "Warning:" or "Note:" are advice, not blockers.
+inline bool isRequirementWarning(const std::string& s) {
+    return s.rfind("Warning:", 0) == 0 || s.rfind("Note:", 0) == 0;
+}
 
 class Backend {
 public:

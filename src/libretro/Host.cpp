@@ -1507,15 +1507,21 @@ void Host::setTurbo(bool on) {
     Impl& d = *impl_;
     if (d.turbo == on) return;
     d.turbo = on;
-    d.accum = 0;
-    d.queueEma = -1;
+    d.audio.clear();
+    d.audio.setRatio(d.speedFactor() > 0 ? d.speedFactor() : 1.0);
+    d.resetPacing();
 }
 
 bool Host::turbo() const { return impl_->turbo; }
 
 void Host::setSpeedPercent(int percent) {
-    impl_->speedPercent = std::clamp(percent, 5, 1000);
-    impl_->accum = 0;
+    Impl& d = *impl_;
+    percent = std::clamp(percent, 5, 1000);
+    if (d.speedPercent == percent) return;
+    d.speedPercent = percent;
+    d.audio.clear();
+    d.audio.setRatio(d.speedFactor() > 0 ? d.speedFactor() : 1.0);
+    d.resetPacing();
 }
 
 void Host::setTurboPercent(int percent) {

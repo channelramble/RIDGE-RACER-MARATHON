@@ -120,6 +120,7 @@ public:
     void scanFolder(const std::string& folder);
     void verifyGame(const std::string& gameId);
     std::vector<ScanHit> lastScanHits;  // guarded by scanMutex
+    std::vector<SystemFileHit> foundSystemFiles;  // consumed on the main thread
     // Existing local installs of backends found while scanning (backendId, path); guarded by scanMutex.
     std::vector<std::pair<std::string, std::string>> foundInstalls;
     std::mutex scanMutex;

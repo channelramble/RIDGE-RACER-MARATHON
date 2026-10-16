@@ -623,7 +623,8 @@ struct Run {
 };
 
 Run launch(Bench& b, const std::string& gameId, const std::string& backendId, const ControllerSettings& c,
-           const std::vector<ConnectedPad>& pads, const json& settingsJson = json::object()) {
+           const std::vector<ConnectedPad>& pads, const json& settingsJson = json::object(),
+           DisplayInfo display = DisplayInfo{2560, 1440, 60, 1.0f}) {
     Run run;
     const GameDef* g = b.catalog.game(gameId);
     const BackendDef* def = b.catalog.backend(backendId);
@@ -642,7 +643,7 @@ Run launch(Bench& b, const std::string& gameId, const std::string& backendId, co
     req.entry = b.lib.find(gameId);
     req.library = &b.lib;
     req.settings = GameSettings::fromJson(settingsJson);
-    req.display = DisplayInfo{2560, 1440, 60, 1.0f};
+    req.display = display;
     req.controllers = c;
     req.pads = pads;
     const fs::path log = paths().logs / utf8ToPath(backendId + ".log");
@@ -1000,6 +1001,47 @@ void testAdapters(const fs::path& work, const std::string& catalogDir) {
         CHECK_HAS(r.log, defNote + "left to Rave Racer");
         CHECK_HAS(r.log, ctl::linkedNote("Rave Racer"));
         CHECK(!r.info.deadzone && !r.info.note.empty());
+    }
+
+    // Exact 31:9 projection, followed by restoring the native presentation.
+    for (const char* id : {"ridge-racer", "rage-racer", "r4"}) {
+        const fs::path core = installs / "cores" / "swanstation";
+        writeFile(core, "fixture");
+        install(b, "lr-swanstation", core.parent_path(), core, false);
+        gameFiles(b, id, games / "ps1.cue", "cue");
+        Run r = launch(b, id, "lr-swanstation", def, onePad, {{"aspect", "31:9"}});
+        CHECK(r.result.coreOptions["swanstation_GPU_WidescreenHack"] == "true");
+        CHECK(r.result.coreOptions["swanstation_Display_CustomAspectRatioNumerator"] == "31");
+        CHECK(r.result.coreOptions["swanstation_Display_CustomAspectRatioDenominator"] == "9");
+        CHECK(r.result.presentAspect == "auto"); // presentation follows the widened core geometry
+        r = launch(b, id, "lr-swanstation", def, onePad, {{"aspect", "4:3"}});
+        CHECK(r.result.coreOptions["swanstation_GPU_WidescreenHack"] == "false");
+        CHECK(r.result.coreOptions["swanstation_Display_AspectRatio"] == "4:3");
+    }
+    for (const auto& [id, disc] : std::vector<std::pair<std::string, std::string>>{
+             {"ridge-racer-psp", "UCES00002"}, {"ridge-racer-2-psp", "UCES00422"}}) {
+        const fs::path core = installs / "cores" / "ppsspp";
+        writeFile(core, "fixture");
+        install(b, "lr-ppsspp", core.parent_path(), core, false);
+        gameFiles(b, id, games / "psp.iso", "iso");
+        Run r = launch(b, id, "lr-ppsspp", def, onePad,
+                       {{"aspect", "31:9"}, {"extra", {{"discId", disc}}}});
+        CHECK(r.result.coreOptions["ppsspp_cheats"] == "enabled");
+        CHECK(std::abs(std::stod(r.result.presentAspect) - 31.0 / 9.0) < 0.00001);
+        r = launch(b, id, "lr-ppsspp", def, onePad,
+                   {{"aspect", "31:9"}, {"extra", {{"discId", "ULUS10001"}}}});
+        CHECK(r.result.presentAspect == "auto"); // unsupported region is never merely stretched
+    }
+    {
+        const json ultra = {{"aspect", "31:9"}, {"fullscreen", true}, {"resolution", "native"}};
+        Run r = launch(b, "ridge-racer-v", "pcsx2", def, onePad, ultra);
+        CHECK_HAS(r.log, "Marathon Widescreen 31:9");
+        r = launch(b, "ridge-racer-6", "rr6-recomp", def, onePad, ultra, {3100, 900, 60, 1.0f});
+        CHECK_HAS(r.commandLine, "--rr6_aspect_ratio=3.444");
+        CHECK_HAS(r.commandLine, "--rr6_hud_fix=true");
+        r = launch(b, "ridge-racer-6", "rr6-recomp", def, onePad, ultra, {1920, 1080, 60, 1.0f});
+        CHECK_HAS(r.commandLine, "--rr6_aspect_ratio=0\n");
+        CHECK_HAS(r.commandLine, "--present_letterbox=true");
     }
 }
 

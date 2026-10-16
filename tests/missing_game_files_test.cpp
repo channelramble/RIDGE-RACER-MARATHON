@@ -15,6 +15,12 @@ int main() {
     auto check = [&](bool ok, const char* label) {
         if (!ok) { std::fprintf(stderr, "FAIL: %s\n", label); ++failures; }
     };
+    check(isRequirementWarning("Note: the first start opens R4's own setup wizard."),
+          "R4 setup guidance does not block the wizard behind a BIOS error");
+    check(isRequirementWarning("Note: native-scene redraw is not prepared in this build."),
+          "RR1 renderer advice does not block the original renderer");
+    check(isRequirementWarning("Warning: unsupported enhancement"), "existing warnings stay advisory");
+    check(!isRequirementWarning("PCSX2 needs your own PS2 BIOS dump."), "real requirements still block");
     LibraryEntry entry;
     check(!entry.filesAvailable(), "unassigned game needs files");
     entry.files.path = pathToUtf8(root / "Ridge Racer.cue");

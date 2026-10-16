@@ -630,7 +630,7 @@ bool identifyPath(const Catalog& catalog, const std::string& path, ScanHit& out)
 }
 
 std::vector<ScanHit> scanFolder(const Catalog& catalog, const std::string& folder, ScanProgress* progress,
-                                int maxDepth) {
+                                int maxDepth, std::vector<SystemFileHit>* systemFiles) {
     std::vector<ScanHit> hits;
     try {
         if (progress && progress->current.capacity() < 1024) progress->current.reserve(1024);
@@ -638,6 +638,8 @@ std::vector<ScanHit> scanFolder(const Catalog& catalog, const std::string& folde
         fs::path root = utf8ToPath(folder);
         if (fs::path abs = fs::absolute(root, ec); !ec) root = abs.lexically_normal();
         if (!fs::is_directory(root, ec)) {
+            if (systemFiles)
+                if (auto kind = identifySystemFile(folder); !kind.empty()) systemFiles->push_back({kind, folder});
             ScanHit h;
             if (identifyPath(catalog, folder, h)) hits.push_back(std::move(h));
             return hits;
@@ -678,6 +680,15 @@ std::vector<ScanHit> scanFolder(const Catalog& catalog, const std::string& folde
                 roms.push_back(r);
 
                 const std::string p = r.path;
+                // Probe by size/signature, not filename: BIOS dumps are often renamed or
+                // extensionless. Do this during the same recursive walk as game discovery.
+                if (systemFiles && (f.size == 512 * 1024 || f.size == (4u << 20) ||
+                                    f.size == (8u << 20) || f.ext == ".pup")) {
+                    if (auto kind = identifySystemFile(p); !kind.empty()) {
+                        systemFiles->push_back({kind, p});
+                        continue;
+                    }
+                }
                 ScanHit fh;
                 bool found = false;
                 if (f.ext == ".cue") found = identifyCue(catalog, p, fh);
@@ -778,18 +789,30 @@ std::string identifySystemFile(const std::string& path) {
         if (extOf(p) == ".pup") return head(5) == "SCEUF" ? "ps3-firmware" : "";
         if (size == 512 * 1024) {
             // Sony kernels carry "CEX-..." at 0x108 and/or a Sony copyright string; 512 KiB
-            // MAME ROMs and OpenBIOS builds do not.
+            // MAME ROMs generally do not.
             const std::string rom = head(size);
+            // Recomp build folders also contain OpenBIOS, which deliberately carries
+            // Sony compatibility strings. Do not auto-select it as a retail console dump.
+            if (rom.find("OpenBIOS") != std::string::npos || rom.find("OpenBios") != std::string::npos) return {};
             if (rom.size() == size && (rom.compare(0x108, 4, "CEX-") == 0 ||
                                        rom.find("Sony Computer Entertainment") != std::string::npos))
                 return "ps1-bios";
             return {};
         }
         if (size == 4u << 20 || size == 8u << 20) {
-            // PS2 ROMDIR: 16-byte records, the first named "RESET".
-            const std::string h = head(0x4000);
-            for (size_t o = 0; o + 16 <= h.size(); o += 16)
-                if (h.compare(o, 6, std::string("RESET\0", 6)) == 0) return "ps2-bios";
+            // DVD-player firmware also has RESET/ROMDIR and the same file size.
+            // Only a console boot ROM contains ROMVER and KERNEL in its ROMDIR.
+            const std::string h = head(0x10000);
+            for (size_t o = 0; o + 32 <= h.size(); o += 16) {
+                if (h.compare(o, 6, std::string("RESET\0", 6)) != 0 ||
+                    h.compare(o + 16, 7, std::string("ROMDIR\0", 7)) != 0) continue;
+                bool version = false, kernel = false;
+                for (size_t e = o + 32; e + 16 <= h.size() && h[e] != '\0'; e += 16) {
+                    version |= h.compare(e, 7, std::string("ROMVER\0", 7)) == 0;
+                    kernel |= h.compare(e, 7, std::string("KERNEL\0", 7)) == 0;
+                }
+                if (version && kernel) return "ps2-bios";
+            }
         }
     } catch (...) {
     }

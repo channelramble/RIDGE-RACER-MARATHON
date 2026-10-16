@@ -722,7 +722,8 @@ public:
         const fs::path cards = saveDir(req, def_.id);
         importCards(cards, l.legacySaves, notes);
 
-        const bool scene = flavor_ == Flavor::Rr1 && req.settings.redraw && l.nativeSceneReady();
+        const bool wantsUltra = aspectRatio(req.settings.aspect, req.display.width, req.display.height) > 16.0 / 9.0 + 0.01;
+        const bool scene = flavor_ == Flavor::Rr1 && (req.settings.redraw || wantsUltra) && l.nativeSceneReady();
         if (flavor_ == Flavor::Rr1 && req.settings.redraw && !scene)
             notes.push_back("redraw requested but the native scene is not prepared in this build: original renderer");
         writeSettings(req, l, scene, notes);
@@ -904,7 +905,7 @@ private:
         std::vector<ModChange> changes;
         const int fps = resolveFps(s);
         if (flavor_ == Flavor::Rr1) {
-            if (!scene && (s.aspect == "21:9" || s.aspect == "32:9"))
+            if (!scene && (s.aspect == "21:9" || s.aspect == "31:9" || s.aspect == "32:9"))
                 notes.push_back("the original renderer draws at most 16:9 (" + s.aspect + " requested); "
                                 "turn on Experimental redraw for ultrawide");
             if (s.aspect != "auto") {
@@ -940,7 +941,7 @@ private:
             changes.push_back(rate);
             if (s.aspect != "auto") {
                 ModChange wide{"r4.enhancement.widescreen", "widescreen", s.aspect != "4:3", {}};
-                const bool ultra = s.aspect == "21:9" || s.aspect == "32:9";
+                const bool ultra = s.aspect == "21:9" || s.aspect == "31:9" || s.aspect == "32:9";
                 wide.values.emplace_back("aspect", s.aspect == "fit" ? "Fit" : ultra ? s.aspect : "16:9");
                 changes.push_back(wide);
             }

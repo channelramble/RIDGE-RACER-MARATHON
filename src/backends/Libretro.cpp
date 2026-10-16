@@ -152,7 +152,7 @@ void ppssppOptions(const LaunchRequest& req, const fs::path& memstick, json& o, 
     if (cheat) {
         o["ppsspp_cheats"] = "enabled";
         o["ppsspp_cropto16x9"] = "disabled";  // the code sets the exact shape
-        r.presentAspect = fmtNumber(ratio);
+        r.presentAspect = std::to_string(ratio);
     }
 
     const fs::path textures = memstick / "PSP" / "TEXTURES" / utf8ToPath(discId);
