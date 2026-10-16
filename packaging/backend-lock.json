@@ -207,7 +207,7 @@
     {
       "id": "rave-macos-build-recipe",
       "local_path": "scripts/build-rave-macos.sh",
-      "sha256": "70c92516bf1e04dd9dac179b1bb63b2e4292a25c90ed6ea34d615c8445181df7",
+      "sha256": "27452ba46781afca52699e6a27941911c0586180f601b9344fc1902bff820027",
       "archive": "raw",
       "backends": [
         "rave-racer-native"
@@ -232,7 +232,7 @@
     {
       "id": "rave-gcc-homebrew-recipe",
       "local_path": "packaging/source-patches/rave-gcc-homebrew.rb",
-      "sha256": "5a6fb555af38d80ba1e19d02e0fbc76d8bfaa330192115fb35383fb7f0381be9",
+      "sha256": "3650d909e078646f9df611142fb391cbe78e4b8c01aa1b18218defc2653c258f",
       "archive": "raw",
       "backends": [
         "rave-racer-native"
@@ -985,10 +985,10 @@
     {
       "id": "rave-racer-native",
       "platform": "macos-arm64",
-      "version": "0.9.0-macos-1",
-      "url": "https://github.com/channelramble/RIDGE-RACER-MARATHON/releases/download/backend-inputs-20261016/RaveRacer-macos-arm64.zip",
-      "sha256": "633edf53140f8d483dc5ff354edcb35dbda2e292d9478e1eac2561f1e3b027f6",
-      "size": 2724035,
+      "version": "0.9.0-macos-2",
+      "url": "https://github.com/channelramble/RIDGE-RACER-MARATHON/releases/download/backend-inputs-20261016/RaveRacer-macos-arm64-0.9.0-2.zip",
+      "sha256": "a28418068c7117b0659a8f5b17dc2a5d6fe8de30f1922debc6e0fdc89ca98565",
+      "size": 2729350,
       "archive": "zip",
       "executable": "*/rr",
       "source": "rave-racer-native",

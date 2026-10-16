@@ -176,8 +176,8 @@
         },
         "macos-arm64": {
           "kind": "url",
-          "url": "https://github.com/channelramble/RIDGE-RACER-MARATHON/releases/download/backend-inputs-20261016/RaveRacer-macos-arm64.zip",
-          "sha256": "633edf53140f8d483dc5ff354edcb35dbda2e292d9478e1eac2561f1e3b027f6",
+          "url": "https://github.com/channelramble/RIDGE-RACER-MARATHON/releases/download/backend-inputs-20261016/RaveRacer-macos-arm64-0.9.0-2.zip",
+          "sha256": "a28418068c7117b0659a8f5b17dc2a5d6fe8de30f1922debc6e0fdc89ca98565",
           "archive": "zip",
           "executable": "*/rr"
         }

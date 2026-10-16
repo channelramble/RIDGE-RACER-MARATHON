@@ -76,7 +76,9 @@ import sys
 print(Path(sys.argv[1]).resolve().parent.parent)
 PY
 )
-cp "$GCC_PREFIX/COPYING" "$PKG/licenses/GCC-GPL.txt"
+GCC_LICENSE="$ROOT/packaging/notices/GCC-GPL-3.0.txt"
+[[ -f "$GCC_LICENSE" ]] || GCC_LICENSE="$SCRIPT_DIR/licenses/GCC-GPL.txt"
+cp "$GCC_LICENSE" "$PKG/licenses/GCC-GPL.txt"
 cp "$GCC_PREFIX/COPYING.RUNTIME" "$PKG/licenses/GCC-runtime-exception.txt"
 cp "$PATCH" "$PKG/rave-macos.patch"
 cp "$0" "$PKG/build-rave-macos.sh"
