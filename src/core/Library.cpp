@@ -22,6 +22,13 @@ GameFiles filesFromJson(const json& j) {
 fs::path libraryPath() { return paths().data / "library.json"; }
 }  // namespace
 
+bool LibraryEntry::filesAvailable() const {
+    if (!hasFiles()) return false;
+    std::error_code ec;
+    const auto status = fs::status(utf8ToPath(files.path), ec);
+    return !ec && (fs::is_regular_file(status) || fs::is_directory(status));
+}
+
 bool Library::load() {
     json j;
     if (!readJsonFile(libraryPath(), j)) return false;

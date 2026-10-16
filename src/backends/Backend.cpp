@@ -254,6 +254,9 @@ bool Backend::linkExisting(Library& lib, const std::string& path, std::string& e
 std::vector<std::string> Backend::missingRequirements(const LaunchRequest& req) const {
     std::vector<std::string> out;
     if (!req.entry || !req.entry->hasFiles()) out.push_back("Add your " + req.game->title + " files first.");
+    else if (!req.entry->filesAvailable())
+        out.push_back("The saved game path is missing or unavailable: " + req.entry->files.path +
+                      ". Reconnect the drive or add/scan your game files again at their current location.");
     const std::string& adapter = def_.adapter.empty() ? def_.id : def_.adapter;
     for (auto& r : req.game->requirements) {
         if (r == "bios:ps2" && req.library && req.library->systemFile("ps2-bios").empty() && adapter == "pcsx2")

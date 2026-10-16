@@ -289,7 +289,7 @@ App::GameStatus App::statusOf(const GameDef& g) const {
     Backend* b = self->backend(o->backend);
     if (!b || !b->availableHere()) return GameStatus::Unsupported;
     const LibraryEntry* e = library.find(g.id);
-    if (!e || !e->hasFiles()) return GameStatus::NeedsFiles;
+    if (!e || !e->filesAvailable()) return GameStatus::NeedsFiles;
     auto st = b->installState(library);
     if (st != InstallState::Installed && st != InstallState::UserProvided) return GameStatus::NeedsBackend;
     LaunchRequest req;

@@ -830,6 +830,16 @@ bool Host::Impl::start(SDL_Window* win, const HostConfig& config, std::string& e
     error.clear();
     window = win;
     cfg = config;
+    // Some full-path cores accept nonexistent content and boot a BIOS/demo instead.
+    // Keep intentional no-content launches, but never silently lose a requested disc.
+    if (!cfg.contentPath.empty()) {
+        SDL_PathInfo info{};
+        if (!SDL_GetPathInfo(cfg.contentPath.c_str(), &info) || info.type != SDL_PATHTYPE_FILE) {
+            err = error = "Game file is missing or unavailable: " + cfg.contentPath +
+                          ". Reconnect the drive or add/scan the game again at its current location.";
+            return false;
+        }
+    }
     if (!window || !SDL_GL_GetCurrentContext()) {
         err = error = "no current OpenGL context";
         return false;

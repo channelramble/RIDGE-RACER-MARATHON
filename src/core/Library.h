@@ -26,6 +26,7 @@ struct LibraryEntry {
     std::string gameId;
     GameFiles files;
     bool hasFiles() const { return !files.path.empty(); }
+    bool filesAvailable() const;  // recheck moved/deleted files and disconnected drives
     GameSettings settings;
     bool customSettings = false;   // false = use global defaults
     int64_t lastPlayed = 0;
