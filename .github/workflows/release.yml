@@ -14,6 +14,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: release-${{ inputs.tag || github.ref_name }}
+  cancel-in-progress: false
+
 defaults:
   run:
     shell: bash
@@ -22,8 +26,25 @@ env:
   RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
 
 jobs:
+  release-state:
+    name: Check whether release is already published
+    runs-on: ubuntu-latest
+    outputs:
+      build: ${{ steps.state.outputs.build }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test release protection
+        run: node --test .github/scripts/release-state.test.cjs
+      - uses: actions/github-script@v7
+        id: state
+        with:
+          script: |
+            await require('./.github/scripts/release-state.cjs')({github, context, core, tag: process.env.RELEASE_TAG});
+
   runtime-inputs:
     name: Freeze ${{ matrix.platform }} runtime inputs
+    needs: release-state
+    if: needs.release-state.outputs.build == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: write # GitHub requires this to read an unpublished draft's input snapshot.
@@ -83,6 +104,8 @@ jobs:
 
   sources:
     name: Mirror matching backend sources
+    needs: release-state
+    if: needs.release-state.outputs.build == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 120
     steps:
@@ -291,7 +314,14 @@ jobs:
           merge-multiple: true
       - name: Verify release inventory and checksums
         run: python3 .github/scripts/verify-release-inventory.py dist
+      - name: Recheck before uploading release assets
+        id: before-upload
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await require('./.github/scripts/release-state.cjs')({github, context, core, tag: process.env.RELEASE_TAG});
       - uses: softprops/action-gh-release@v2
+        if: steps.before-upload.outputs.build == 'true'
         with:
           tag_name: ${{ env.RELEASE_TAG }}
           target_commitish: ${{ github.sha }}
@@ -302,11 +332,19 @@ jobs:
           fail_on_unmatched_files: true
           preserve_order: true
           files: dist/*
+      - name: Recheck before updating draft metadata
+        id: before-metadata
+        if: steps.before-upload.outputs.build == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await require('./.github/scripts/release-state.cjs')({github, context, core, tag: process.env.RELEASE_TAG});
       - name: Set the existing draft to the tested release commit
+        if: steps.before-metadata.outputs.build == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_COMMIT: ${{ github.sha }}
         run: >-
-          gh release edit "$RELEASE_TAG" --draft=true --target "$RELEASE_COMMIT"
+          gh release edit "$RELEASE_TAG" --target "$RELEASE_COMMIT"
           --title "RIDGE RACER MARATHON $RELEASE_TAG — Complete"
           --notes-file packaging/RELEASE_NOTES.md
