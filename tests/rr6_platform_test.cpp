@@ -40,8 +40,11 @@ int main() {
     persisted.load();
     check(persisted.install(def.id) && persisted.install(def.id)->executable == pathToUtf8(native),
           "failed link does not persist a foreign install");
-    check(backend->linkExisting(library, pathToUtf8(root), error) &&
-          library.install(def.id)->executable == pathToUtf8(native), "mixed directory selects native package");
+    const bool mixedLinked = backend->linkExisting(library, pathToUtf8(root), error);
+    std::error_code pathError;
+    // Windows directory enumeration normalizes separators; compare the actual file.
+    check(mixedLinked && fs::equivalent(utf8ToPath(library.install(def.id)->executable), native, pathError),
+          "mixed directory selects native package");
 
     GameDef game;
     game.id = "ridge-racer-6";
