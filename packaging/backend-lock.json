@@ -232,7 +232,7 @@
     {
       "id": "rave-gcc-homebrew-recipe",
       "local_path": "packaging/source-patches/rave-gcc-homebrew.rb",
-      "sha256": "12bfeec69dce50d92fb20869b4aca8b89e7028b962b656303017331ca5daffdf",
+      "sha256": "5a6fb555af38d80ba1e19d02e0fbc76d8bfaa330192115fb35383fb7f0381be9",
       "archive": "raw",
       "backends": [
         "rave-racer-native"

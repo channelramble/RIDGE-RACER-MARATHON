@@ -4,6 +4,9 @@
 # Shell scripts keep LF everywhere, also in Windows checkouts (Git Bash, WSL, CI).
 *.sh text eol=lf
 
+# Pinned source inputs must have identical bytes in every checkout.
+packaging/source-patches/* text eol=lf
+
 # Binary assets: no line-ending conversion, no text diffs.
 *.ttf  binary
 *.otf  binary
