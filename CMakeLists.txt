@@ -246,6 +246,7 @@ if(RRM_BUILD_TESTS AND NOT ANDROID AND NOT IOS)
         add_test(NAME controller_configs COMMAND controller_configs_test --catalog ${CMAKE_CURRENT_SOURCE_DIR}/catalog)
         add_test(NAME libretro_input COMMAND lr_input_test --catalog ${CMAKE_CURRENT_SOURCE_DIR}/catalog)
         add_test(NAME missing_game_files COMMAND missing_game_files_test)
+        add_test(NAME rr6_platform COMMAND rr6_platform_test)
         add_test(NAME backend_bundle COMMAND ${Python3_EXECUTABLE}
             ${CMAKE_CURRENT_SOURCE_DIR}/tests/backend_bundle_test.py $<TARGET_FILE:bundle_tool>
             ${CMAKE_CURRENT_SOURCE_DIR}/catalog)

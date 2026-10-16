@@ -66,6 +66,19 @@ struct Install {
     fs::path program;  // what Marathon starts: bin/rr6_recomp(.exe), rr6-launcher or rr6_recomp
 };
 
+bool nativeLayout(Layout layout) {
+    if (layout == Layout::WindowsZip) return currentOs() == Os::Windows;
+    if (layout == Layout::LinuxTarball) return currentOs() == Os::Linux;
+    return currentOs() == Os::MacOS;
+}
+
+std::string platformProblem() {
+    if (currentOs() == Os::MacOS)
+        return "Link the native macOS Ridge Racer 6.app build. The Windows .exe and Linux packages cannot run on macOS.";
+    return "Link the Ridge Racer 6 Recomp package for this operating system (" +
+           std::string(osId(currentOs())) + ").";
+}
+
 bool pathExists(const fs::path& p) {
     std::error_code ec;
     return fs::exists(p, ec);
@@ -342,32 +355,45 @@ public:
     }
 
     bool linkExisting(Library& lib, const std::string& path, std::string& error) override {
-        if (Backend::linkExisting(lib, path, error)) return true;
         std::error_code ec;
-        if (!fs::is_directory(utf8ToPath(path), ec)) return false;
-        // The other layouts of the program: the macOS development build's app, a package
-        // without its launcher.
-        for (const char* glob : {"*Contents/MacOS/rr6-launcher", "*Contents/MacOS/rr6_recomp", "*RR6 Launcher.exe",
-                                 "*bin/rr6_recomp.exe", "*ridge-racer-6.sh", "*bin/rr6_recomp"}) {
-            const std::string exe = findInTree(path, glob);
+        auto acceptable = [](const std::string& candidate) {
             Install probe;
-            if (exe.empty() || !locate(exe, probe)) continue;
-            BackendInstall bi;
-            bi.backendId = def_.id;
-            bi.version = "user";
-            bi.root = pathToUtf8(probe.root);
-            bi.executable = exe;
-            bi.userProvided = true;
-            lib.setInstall(bi);
-            lib.save();
-            error.clear();
-            return true;
+            return locate(candidate, probe) && nativeLayout(probe.layout);
+        };
+        std::string exe;
+        if (fs::is_regular_file(utf8ToPath(path), ec)) exe = path;
+        else if (fs::is_directory(utf8ToPath(path), ec)) {
+            // Filter every match, including mixed folders, before changing the saved install.
+            for (const char* glob : {"*Contents/MacOS/rr6-launcher", "*Contents/MacOS/rr6_recomp", "*RR6 Launcher.exe",
+                                     "*rr6_recomp.exe", "*ridge-racer-6.sh", "*rr6_recomp"}) {
+                exe = findInTree(path, glob, 6, acceptable);
+                if (!exe.empty()) break;
+            }
         }
-        return false;
+        Install probe;
+        if (exe.empty() || !locate(exe, probe) || !nativeLayout(probe.layout)) {
+            error = platformProblem();
+            return false;
+        }
+        BackendInstall bi;
+        bi.backendId = def_.id;
+        bi.version = "user";
+        bi.root = pathToUtf8(probe.root);
+        bi.executable = exe;
+        bi.userProvided = true;
+        lib.setInstall(bi);
+        lib.save();
+        error.clear();
+        return true;
     }
 
     std::vector<std::string> missingRequirements(const LaunchRequest& req) const override {
         std::vector<std::string> out = Backend::missingRequirements(req);
+        if (req.library) {
+            Install in;
+            const std::string exe = installedExecutable(*req.library);
+            if (!exe.empty() && locate(exe, in) && !nativeLayout(in.layout)) out.push_back(platformProblem());
+        }
 #if defined(_WIN32)
         // The release's launcher and .bat files check the same two files.
         if (!pathExists(systemFolder() / "vcruntime140_1.dll") || !pathExists(systemFolder() / "msvcp140_atomic_wait.dll"))
@@ -382,6 +408,7 @@ public:
         if (exe.empty()) return emu::fail(def_.name + " is not installed.");
         Install in;
         if (!locate(exe, in)) return emu::fail("Not a Ridge Racer 6 Recompiled program: " + exe);
+        if (!nativeLayout(in.layout)) return emu::fail(platformProblem());
         if (!req.entry || !req.entry->hasFiles()) return emu::fail("Add your Ridge Racer 6 (USA) disc image first.");
 
         const fs::path folder = extractedFolder(req);

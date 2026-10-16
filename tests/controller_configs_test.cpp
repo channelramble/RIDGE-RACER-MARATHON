@@ -926,19 +926,28 @@ void testAdapters(const fs::path& work, const std::string& catalogDir) {
         CHECK(r.info.vibration && !r.info.steering && r.info.players == 2 && !r.info.note.empty());
     }
 
-    // Ridge Racer 6 recomp (the Windows package layout): the package's controller database.
+    // Ridge Racer 6 recomp: the platform's own package/development controller database.
     {
         gameFiles(b, "ridge-racer-6", games / "rr6.iso", "iso");
         const fs::path root = installs / "rr6";
-        const fs::path exe = root / "RR6 Launcher.exe";
+        fs::path exe = root / "RR6 Launcher.exe";
+        fs::path mappings = root / "gamecontrollerdb.txt";
+        if (currentOs() == Os::MacOS) {
+            exe = root / "out/build/rr6_recomp.app/Contents/MacOS/rr6_recomp";
+            writeFile(root / "rr6_recomp_manifest.toml", "# fixture\n");
+            writeFile(root.parent_path() / "game/default.xex", "XEX2");
+        } else if (currentOs() == Os::Linux) {
+            exe = root / "bin/rr6_recomp";
+            mappings = root / "bin/gamecontrollerdb.txt";
+        }
         writeFile(exe, "MZ", true);
         writeFile(root / "bin" / "rr6_recomp.exe", "MZ", true);
         writeFile(root / "game" / "default.xex", "XEX2");
         writeFile(root / "game" / ".rr6-ready", "");
-        writeFile(root / "gamecontrollerdb.txt", "# SDL mappings\n");
+        writeFile(mappings, "# SDL mappings\n");
         install(b, "rr6-recomp", root, exe, false);
         Run r = launch(b, "ridge-racer-6", "rr6-recomp", def, onePad, {{"extra", {{"logInput", true}}}});
-        CHECK_HAS(r.commandLine, "--hid_mappings_file=" + pathToUtf8(root / "gamecontrollerdb.txt") + "\n");
+        CHECK_HAS(r.commandLine, "--hid_mappings_file=" + pathToUtf8(mappings) + "\n");
         CHECK_HAS(r.commandLine, "--rr6_log_input=true\n");
         CHECK_LACKS(r.commandLine, "keybind_");
         CHECK_HAS(r.log, defNote + "left to Ridge Racer 6 (its own controls); controller database");
