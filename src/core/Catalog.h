@@ -67,6 +67,7 @@ struct BackendSource {
     std::string platform;  // "macos-arm64", "windows-x86_64", "linux-x86_64", "android-arm64", "ios-arm64"
     std::string kind;      // "url" | "github" | "bundled" | "external-app" | "user"
     std::string url;       // direct URL (kind=url)
+    std::string sha256;    // optional pinned digest for direct downloads
     std::string repo;      // owner/name (kind=github)
     std::string assetPattern;   // glob for the release asset (kind=github)
     std::string archive;   // "zip" | "7z" | "tar.gz" | "dmg" | "appimage" | "none"

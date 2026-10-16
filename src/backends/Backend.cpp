@@ -89,7 +89,7 @@ bool Backend::install(Library& lib, TaskProgress& progress) {
         return false;
     }
 
-    std::string url = src->url, version = "direct", assetName, expectedSha, sumsUrl;
+    std::string url = src->url, version = "direct", assetName, expectedSha = src->sha256, sumsUrl;
     std::string error;
     if (src->kind == "github") {
         progress.setStage("Looking up the latest " + def_.name + " release");
@@ -125,7 +125,7 @@ bool Backend::install(Library& lib, TaskProgress& progress) {
         progress.fail("Cancelled");
         return false;
     }
-    // Integrity: GitHub's published asset digest, or the release's SHA256SUMS file.
+    // Integrity: a pinned direct-download hash, GitHub asset digest, or release checksums.
     if (expectedSha.empty() && !sumsUrl.empty()) {
         std::string sums, sumsError;
         if (httpGet(sumsUrl, sums, sumsError)) expectedSha = checksumFor(sums, assetName);

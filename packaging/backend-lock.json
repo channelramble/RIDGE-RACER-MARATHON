@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "pinned_at": "2026-10-15",
+  "pinned_at": "2026-10-16",
   "sources": [
     {
       "id": "swanstation",
@@ -190,6 +190,70 @@
       "commit": "829a65d769d935c4852f8159e964312c0957260a",
       "backends": [
         "fukami"
+      ]
+    },
+    {
+      "id": "rave-macos-patch",
+      "local_path": "packaging/source-patches/rave-macos.patch",
+      "sha256": "ce354f52c7e62d14ba5e8656409498b32554c561bc288b842b0950c34d33bd0a",
+      "archive": "raw",
+      "backends": [
+        "rave-racer-native"
+      ],
+      "platforms": [
+        "macos-arm64"
+      ]
+    },
+    {
+      "id": "rave-macos-build-recipe",
+      "local_path": "scripts/build-rave-macos.sh",
+      "sha256": "70c92516bf1e04dd9dac179b1bb63b2e4292a25c90ed6ea34d615c8445181df7",
+      "archive": "raw",
+      "backends": [
+        "rave-racer-native"
+      ],
+      "platforms": [
+        "macos-arm64"
+      ]
+    },
+    {
+      "id": "rave-gcc-darwin-patch",
+      "sha256": "578a78ae0bc62a02f260b6a20c7f23e71deee16ed644e9cb5619247be4df5a71",
+      "archive": "raw",
+      "backends": [
+        "rave-racer-native"
+      ],
+      "platforms": [
+        "macos-arm64"
+      ],
+      "url": "https://raw.githubusercontent.com/Homebrew/homebrew-core/4a334d2f90f786c3fc86cbc9cf72b2f13961b078/Patches/gcc/gcc-16.2.0.diff",
+      "filename": "gcc-16.2.0-darwin.patch"
+    },
+    {
+      "id": "rave-gcc-homebrew-recipe",
+      "local_path": "packaging/source-patches/rave-gcc-homebrew.rb",
+      "sha256": "12bfeec69dce50d92fb20869b4aca8b89e7028b962b656303017331ca5daffdf",
+      "archive": "raw",
+      "backends": [
+        "rave-racer-native"
+      ],
+      "platforms": [
+        "macos-arm64"
+      ]
+    },
+    {
+      "id": "rave-gcc-runtime",
+      "url": "https://ftp.gnu.org/gnu/gcc/gcc-16.2.0/gcc-16.2.0.tar.xz",
+      "sha256": "e6738e29597f733270731aa90600f37ffdc045079dfc27ec7e8192cc81085c3e",
+      "archive": "tar",
+      "backends": [
+        "rave-racer-native"
+      ],
+      "platforms": [
+        "macos-arm64"
+      ],
+      "notes": [
+        "Homebrew GCC 16.2.0; static libgcc division helper. GPL-3.0 with GCC Runtime Library Exception. Darwin patch and installed build recipe are separate source inputs."
       ]
     }
   ],
@@ -917,6 +981,18 @@
       "executable": "Ridge Racer 6.app/Contents/MacOS/rr6-launcher",
       "source": "rr6-recomp-macos",
       "license": "BSD-3-Clause; ReXGlue SDK and dependency licenses"
+    },
+    {
+      "id": "rave-racer-native",
+      "platform": "macos-arm64",
+      "version": "0.9.0-macos-1",
+      "url": "https://github.com/channelramble/RIDGE-RACER-MARATHON/releases/download/backend-inputs-20261016/RaveRacer-macos-arm64.zip",
+      "sha256": "633edf53140f8d483dc5ff354edcb35dbda2e292d9478e1eac2561f1e3b027f6",
+      "size": 2724035,
+      "archive": "zip",
+      "executable": "*/rr",
+      "source": "rave-racer-native",
+      "license": "MIT; SDL2 zlib; GCC runtime exception"
     }
   ],
   "excluded": {
@@ -924,7 +1000,6 @@
     "rage-racer-pc": "Upstream LICENSE.md explicitly reserves copyright; download from upstream through Install.",
     "r4-recomp-linux": "Upstream Linux binary has no redistribution license; download from upstream through Install.",
     "rr1-recomp": "Source-only upstream; build from your own disc and link the result.",
-    "rave-racer-native-macos": "No upstream macOS binary; build locally and link it.",
     "mame-macos-linux": "No upstream standalone package; bundled MAME core is available.",
     "xenia-macos": "No native macOS build."
   }

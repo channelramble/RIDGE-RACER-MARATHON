@@ -94,6 +94,7 @@ BackendDef parseBackend(const json& j) {
             s.platform = platform;
             s.kind = jget<std::string>(sj, "kind", "url");
             s.url = jget<std::string>(sj, "url", "");
+            s.sha256 = jget<std::string>(sj, "sha256", "");
             s.repo = jget<std::string>(sj, "repo", "");
             s.assetPattern = jget<std::string>(sj, "asset", "");
             s.archive = jget<std::string>(sj, "archive", "");

@@ -19,7 +19,7 @@ application-data directory. Importing does not download an emulator or require
 | RR6 native recomp | Included; macOS 14+ | Included | Included; experimental |
 | Fukami / Ridge Racer V recomp | Included; macOS 27+ | Included | Included |
 | R4 recomp setup kit | Included; builds from your disc | Included; builds from your disc | Upstream download only; no redistribution license |
-| Rave Racer native | Source build and Link | Included | Included |
+| Rave Racer native | Included; macOS 14+ | Included | Included |
 | Ridge Racer PS1 recomp | Source build and Link | Source build and Link | No catalog build |
 | Rage Racer PC | Upstream download only | Upstream download only | Upstream download only |
 
@@ -31,7 +31,8 @@ lock, based on already merged upstream source. It is ad-hoc signed, not notarize
 
 Rage Racer PC's `LICENSE.md` reserves copyright, and the Linux R4 build publishes
 no redistribution license. Those two downloads remain upstream-only. RR1 publishes
-source, and Rave Racer has no packaged Mac build; those require a local build.
+source and requires a local build. Rave Racer includes a self-contained Apple Silicon
+build with SDL2 linked in; Homebrew and a compiler are not needed to play.
 The R4 setup kit is included but still downloads its compiler tools and generates
 the game from your disc on first run. These are specific exceptions, not a blanket
 exclusion of native ports. Some Windows backends require Microsoft's Visual C++ x64 runtime.
@@ -57,6 +58,15 @@ preferences from any copy the user already has. Third-party licenses and
 provenance are placed beside the applications, outside signed bundles.
 
 ## Reproducible release inputs
+
+The Apple Silicon Rave Racer runtime is built from namco22-decompile 0.9.0 with
+the Mac portability patch in `packaging/source-patches/rave-macos.patch`. Its SDL2
+dependency is linked statically. To rebuild on an Apple Silicon Mac with Homebrew
+GCC 16, CMake, Ninja and Python, run `scripts/build-rave-macos.sh` with the absolute
+paths to your `raverace.zip`, `namcoc74.zip`, and an output directory. The recipe
+pins both upstream checkouts and packages only the executable, notices and build
+instructions. Build-time ROMs and generated game source stay in the private build
+directory. The release includes the patch, recipe and matching dependency sources.
 
 [`packaging/backend-lock.json`](../packaging/backend-lock.json) pins every runtime
 archive by SHA256 and connects it to an exact source commit. The Libretro server

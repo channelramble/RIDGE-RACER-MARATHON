@@ -2,8 +2,8 @@
 // System 22 program translated to C with an OpenGL renderer.
 //
 // Releases: Windows windows-release-<ver>.zip (RaveRacer.exe among the other
-// games), Linux RaveRacer-x86_64.AppImage. No macOS release; the source builds
-// there with Homebrew GCC + SDL2 (a "user" build Marathon links: raverace/build/rr).
+// games), Linux RaveRacer-x86_64.AppImage, and Marathon's self-contained macOS
+// Apple Silicon build (bare rr with statically linked SDL2).
 //
 // Data folder. The game program reads everything from its working directory:
 // roms/ (MAME 0.271+ raverace.zip and namcoc74.zip), extracted/ (the chips it
@@ -13,7 +13,7 @@
 //   AppImage  its launcher script picks ${XDG_DATA_HOME:-~/.local/share}/
 //             namco-2x-systems/raverace (unless a portable folder sits beside
 //             the AppImage); Marathon sets XDG_DATA_HOME to its own folder.
-//   bare rr   (a local build) Marathon starts it in that same folder.
+//   bare rr   (macOS bundle or local build) starts in that same folder.
 // Marathon rebuilds raverace.zip / namcoc74.zip there from the user's ROMs and
 // edits only the rr_controls.cfg keys it owns (the game itself rewrites single
 // lines the same way). A linked install whose folder is the user's own (Windows,
@@ -99,7 +99,7 @@ Layout layoutFor(const std::string& exe, bool userProvided, const fs::path& mara
         l.data = marathonData;
         return l;
     }
-    // A bare program (local build): everything relative to the working directory.
+    // A bare program: everything relative to the working directory.
     l.data = marathonData;
     l.workingDir = pathToUtf8(marathonData);
     return l;

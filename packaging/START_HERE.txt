@@ -13,12 +13,12 @@ RIDGE RACER MARATHON
 
 RR6's native recomp and Fukami are included on all desktop platforms. R4's setup
 kit is included on macOS and Windows (its first run still downloads build tools
-and compiles from your disc). Windows and Linux also include Rave Racer native.
+and compiles from your disc). Rave Racer native is included on all desktop platforms.
 RR6 needs no separate download or manual linking; the Mac build requires macOS 14+.
-Fukami on Mac requires macOS 27+.
+Rave Racer on Mac requires macOS 14+; Fukami requires macOS 27+.
 
 Rage Racer PC and Linux R4 have no redistribution license: use Backends > Install
-for their upstream downloads. RR1 and Mac Rave Racer require local source builds
+for their upstream downloads. RR1 requires a local source build
 and Link existing. See docs/BUNDLED_BACKENDS.md for the exact platform inventory.
 The included emulators provide an alternative where available. No game data,
 BIOS or console firmware is included. PCSX2 needs your PS2 BIOS; RPCS3 needs the

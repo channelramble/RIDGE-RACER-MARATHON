@@ -1,0 +1,79 @@
+diff --git a/engine/eng_gl.h b/engine/eng_gl.h
+index 46a1c09..e087000 100644
+--- a/engine/eng_gl.h
++++ b/engine/eng_gl.h
+@@ -6,7 +6,14 @@
+ #ifdef _WIN32
+ #include <windows.h>
+ #endif
++#ifdef __APPLE__
++#include <OpenGL/gl.h>
++#ifndef APIENTRY
++#define APIENTRY
++#endif
++#else
+ #include <GL/gl.h>
++#endif
+ #ifndef GL_CLAMP_TO_EDGE
+ #define GL_CLAMP_TO_EDGE 0x812F
+ #endif
+diff --git a/raverace/CMakeLists.txt b/raverace/CMakeLists.txt
+index c0faf00..cf6acf9 100644
+--- a/raverace/CMakeLists.txt
++++ b/raverace/CMakeLists.txt
+@@ -56,8 +56,14 @@ set_source_files_properties(gen/rr_lifted.c PROPERTIES COMPILE_OPTIONS "-O1;-w")
+ # Readable-C replacements (Phase B): every file in src/rd/ registers itself.
+ file(GLOB RD_SRC CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/rd/*.c)
+ 
+-find_package(PkgConfig REQUIRED)
+-pkg_check_modules(SDL2 REQUIRED sdl2)
++if(APPLE)
++  find_package(SDL2 CONFIG REQUIRED)
++  set(SDL2_LIBRARIES SDL2::SDL2-static)
++  add_link_options(-static-libgcc)
++else()
++  find_package(PkgConfig REQUIRED)
++  pkg_check_modules(SDL2 REQUIRED sdl2)
++endif()
+ if(WIN32)
+   set(ZLIB_USE_STATIC_LIBS ON)   # MSYS2's zlib comes as a DLL too: link the static one, or the .exe needs zlib1.dll (CMake 3.24+)
+ endif()
+diff --git a/raverace/src/rr_gl.c b/raverace/src/rr_gl.c
+index 9af691e..ade0e34 100644
+--- a/raverace/src/rr_gl.c
++++ b/raverace/src/rr_gl.c
+@@ -478,7 +478,7 @@ static SDL_GLContext hl_ctx;
+ 
+ bool rr_gl_open_headless(int w, int h)
+ {
+-#ifndef _WIN32                                          /* Windows: SDL's offscreen driver makes OpenGL only through EGL, which Windows lacks -- the hidden window below does */
++#if !defined(_WIN32) && !defined(__APPLE__)               /* Windows/macOS use a hidden native window; SDL offscreen needs EGL. */
+     SDL_SetHint("SDL_VIDEODRIVER", "offscreen");
+     setenv("SDL_VIDEODRIVER", "offscreen", 1);         /* SDL < 2.0.22 reads only the environment */
+ #endif
+diff --git a/raverace/src/rr_host.c b/raverace/src/rr_host.c
+index 39e90fb..af74e58 100644
+--- a/raverace/src/rr_host.c
++++ b/raverace/src/rr_host.c
+@@ -335,6 +335,8 @@ bool rr_host_open(int scale)
+                            SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI |
+                            (g_cfg_fullscreen ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0));
+     if (!win) { fprintf(stderr, "[HOST] window: %s\n", SDL_GetError()); return false; }
++    /* Gameplay uses held keys; text entry is enabled only by the edit fields. */
++    SDL_StopTextInput();
+ #ifdef _WIN32
+     /* Windows: OpenGL through pointers (engine/gl_dyn.c), the bundled Mesa if
+      * the system has no usable driver */
+diff --git a/raverace/src/rr_main.c b/raverace/src/rr_main.c
+index e6ea315..508d7f5 100644
+--- a/raverace/src/rr_main.c
++++ b/raverace/src/rr_main.c
+@@ -24,7 +24,7 @@
+ #include "rr_dsp.h"
+ #include "rr_video.h"
+ #include "rr_gl.h"
+-#include <GL/gl.h>
++#include "eng_gl.h"
+ #include "rr_scene.h"
+ #include "rr_lift_rt.h"
+ #include "lift_cpu.h"

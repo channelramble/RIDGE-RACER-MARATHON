@@ -24,7 +24,7 @@ class BundleTest(unittest.TestCase):
     def test_native_release_inventory(self):
         lock = bundle.load_lock()
         expected = {
-            'macos-arm64': {'rr6-recomp', 'fukami', 'r4-recomp'},
+            'macos-arm64': {'rr6-recomp', 'fukami', 'r4-recomp', 'rave-racer-native'},
             'windows-x86_64': {'rr6-recomp', 'fukami', 'r4-recomp', 'rave-racer-native'},
             'linux-x86_64': {'rr6-recomp', 'fukami', 'rave-racer-native'},
         }
@@ -37,6 +37,15 @@ class BundleTest(unittest.TestCase):
                 self.assertIn(binary['source'], sources)
         rr6 = next(b for b in lock['binaries'] if b['id'] == 'rr6-recomp' and b['platform'] == 'macos-arm64')
         self.assertTrue(rr6['executable'].endswith('.app/Contents/MacOS/rr6-launcher'))
+        rave = next(b for b in lock['binaries'] if b['id'] == 'rave-racer-native' and b['platform'] == 'macos-arm64')
+        catalog = json.loads((ROOT / 'catalog/recomps.json').read_text())
+        source = next(b for b in catalog['backends'] if b['id'] == 'rave-racer-native')['sources']['macos-arm64']
+        self.assertEqual(source['kind'], 'url')
+        for key in ('url', 'sha256', 'archive', 'executable'):
+            self.assertEqual(source[key], rave[key], key)
+        for source in lock['sources']:
+            if source['id'].startswith('rave-') and 'local_path' in source:
+                self.assertEqual(bundle.sha256(ROOT / source['local_path']), source['sha256'])
 
     def test_checkout_annotated_tag_keeps_pinned_object_and_records_commit(self):
         with tempfile.TemporaryDirectory() as temp:

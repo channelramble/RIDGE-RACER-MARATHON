@@ -9,7 +9,7 @@ on:
       tag:
         description: Release tag (must match the CMake project version)
         required: true
-        default: v0.2.1
+        default: v0.2.2
 
 permissions:
   contents: read

@@ -10,7 +10,7 @@ them.
 
 ![Marathon's library: the nine games of the series, each waiting for your own game files](docs/images/library.png)
 
-**Status:** version 0.2.1, an early release. macOS on Apple Silicon is the most
+**Status:** version 0.2.2, an early release. macOS on Apple Silicon is the most
 tested; the Windows and Linux packages are built and checked by CI, but Marathon has
 not been played on Windows or Linux yet; Android and iOS are not buildable yet. See
 [Known limitations](#known-limitations).
@@ -38,7 +38,7 @@ Existing backend installs and saves are preserved.
 
 RR6's native recomp and Fukami are included on all three desktop platforms. The R4
 setup kit is included on macOS and Windows; its first run still compiles from your
-disc. Windows and Linux also include Rave Racer native. No separate RR6 install or
+disc. Rave Racer native is included on all three desktop platforms. No separate RR6 install or
 manual linking is needed. Source-only builds and projects without redistribution
 licenses remain available through **Backends > Install all** or **Link existing**.
 Game files, BIOS and firmware are not included. See the exact
@@ -75,7 +75,7 @@ downloads any.
 | Game | macOS (Apple Silicon) | Windows x64 | Linux x64 | Android | iOS |
 |---|---|---|---|---|---|
 | Ridge Racer (PS1, 1994) | **RR1 Recomp** (your local build) - SwanStation | SwanStation (RR1 Recomp experimental) | SwanStation | SwanStation / PCSX-ReARMed | SwanStation / PCSX-ReARMed |
-| Rave Racer (Arcade, 1995) | **namco22 native port** (your local build) - MAME core | **namco22 native port** - MAME core | **namco22 native port** - MAME core | MAME core | MAME core |
+| Rave Racer (Arcade, 1995) | **namco22 native port** - MAME core | **namco22 native port** - MAME core | **namco22 native port** - MAME core | MAME core | MAME core |
 | Rage Racer (PS1, 1996) | **Rage Racer PC** | **Rage Racer PC** | **Rage Racer PC** | SwanStation / PCSX-ReARMed | SwanStation / PCSX-ReARMed |
 | R4 (PS1, 1998) | **R4 Recomp** | **R4 Recomp** | **R4 Recomp** (AppImage) | SwanStation / PCSX-ReARMed | SwanStation / PCSX-ReARMed |
 | Ridge Racer V (PS2, 2000) | **Fukami recomp** (macOS 27+) - PCSX2 | **Fukami recomp** - PCSX2 | **Fukami recomp** - PCSX2 | ARMSX2 / NetherSX2 app | - (needs JIT) |
