@@ -316,9 +316,15 @@ void checkLibrarySetup(App& a) {
     std::string bytes(512 * 1024, '\0');
     bytes.replace(0x108, 4, "CEX-");
     std::ofstream(bios, std::ios::binary) << bytes;
+    auto selectedBiosIs = [&](const fs::path& expected) {
+        std::error_code error;
+        // Windows adds the drive to a root-relative /tmp fixture during scanning.
+        // Compare the file itself rather than its spelling.
+        return fs::equivalent(utf8ToPath(a.library.systemFile("ps1-bios")), expected, error);
+    };
     a.scanFolder(pathToUtf8(root));
     runFor(500);
-    CHECK(a.library.systemFile("ps1-bios") == pathToUtf8(bios));
+    CHECK(selectedBiosIs(bios));
     const fs::path selected = paths().data / "manual-bios.bin";
     std::ofstream(selected, std::ios::binary) << bytes;
     a.library.setSystemFile("ps1-bios", pathToUtf8(selected));
@@ -328,7 +334,7 @@ void checkLibrarySetup(App& a) {
     fs::remove(selected);
     a.scanFolder(pathToUtf8(root));
     runFor(500);
-    CHECK(a.library.systemFile("ps1-bios") == pathToUtf8(bios));
+    CHECK(selectedBiosIs(bios));
     a.library.setSystemFile("ps1-bios", ""); // synthetic kernel must never be given to a real core
 
     const fs::path exe = root / "r4-runtime";
