@@ -16,12 +16,25 @@ application-data directory. Importing does not download an emulator or require
 | RPCS3 standalone | Included | Included | Included |
 | MAME standalone | Link an installed copy | Included | Link an installed copy |
 | Xenia Canary | No upstream macOS build | Included | Included; experimental |
+| RR6 native recomp | Included; macOS 14+ | Included | Included; experimental |
+| Fukami / Ridge Racer V recomp | Included; macOS 27+ | Included | Included |
+| R4 recomp setup kit | Included; builds from your disc | Included; builds from your disc | Upstream download only; no redistribution license |
+| Rave Racer native | Source build and Link | Included | Included |
+| Ridge Racer PS1 recomp | Source build and Link | Source build and Link | No catalog build |
+| Rage Racer PC | Upstream download only | Upstream download only | Upstream download only |
 
-Game discs, ROMs, Sony BIOS/firmware, and game-derived native executables are not
-included. Supply the relevant games and firmware through the launcher's normal
-setup. Native ports and recompilation projects remain available through the
-catalog's Install or Link actions. Their upstream distributions and requirements
-still apply. Some Windows emulators require Microsoft's Visual C++ x64 runtime.
+Game discs, ROMs and Sony BIOS/firmware are not included. Supply them through the
+launcher's normal setup. Native runtime packages require your own game data;
+bundling the runtime does not include a playable copy of the game. RR6 on Apple
+Silicon uses the tested community build from the contributor fork linked in the
+lock, based on already merged upstream source. It is ad-hoc signed, not notarized.
+
+Rage Racer PC's `LICENSE.md` reserves copyright, and the Linux R4 build publishes
+no redistribution license. Those two downloads remain upstream-only. RR1 publishes
+source, and Rave Racer has no packaged Mac build; those require a local build.
+The R4 setup kit is included but still downloads its compiler tools and generates
+the game from your disc on first run. These are specific exceptions, not a blanket
+exclusion of native ports. Some Windows backends require Microsoft's Visual C++ x64 runtime.
 Run `Install Windows Runtime.cmd` beside the Windows launcher if it is missing.
 The helper downloads a pinned installer directly from Microsoft, checks SHA256
 and Microsoft's signature, and opens the normal interactive installer. This

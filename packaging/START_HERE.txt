@@ -5,14 +5,21 @@ RIDGE RACER MARATHON
    Linux: run bin/RidgeRacerMarathon.
 
 2. On first launch, the Complete package automatically installs its included
-   emulators into your user data folder. Wait for "Setting up included backends"
+   emulators and native ports into your user data folder. Wait for "Setting up included backends"
    to finish. This step works offline and keeps your existing backend installs.
 
 3. Add games > Scan a folder, select your own game files, and accept the results.
    Pick a game and press Play. Controllers work in the menus and games.
 
-Native ports/recompilations which cannot be redistributed are available through
-Backends > Install all (internet required), or Link existing for your own builds.
+RR6's native recomp and Fukami are included on all desktop platforms. R4's setup
+kit is included on macOS and Windows (its first run still downloads build tools
+and compiles from your disc). Windows and Linux also include Rave Racer native.
+RR6 needs no separate download or manual linking; the Mac build requires macOS 14+.
+Fukami on Mac requires macOS 27+.
+
+Rage Racer PC and Linux R4 have no redistribution license: use Backends > Install
+for their upstream downloads. RR1 and Mac Rave Racer require local source builds
+and Link existing. See docs/BUNDLED_BACKENDS.md for the exact platform inventory.
 The included emulators provide an alternative where available. No game data,
 BIOS or console firmware is included. PCSX2 needs your PS2 BIOS; RPCS3 needs the
 official PS3 system software. Add those through Marathon's system-file settings.

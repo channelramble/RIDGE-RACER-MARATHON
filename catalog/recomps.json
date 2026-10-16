@@ -248,7 +248,8 @@
       },
       "params": {
         "nativeHeight": 720,
-        "prerelease": true
+        "prerelease": true,
+        "minMacos": 14
       },
       "sources": {
         "windows-x86_64": {
@@ -268,9 +269,12 @@
           "note": "Experimental Vulkan test build (pre-release); needs glibc 2.35+."
         },
         "macos-arm64": {
-          "kind": "user",
+          "kind": "github",
+          "repo": "channelramble/RidgeRacer6-Recompilation",
+          "asset": "RidgeRacer6-macOS-arm64-test.zip",
+          "archive": "zip",
           "executable": "*Contents/MacOS/rr6-launcher",
-          "note": "No macOS download: build it yourself (BUILDING.md, macOS: Xcode 16+, CMake, Ninja, the SDK fork's rr6 branch beside the repo; ./build-macos.sh \"<your USA ISO>\", then ./macos/make-package.sh) and link \"Ridge Racer 6.app\" from dist/RidgeRacer6-macOS-arm64-test.zip. The development build's rr6_recomp.app can be linked too."
+          "note": "Native Apple Silicon community build; included in Complete packages. Requires macOS 14+. First launch imports your USA ISO. Ad-hoc signed, not notarized."
         }
       }
     }

@@ -33,6 +33,10 @@ def main():
         load_core(args.load_core)
         return
     manifest = json.loads((args.bundle / "manifest.json").read_text())
+    lock = json.loads((args.bundle / "backend-lock.json").read_text())
+    expected = {b["id"] for b in lock["binaries"] if b["platform"] == manifest["platform"]}
+    actual = [b["id"] for b in manifest["entries"]]
+    assert set(actual) == expected and len(actual) == len(expected), "Bundle differs from reviewed backend inventory"
     library = json.loads((args.data / "library.json").read_text())
     assert manifest["entries"], "Complete package contains no backends"
     assert not library["games"], "Fresh setup unexpectedly contains games"

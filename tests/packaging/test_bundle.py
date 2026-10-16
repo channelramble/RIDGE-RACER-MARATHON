@@ -21,6 +21,23 @@ spec.loader.exec_module(bundle)
 
 
 class BundleTest(unittest.TestCase):
+    def test_native_release_inventory(self):
+        lock = bundle.load_lock()
+        expected = {
+            'macos-arm64': {'rr6-recomp', 'fukami', 'r4-recomp'},
+            'windows-x86_64': {'rr6-recomp', 'fukami', 'r4-recomp', 'rave-racer-native'},
+            'linux-x86_64': {'rr6-recomp', 'fukami', 'rave-racer-native'},
+        }
+        for platform, required in expected.items():
+            entries = [b for b in lock['binaries'] if b['platform'] == platform]
+            self.assertTrue(required <= {b['id'] for b in entries})
+            self.assertEqual(len(entries), len({b['id'] for b in entries}))
+            for binary in entries:
+                sources = [s['id'] for s in lock['sources'] if bundle.applicable(s, binary)]
+                self.assertIn(binary['source'], sources)
+        rr6 = next(b for b in lock['binaries'] if b['id'] == 'rr6-recomp' and b['platform'] == 'macos-arm64')
+        self.assertTrue(rr6['executable'].endswith('.app/Contents/MacOS/rr6-launcher'))
+
     def test_checkout_annotated_tag_keeps_pinned_object_and_records_commit(self):
         with tempfile.TemporaryDirectory() as temp:
             base = Path(temp)
@@ -176,7 +193,7 @@ class BundleTest(unittest.TestCase):
         lock = bundle.load_lock()
         keys = [(b['id'], b['platform']) for b in lock['binaries']]
         self.assertEqual(len(keys), len(set(keys)))
-        self.assertEqual(len({b['id'] for b in lock['binaries']}), 9)
+        self.assertEqual(len({b['id'] for b in lock['binaries']}), 13)
         self.assertEqual({b['platform'] for b in lock['binaries']}, {'macos-arm64', 'windows-x86_64', 'linux-x86_64'})
         for binary in lock['binaries']:
             source = next(s for s in lock['sources'] if s['id'] == binary['source'])

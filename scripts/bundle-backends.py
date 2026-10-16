@@ -101,6 +101,9 @@ def load_lock():
             raise ValueError(f'Binary is not pinned: {binary["id"]}')
         if binary['source'] not in ids:
             raise ValueError(f'Missing source: {binary["source"]}')
+        for source_id in binary.get('additional_sources', []):
+            if source_id not in ids:
+                raise ValueError(f'Missing additional source: {source_id}')
     return lock
 
 
@@ -412,7 +415,7 @@ def build_sources(args, lock):
 
 
 def applicable(source, binary):
-    return binary['id'] in source.get('backends', []) and (not source.get('platforms') or binary['platform'] in source['platforms'])
+    return (binary['id'] in source.get('backends', []) or source['id'] in binary.get('additional_sources', [])) and (not source.get('platforms') or binary['platform'] in source['platforms'])
 
 
 def find_executable(tree, pattern):

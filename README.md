@@ -10,7 +10,7 @@ them.
 
 ![Marathon's library: the nine games of the series, each waiting for your own game files](docs/images/library.png)
 
-**Status:** version 0.2.0, an early release. macOS on Apple Silicon is the most
+**Status:** version 0.2.1, an early release. macOS on Apple Silicon is the most
 tested; the Windows and Linux packages are built and checked by CI, but Marathon has
 not been played on Windows or Linux yet; Android and iOS are not buildable yet. See
 [Known limitations](#known-limitations).
@@ -31,13 +31,16 @@ Get the newest package for your system from the
   `RidgeRacerMarathon-linux-x64.tar.gz`. Extract it and run
   `RidgeRacerMarathon/bin/RidgeRacerMarathon`.
 
-These are **Complete packages**: the redistributable emulator backends are included
+These are **Complete packages**: the redistributable emulator and native backends are included
 and set up automatically on first launch, without downloading them again. Extract
 the whole archive and wait for the setup progress to finish, then add your games.
 Existing backend installs and saves are preserved.
 
-Native ports and recompilations with upstream-only distribution or builds generated
-from your disc remain available through **Backends > Install all** or **Link existing**.
+RR6's native recomp and Fukami are included on all three desktop platforms. The R4
+setup kit is included on macOS and Windows; its first run still compiles from your
+disc. Windows and Linux also include Rave Racer native. No separate RR6 install or
+manual linking is needed. Source-only builds and projects without redistribution
+licenses remain available through **Backends > Install all** or **Link existing**.
 Game files, BIOS and firmware are not included. See the exact
 [bundle contents and exclusions](docs/BUNDLED_BACKENDS.md); the matching backend
 source archives are on the same release page, but are not needed to play.
@@ -124,8 +127,9 @@ The Android and iOS packages are not buildable yet ([docs/BUILDING.md](docs/BUIL
 - **Ridge Racer 7 ultrawide** has been checked on captured frames, not on a real
   ultrawide monitor. It needs fullscreen on a screen wider than 16:9 and stretches the
   2D HUD.
-- **Ridge Racer 6 recompilation on macOS** runs races at about 28-58 fps on an Apple M4.
-  Its game speed follows the frame rate, so races run slower than full speed there.
+- **Ridge Racer 6 recompilation on macOS**: the bundled Apple Silicon build reached
+  56.6–60 fps in short 720p race samples on an M4 Pro. Shader-compilation stalls
+  remain; slower Macs can run below full speed. Requires macOS 14 or newer.
 - **macOS package:** ad-hoc signed unless built with a Developer ID, so Gatekeeper asks
   for confirmation on the first start (System Settings > Privacy & Security > Open Anyway).
 - **Controllers** ([details](docs/CONTROLLERS.md)): the Ridge Racer recompilation reads the

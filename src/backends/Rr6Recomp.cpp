@@ -7,7 +7,7 @@
 //                  rexgpu-xenos.dll, rr6_recomp.toml), <pkg>/tools/prepare-game.ps1
 //   Linux tarball  <pkg>/ridge-racer-6.sh, <pkg>/bin/rr6_recomp (+ librexruntime.so,
 //                  librexgpu-xenos.so, rr6-extract); rr6_recomp.toml only after a first start
-//   macOS, built by the user (there is no release asset):
+//   macOS, bundled community release or a user build:
 //     packaged     "Ridge Racer 6.app"/Contents/MacOS/rr6-launcher (macos/make-package.sh).
 //                  "rr6-launcher [iso] --play -- <cvars>" copies the game out of the ISO into
 //                  ~/Library/Application Support/Ridge Racer 6/game when needed, then execs
